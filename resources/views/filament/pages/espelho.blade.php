@@ -1,19 +1,94 @@
 <x-filament::page class="bg-gray-50 dark:bg-gray-800 ">
-<div class="mt-8 bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden w-full"> 
-        <div class="flex justify-center mt-4">
-            <div class="bg-white dark:bg-gray-600 p-4 rounded-lg shadow w-1/2">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Adicionar Período:</label>
-                <div class="mt-2">
-                    <input type="date" wire:model="novo_periodo_inicio" required class="mt-1 block w-full dark:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
-                    <input type="date" wire:model="novo_periodo_fim" required class="mt-1 block w-full dark:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
-                </div>
-                <button wire:click="adicionarPeriodo" class="mt-4 bg-blue-500 dark:bg-blue-600 text-white rounded-md px-4 py-2">Adicionar Período</button>
-            </div>
+    <div class="flex flex-col items-center mt-8">
+        <div class="flex space-x-4 mb-4">
+            <button 
+                wire:click="$set('previewMode', false)" 
+                class="px-4 py-2 text-white rounded-md" 
+                :class="{ 'bg-blue-500': !previewMode, 'bg-red-500': previewMode }">
+                Principal
+            </button>
+            <button 
+                wire:click="togglePreview" 
+                class="px-4 py-2 text-white rounded-md" 
+                :class="{ 'bg-blue-500': previewMode, 'bg-red-500': !previewMode }">
+                Preview
+            </button>
         </div>
-  
+       
+        <div class="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden w-full"> 
+            @if($this->hasEventosTemporarios())
+                <div class="fixed bottom-4 right-4 z-50">
+                    <x-filament::button
+                        color="success"
+                        size="lg"
+                        wire:click="confirmarAlteracoes"
+                        class="shadow-lg"
+                    >
+                        <span class="flex items-center gap-2">
+                            <x-heroicon-s-check class="w-5 h-5" />
+                            Salvar Todas as Alterações
+                        </span>
+                    </x-filament::button>
+                </div>
+            @endif
 
-        @include('filament.pages.components.PlantaoUrgencia.PlantaoUrgencia', ['plantoes' => $this->plantoes])
+            @if(!$previewMode)
+                <div class="flex justify-center mt-4">
+                    <div class="bg-white dark:bg-gray-600 p-4 rounded-lg shadow-md w-1/3">
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Adicionar Período</label>
+                        <div class="space-y-2">
+                            <div x-data="{ 
+                                    inicio: localStorage.getItem('periodo_inicio') || '',
+                                    fim: localStorage.getItem('periodo_fim') || '',
+                                    updatePreview() {
+                                        this.inicio = $wire.novo_periodo_inicio;
+                                        this.fim = $wire.novo_periodo_fim;
+                                        localStorage.setItem('periodo_inicio', this.inicio);
+                                        localStorage.setItem('periodo_fim', this.fim);
+                                    }
+                                }" x-on:date-updated.window="updatePreview()">
+                                <div class="relative">
+                                    <input 
+                                            type="date" 
+                                            wire:model="novo_periodo_inicio" 
+                                            x-on:change="updatePreview(); $dispatch('date-updated')"
+                                            :value="inicio"
+                                            required 
+                                        class="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 text-sm">
+                                    
+                                    <input 
+                                    type="date" 
+                                    wire:model="novo_periodo_fim" 
+                                    x-on:change="updatePreview(); $dispatch('date-updated')"
+                                    :value="fim"
+                                    required 
+                                        class="mt-2 w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 text-sm">
+                                </div>
+                               
+                            </div>
+                            
+                            <button 
+                                wire:click="adicionarPeriodo" 
+                                class="w-full mt-2 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-md transition-colors dark:bg-blue-600 dark:hover:bg-blue-700">
+                                Adicionar Período
+                            </button>
+                        </div>
+                    </div>
+                </div>
+        
+        </div>
+        <div>
+            @include('filament.pages.components.Preview.espelho-preview', ['xData' => '$data'])
+        </div>
+        @endif
 
+        @if(!$previewMode)
+        <div >
+            @include('filament.pages.components.PlantaoUrgencia.PlantaoUrgencia', ['plantoes' => $this->plantoes])
+        </div>
+        @endif
+
+        @if(!$previewMode)
         <div class="space-y-6 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm">
         
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-600">
@@ -64,6 +139,29 @@
                                         Adicionar <span class="ml-1">+</span>
                                     </button>
                                 @else
+                                    @if($this->hasEventosTemporarios())
+                                        @foreach ($eventosTemporarios as $index => $evento)
+                                            @if($evento['promotor_id'] == $promotoriasGroup->first()->promotor_id)
+                                                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-600 rounded-lg mb-2">
+                                                    <span class="text-sm text-gray-600 dark:text-gray-300">
+                                                        {{ $evento['titulo'] ?: 'Novo Evento' }} - {{ $evento['tipo'] ?: 'Tipo não definido' }}
+                                                    </span>
+                                                    <div class="flex space-x-2">
+                                                        <button wire:click="editEventoTemporario({{ $index }})" class="text-blue-600 hover:text-blue-800">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                            </svg>
+                                                        </button>
+                                                        <button wire:click="removeEventoTemporario({{ $index }})" class="text-red-600 hover:text-red-800">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    @endif
                                     @foreach ($promotoriasGroup as $promotoria)
                                         <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-600 rounded-lg mb-2">
                                             <span class="text-sm text-gray-600 dark:text-gray-300">{{ $promotoria->evento }}</span>
@@ -90,6 +188,15 @@
                 </table>
             </div>
         </div>
+        @endif
+        <!-- Fazer o preview dos eventos -->
+        @if($previewMode)
+        <div>
+            @include('filament.pages.components.Preview.espelho-preview', ['xData' => '$data'])
+        </div>
+        @endif
+         
+
     </div>
 </x-filament::page>
 <script>
@@ -97,7 +204,7 @@
         const startDate = document.getElementById('periodo_inicio').value;
         const endDateInput = document.getElementById('periodo_fim');
         if (startDate) {
-            endDateInput.value = startDate; // Define a data final como a data inicial
+            endDateInput.value = startDate; 
         }
     }
 
@@ -105,8 +212,14 @@
         const startDate = document.getElementById('periodo_inicio').value;
         const endDateInput = document.getElementById('periodo_fim');
         if (startDate) {
-            endDateInput.classList.add('bg-blue-100'); // Adiciona uma classe para destacar
+            endDateInput.classList.add('bg-blue-100'); 
         }
     }
+
+
+    function PreviewEventos() {
+        console.log('PreviewEventos');
+    }
 </script>
+
 

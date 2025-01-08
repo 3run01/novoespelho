@@ -62,8 +62,11 @@
             Cancelar
         </x-filament::button>
 
-        <x-filament::button wire:click="updateEvento({{ $promotoria->evento_id }})" x-on:click="close">
-            Atualizar
+        <x-filament::button 
+            wire:click="{{ $previewMode ? 'updateEventoPreview' : 'updateEvento' }}({{ $promotoria->evento_id }})" 
+            x-on:click="close"
+        >
+            {{ $previewMode ? 'Atualizar Preview' : 'Atualizar' }}
         </x-filament::button>
     </x-slot>
 </x-filament::modal>

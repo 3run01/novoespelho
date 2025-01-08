@@ -62,9 +62,8 @@
             Cancelar
         </x-filament::button>
 
-        <x-filament::button wire:click="salvarEvento"
-        onclick="setTimeout(() => { location.reload(); }, 10);" >
-            Salvar
+        <x-filament::button wire:click="salvarEvento">
+            {{ $previewMode ? 'Adicionar ao Preview' : 'Salvar' }}
         </x-filament::button>
     </x-slot>
 </x-filament::modal>

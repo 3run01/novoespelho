@@ -18,7 +18,7 @@ use App\Http\Controllers\EventoController;
 use App\Http\Controllers\PlantaoUrgenciaController;
 use App\Models\Historico; 
 use App\Models\Periodo;
-
+use Livewire\Component;
 
 class Espelho extends Page
 {
@@ -31,19 +31,22 @@ class Espelho extends Page
     public $promotorias;
     public $titulo;
     public $tipo;
-    public $periodo_inicio;
-    public $periodo_fim;
-    public $promotor_designado;
-    public $promotor_titular;
-    public $promotoria_id;
+    public $periodo_inicio ='';
+    public $periodo_fim = '';
+    public $promotor_designado = '';
+    public $promotor_titular = '';
+    public $promotoria_id = '';
     public $is_urgente = false;
     public $isModalOpen = false;
     public $editingEvento = null;
-    public $plantoes;
-    public $periodos;
-    public $novo_periodo_inicio;
-    public $novo_periodo_fim;
-    public $preview = false;
+    public $plantoes = '';
+    public $periodos = '';
+    public $novo_periodo_inicio = '';
+    public $novo_periodo_fim = '';
+    public $previewMode = false;
+    public $eventosTemporarios = [];
+    public $plantoesTemporarios = [];
+    public $periodosTemporarios = [];
     protected $rules = [
         'titulo' => 'required',
         'tipo' => 'required',
@@ -63,19 +66,11 @@ class Espelho extends Page
         $this->plantoes = $plantaoController->listarPlantaoUrgencia();
 
         $this->periodos = Periodo::all();
+
+        
     }
 
 
-    
-    public function previewPeriodo()
-    {
-        $this->preview = true; 
-    }
-
-    public function cancelPreview()
-    {
-        $this->preview = false; 
-    }
     
 
     public function setPromotorTitular($promotorId, $promotoriaId)
@@ -122,46 +117,34 @@ class Espelho extends Page
 
     public function salvarEvento()
 {
-    $this->validate(); // Validate all fields
+    $this->validate();
 
-    $latestPeriodo = Periodo::orderBy('id', 'desc')->first(); 
-    if (!$latestPeriodo) {
-        Notification::make()
-            ->title('Erro ao salvar evento')
-            ->body('Nenhum período disponível para associar ao evento.')
-            ->danger()
-            ->send();
-        return;
-    }
-
-    \Log::info('Latest Periodo ID: ' . $latestPeriodo->id);
-
-    $eventoController = new EventoController();
-    $response = $eventoController->salvarEvento([
+    // Adiciona o evento ao array temporário com todos os campos necessários
+    $novoEvento = [
+        'promotor_id' => $this->promotor_titular,
         'titulo' => $this->titulo,
         'tipo' => $this->tipo,
-        'periodo_id' => $latestPeriodo->id, 
         'periodo_inicio' => $this->periodo_inicio,
         'periodo_fim' => $this->periodo_fim,
         'promotor_titular' => $this->promotor_titular,
         'promotor_designado' => $this->promotor_designado,
         'promotoria_id' => $this->promotoria_id,
-        'is_urgente' => $this->is_urgente,
-    ]);
+        'is_urgente' => $this->is_urgente ?? false
+    ];
 
-    if ($response['status'] === 'success') {
-        $this->reset(['titulo', 'tipo', 'periodo_inicio', 'periodo_fim', 'promotor_designado', 'promotor_titular']);
-        Notification::make()
-            ->title($response['message'])
-            ->success()
-            ->send();
-    } else {
-        Notification::make()
-            ->title('Erro ao salvar evento')
-            ->body($response['message'])
-            ->danger()
-            ->send();
-    } 
+    $this->eventosTemporarios[] = $novoEvento;
+
+    // Limpa os campos do formulário
+    $this->reset(['titulo', 'tipo', 'periodo_inicio', 'periodo_fim', 'promotor_designado']);
+    
+    // Fecha o modal
+    $this->closeModal();
+
+    // Notifica o usuário
+    Notification::make()
+        ->title('Evento adicionado ao preview')
+        ->success()
+        ->send();
 }
 
     public function updateEvento($id)
@@ -360,4 +343,178 @@ class Espelho extends Page
         // Optionally, you can add a success message or redirect
     }
 
+    public function confirmarAlteracoes()
+    {
+        try {
+            DB::beginTransaction();
+
+            $ultimoPeriodo = Periodo::orderBy('id', 'desc')->first();
+            
+            if (!$ultimoPeriodo) {
+                throw new \Exception('Nenhum período encontrado. Por favor, cadastre um período primeiro.');
+            }
+
+            foreach ($this->eventosTemporarios as $evento) {
+                DB::table('eventos')->insert([
+                    'titulo' => $evento['titulo'],
+                    'tipo' => $evento['tipo'],
+                    'periodo_inicio' => $evento['periodo_inicio'],
+                    'periodo_fim' => $evento['periodo_fim'],
+                    'promotor_titular_id' => $evento['promotor_titular'],
+                    'promotor_designado_id' => $evento['promotor_designado'],
+                    'promotoria_id' => $evento['promotoria_id'],
+                    'is_urgente' => $evento['is_urgente'] ?? false,
+                    'periodo_id' => $ultimoPeriodo->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            DB::commit();
+
+            // Limpar dados temporários
+            $this->eventosTemporarios = [];
+            $this->periodosTemporarios = [];
+            $this->previewMode = false;
+
+            // Notificar sucesso
+            Notification::make()
+                ->title('Alterações salvas com sucesso!')
+                ->success()
+                ->send();
+
+            // Recarregar os dados
+            $this->mount();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Notification::make()
+                ->title('Erro ao salvar as alterações')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+
+            \Log::error('Erro ao salvar alterações: ' . $e->getMessage());
+        }
+    }
+
+    public function hasAlteracoesPendentes()
+    {
+        return !empty($this->eventosTemporarios) || !empty($this->periodosTemporarios);
+    }
+
+    public function cancelarPreview()
+    {
+        $this->eventosTemporarios = [];
+        $this->periodosTemporarios = [];
+        $this->previewMode = false;
+    }
+
+    public function togglePreview()
+    {
+        $this->previewMode = !$this->previewMode;
+    }
+
+    public function addEventoTemporario($promotorId)
+    {
+        $this->eventosTemporarios[] = [
+            'promotor_id' => $promotorId,
+            'titulo' => '', 
+            'tipo' => '', 
+            'periodo_inicio' => null,
+            'periodo_fim' => null,
+            'promotor_titular' => $promotorId,
+            'promotor_designado' => '',
+            'promotoria_id' => '',
+            'is_urgente' => false
+        ];
+
+        $this->isModalOpen = true;
+    }
+    public function editEventoTemporario($index)
+    {
+        $evento = $this->eventosTemporarios[$index];
+        
+        $this->titulo = $evento['titulo'];
+        $this->tipo = $evento['tipo'];
+        $this->periodo_inicio = $evento['periodo_inicio'];
+        $this->periodo_fim = $evento['periodo_fim'];
+        $this->promotor_titular = $evento['promotor_titular'];
+        $this->promotor_designado = $evento['promotor_designado'];
+        $this->promotoria_id = $evento['promotoria_id'];
+        $this->is_urgente = $evento['is_urgente'] ?? false;
+        
+        // Armazena o índice do evento sendo editado para uso posterior
+        $this->editingEventoIndex = $index;
+    }
+    
+    public function updateEventoPreview()
+    {
+        $this->validate([
+            'titulo' => 'required',
+            'tipo' => 'required',
+            'periodo_inicio' => 'required|date',
+            'periodo_fim' => 'required|date',
+            'promotor_designado' => 'required',
+        ]);
+    
+        // Atualiza o evento no array temporário
+        $this->eventosTemporarios[$this->editingEventoIndex] = [
+            'titulo' => $this->titulo,
+            'tipo' => $this->tipo,
+            'periodo_inicio' => $this->periodo_inicio,
+            'periodo_fim' => $this->periodo_fim,
+            'promotor_titular' => $this->promotor_titular,
+            'promotor_designado' => $this->promotor_designado,
+            'promotoria_id' => $this->promotoria_id,
+            'is_urgente' => $this->is_urgente ?? false,
+        ];
+    
+        // Limpa os campos do formulário
+        $this->reset([
+            'titulo',
+            'tipo',
+            'periodo_inicio',
+            'periodo_fim',
+            'promotor_designado',
+            'editingEventoIndex'
+        ]);
+    
+        // Fecha o modal
+        $this->closeModal();
+    
+        Notification::make()
+            ->title('Evento atualizado no preview')
+            ->success()
+            ->send();
+    }
+
+    public function removeEventoTemporario($index)
+    {
+        // Remove um evento do array temporário
+        unset($this->eventosTemporarios[$index]);
+        $this->eventosTemporarios = array_values($this->eventosTemporarios);
+    }
+
+    public function adicionarPeriodoTemporario()
+    {
+        $this->validate([
+            'novo_periodo_inicio' => 'required|date',
+            'novo_periodo_fim' => 'required|date|after_or_equal:novo_periodo_inicio',
+        ]);
+
+        $this->periodosTemporarios[] = [
+            'periodo_inicio' => $this->novo_periodo_inicio,
+            'periodo_fim' => $this->novo_periodo_fim,
+        ];
+
+        $this->novo_periodo_inicio = null;
+        $this->novo_periodo_fim = null;
+    }
+
+    public function hasEventosTemporarios()
+    {
+        return !empty($this->eventosTemporarios);
+    }
 }

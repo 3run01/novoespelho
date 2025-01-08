@@ -9,7 +9,6 @@ class MunicipioSeeder extends Seeder
 {
     public function run(): void
     {
-        // Inserir Municípios
         DB::table('municipios')->insert([
             ['nome' => 'Brasilia'],
             ['nome' => 'São Paulo'],
@@ -18,7 +17,6 @@ class MunicipioSeeder extends Seeder
             ['nome' => 'Salvador'],
         ]);
 
-        // Inserir Grupos de Promotoria
         DB::table('grupo_promotorias')->insert([
             ['nome' => 'Grupo de Brasilia', 'municipios_id' => DB::table('municipios')->where('nome', 'Brasilia')->value('id')],
             ['nome' => 'Grupo de São Paulo', 'municipios_id' => DB::table('municipios')->where('nome', 'São Paulo')->value('id')],
@@ -27,7 +25,6 @@ class MunicipioSeeder extends Seeder
             ['nome' => 'Grupo de Salvador', 'municipios_id' => DB::table('municipios')->where('nome', 'Salvador')->value('id')],
         ]);
 
-        // Inserir Promotores
         DB::table('promotores')->insert([
             ['nome' => 'Carlos Marcos Paulo', 'is_substituto' => false],
             ['nome' => 'João Silva', 'is_substituto' => false],
@@ -36,7 +33,6 @@ class MunicipioSeeder extends Seeder
             ['nome' => 'Pedro Santos', 'is_substituto' => false],
         ]);
 
-        // Inserir Promotorias
         DB::table('promotorias')->insert([
             ['nome' => 'Promotoria de Brasilia', 'promotor_id' => DB::table('promotores')->where('nome', 'Carlos Marcos Paulo')->value('id'), 'grupo_promotoria_id' => DB::table('grupo_promotorias')->where('nome', 'Grupo de Brasilia')->value('id')],
             ['nome' => 'Promotoria de São Paulo', 'promotor_id' => DB::table('promotores')->where('nome', 'João Silva')->value('id'), 'grupo_promotoria_id' => DB::table('grupo_promotorias')->where('nome', 'Grupo de São Paulo')->value('id')],
