@@ -1,16 +1,21 @@
 <x-filament::page class="bg-gray-50 dark:bg-gray-800 ">
-    <div class="flex flex-col items-center mt-8">
+    <div x-data="{ 
+        previewMode: @entangle('previewMode'),
+        init() {
+            $watch('previewMode', value => console.log('Preview mode:', value))
+        }
+    }" class="flex flex-col items-center mt-8">
         <div class="flex space-x-4 mb-4">
             <button 
                 wire:click="$set('previewMode', false)" 
                 class="px-4 py-2 text-white rounded-md" 
-                :class="{ 'bg-blue-500': !previewMode, 'bg-red-500': previewMode }">
+                :class="{ 'bg-blue-500 hover:bg-blue-600': !previewMode, 'bg-gray-500': previewMode }">
                 Principal
             </button>
             <button 
                 wire:click="togglePreview" 
                 class="px-4 py-2 text-white rounded-md" 
-                :class="{ 'bg-blue-500': previewMode, 'bg-red-500': !previewMode }">
+                :class="{ 'bg-blue-500 hover:bg-blue-600': previewMode, 'bg-gray-500': !previewMode }">
                 Preview
             </button>
         </div>
@@ -139,19 +144,21 @@
                                         Adicionar <span class="ml-1">+</span>
                                     </button>
                                 @else
+                                    <!-- Eventos Temporários -->
                                     @if($this->hasEventosTemporarios())
                                         @foreach ($eventosTemporarios as $index => $evento)
-                                            @if($evento['promotor_id'] == $promotoriasGroup->first()->promotor_id)
+                                            @if(isset($evento['promotor_id']) && $evento['promotor_id'] == $promotoriasGroup->first()->promotor_id)
                                                 <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-600 rounded-lg mb-2">
                                                     <span class="text-sm text-gray-600 dark:text-gray-300">
-                                                        {{ $evento['titulo'] ?: 'Novo Evento' }} - {{ $evento['tipo'] ?: 'Tipo não definido' }}
+                                                        {{ $evento['titulo'] ?? 'Novo Evento' }} - {{ $evento['tipo'] ?? 'Tipo não definido' }}
+                                                        <span class="ml-2 text-xs text-blue-500">(Preview)</span>
                                                     </span>
                                                     <div class="flex space-x-2">
-                                                        <button wire:click="editEventoTemporario({{ $index }})" class="text-blue-600 hover:text-blue-800">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                            </svg>
-                                                        </button>
+                                                        @include('filament.pages.components.Modal.EditModalEventoTemporario', [
+                                                            'index' => $index,
+                                                            'evento' => $evento,
+                                                            'isTemporary' => true
+                                                        ])
                                                         <button wire:click="removeEventoTemporario({{ $index }})" class="text-red-600 hover:text-red-800">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -162,10 +169,12 @@
                                             @endif
                                         @endforeach
                                     @endif
+
+                                    <!-- Eventos Existentes -->
                                     @foreach ($promotoriasGroup as $promotoria)
-                                        <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-600 rounded-lg mb-2">
-                                            <span class="text-sm text-gray-600 dark:text-gray-300">{{ $promotoria->evento }}</span>
-                                            @if($promotoria->evento)
+                                        @if($promotoria->evento)
+                                            <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-600 rounded-lg mb-2">
+                                                <span class="text-sm text-gray-600 dark:text-gray-300">{{ $promotoria->evento }}</span>
                                                 <div class="flex space-x-2">
                                                     @include('filament.pages.components.Modal.EditModalEvento', ['evento' => $promotoria])
                                                     <button
@@ -176,10 +185,14 @@
                                                         Excluir
                                                     </button>
                                                 </div>
-                                            @endif
-                                        </div>
+                                            </div>
+                                        @endif
                                     @endforeach
-                                    @include('filament.pages.components.Modal.ModalEvento', ['promotoria' => $promotoria])
+
+                                    <!-- Botão para adicionar novo evento -->
+                                    <div class="mt-2">
+                                        @include('filament.pages.components.Modal.ModalEvento', ['promotoria' => $promotoria])
+                                    </div>
                                 @endif
                             </td>
                         </tr>

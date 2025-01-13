@@ -47,6 +47,7 @@ class Espelho extends Page
     public $eventosTemporarios = [];
     public $plantoesTemporarios = [];
     public $periodosTemporarios = [];
+    public $previewModePlantao = false;
     protected $rules = [
         'titulo' => 'required',
         'tipo' => 'required',
@@ -244,49 +245,47 @@ class Espelho extends Page
     public function adicionarPlantaoUrgente()
     {
         $this->validate([
+            'promotor_designado' => 'required',
             'periodo_inicio' => 'required|date',
-            'periodo_fim' => 'required|date|after_or_equal:periodo_inicio',
-            'promotor_designado' => 'required|exists:promotores,id',
+            'periodo_fim' => 'required|date',
         ]);
 
-        // Get the period with the highest ID
-        $latestPeriodo = Periodo::orderBy('id', 'desc')->first(); // Fetch the period with the highest ID
-
-        if (!$latestPeriodo) {
-            Notification::make()
-                ->title('Erro ao adicionar plantão urgente')
-                ->body('Nenhum período disponível para associar ao plantão.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $response = DB::table('plantao_atendimento')->insert([
+        $this->plantoesTemporarios[] = [
+            'promotor_designado_id' => $this->promotor_designado,
             'periodo_inicio' => $this->periodo_inicio,
             'periodo_fim' => $this->periodo_fim,
-            'promotor_designado_id' => $this->promotor_designado,
-            'periodo_id' => $latestPeriodo->id, // Set the latest periodo_id
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        ];
 
-        Historico::create([
-            'users_id' => auth()->id(),
-            'detalhes' => 'Criou um novo plantão de urgência: ',
-            'modificado' => now(),
-        ]);
+        $this->previewModePlantao = true;
 
-        if ($response) {
-            Notification::make()
-                ->title('Plantão urgente adicionado com sucesso!')
-                ->success()
-                ->send();
-        } else {
-            Notification::make()
-                ->title('Erro ao salvar plantão urgente')
-                ->body('Ocorreu um erro ao tentar salvar o plantão.')
-                ->danger()
-                ->send();
+        Notification::make()
+            ->title('Plantão adicionado ao preview')
+            ->success()
+            ->send();
+    }
+
+    public function salvarPlantoesTemporarios()
+    {
+        foreach ($this->plantoesTemporarios as $plantao) {
+            PlantaoAtendimento::create($plantao);
+        }
+
+        $this->plantoesTemporarios = [];
+        $this->previewModePlantao = false;
+
+        Notification::make()
+            ->title('Plantões salvos com sucesso')
+            ->success()
+            ->send();
+    }
+
+    public function removePlantaoTemporario($index)
+    {
+        unset($this->plantoesTemporarios[$index]);
+        $this->plantoesTemporarios = array_values($this->plantoesTemporarios);
+
+        if (empty($this->plantoesTemporarios)) {
+            $this->previewModePlantao = false;
         }
     }
 
@@ -414,6 +413,7 @@ class Espelho extends Page
     public function togglePreview()
     {
         $this->previewMode = !$this->previewMode;
+        \Log::info('Preview Mode: ' . ($this->previewMode ? 'true' : 'false'));
     }
 
     public function addEventoTemporario($promotorId)
@@ -436,6 +436,10 @@ class Espelho extends Page
     {
         $evento = $this->eventosTemporarios[$index];
         
+        // Define o índice que está sendo editado
+        $this->editingEventoIndex = $index;
+        
+        // Preenche os campos do formulário com os dados do evento
         $this->titulo = $evento['titulo'];
         $this->tipo = $evento['tipo'];
         $this->periodo_inicio = $evento['periodo_inicio'];
@@ -459,8 +463,9 @@ class Espelho extends Page
             'promotor_designado' => 'required',
         ]);
     
-        // Atualiza o evento no array temporário
-        $this->eventosTemporarios[$this->editingEventoIndex] = [
+        // Atualiza o evento no array de eventos temporários
+        $this->eventosTemporarios[0] = [
+            'promotor_id' => $this->promotor_titular,
             'titulo' => $this->titulo,
             'tipo' => $this->tipo,
             'periodo_inicio' => $this->periodo_inicio,
@@ -471,7 +476,6 @@ class Espelho extends Page
             'is_urgente' => $this->is_urgente ?? false,
         ];
     
-        // Limpa os campos do formulário
         $this->reset([
             'titulo',
             'tipo',
