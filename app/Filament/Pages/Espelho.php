@@ -48,6 +48,9 @@ class Espelho extends Page
     public $plantoesTemporarios = [];
     public $periodosTemporarios = [];
     public $previewModePlantao = false;
+    public $editando = false;
+    public $editandoIndex = null;
+    public $editingEventoIndex = null;
     protected $rules = [
         'titulo' => 'required',
         'tipo' => 'required',
@@ -120,7 +123,6 @@ class Espelho extends Page
 {
     $this->validate();
 
-    // Adiciona o evento ao array temporário com todos os campos necessários
     $novoEvento = [
         'promotor_id' => $this->promotor_titular,
         'titulo' => $this->titulo,
@@ -135,13 +137,18 @@ class Espelho extends Page
 
     $this->eventosTemporarios[] = $novoEvento;
 
-    // Limpa os campos do formulário
-    $this->reset(['titulo', 'tipo', 'periodo_inicio', 'periodo_fim', 'promotor_designado']);
+    // Limpa todos os campos do formulário
+    $this->reset([
+        'titulo',
+        'tipo',
+        'periodo_inicio',
+        'periodo_fim',
+        'promotor_designado',
+        'is_urgente'
+    ]);
     
-    // Fecha o modal
     $this->closeModal();
 
-    // Notifica o usuário
     Notification::make()
         ->title('Evento adicionado ao preview')
         ->success()
@@ -256,6 +263,13 @@ class Espelho extends Page
             'periodo_fim' => $this->periodo_fim,
         ];
 
+        // Limpa todos os campos do formulário
+        $this->reset([
+            'promotor_designado',
+            'periodo_inicio',
+            'periodo_fim'
+        ]);
+
         $this->previewModePlantao = true;
 
         Notification::make()
@@ -348,7 +362,6 @@ class Espelho extends Page
         try {
             DB::beginTransaction();
 
-            // Salva os períodos
             $ultimoPeriodo = null;
             foreach ($this->periodosTemporarios as $periodo) {
                 $ultimoPeriodo = Periodo::create([
@@ -356,9 +369,17 @@ class Espelho extends Page
                     'periodo_fim' => $periodo['periodo_fim'],
                     'promotor_id' => auth()->id(),
                 ]);
+
+                Historico::create([
+                    'users_id' => auth()->id(),
+                    'detalhes' => "Adicionou um novo período de " . 
+                        \Carbon\Carbon::parse($periodo['periodo_inicio'])->format('d/m/Y') . 
+                        " até " . 
+                        \Carbon\Carbon::parse($periodo['periodo_fim'])->format('d/m/Y'),
+                    'modificado' => now(),
+                ]);
             }
 
-            // Se não houver períodos novos, usa o último período existente
             if (!$ultimoPeriodo) {
                 $ultimoPeriodo = Periodo::orderBy('id', 'desc')->first();
                 
@@ -388,6 +409,23 @@ class Espelho extends Page
             foreach ($this->plantoesTemporarios as $plantao) {
                 $plantaoController = new PlantaoUrgenciaController();
                 $plantaoController->salvarPlantaoUrgencia($plantao);
+
+                // Registra no histórico a adição do plantão
+                $promotorDesignado = $this->promotorias
+                    ->where('promotor_id', $plantao['promotor_designado_id'])
+                    ->first()
+                    ->promotor ?? 'Não definido';
+
+                Historico::create([
+                    'users_id' => auth()->id(),
+                    'detalhes' => "Adicionou um plantão de urgência para o promotor " . 
+                        $promotorDesignado . 
+                        " no período de " . 
+                        \Carbon\Carbon::parse($plantao['periodo_inicio'])->format('d/m/Y') . 
+                        " até " . 
+                        \Carbon\Carbon::parse($plantao['periodo_fim'])->format('d/m/Y'),
+                    'modificado' => now(),
+                ]);
             }
 
             DB::commit();
@@ -534,8 +572,11 @@ class Espelho extends Page
             'periodo_fim' => $this->novo_periodo_fim,
         ];
 
-        $this->novo_periodo_inicio = null;
-        $this->novo_periodo_fim = null;
+        // Limpa todos os campos do formulário
+        $this->reset([
+            'novo_periodo_inicio',
+            'novo_periodo_fim'
+        ]);
 
         Notification::make()
             ->title('Período adicionado ao preview')
@@ -562,5 +603,41 @@ class Espelho extends Page
     public function hasPlantoesTemporarios()
     {
         return !empty($this->plantoesTemporarios);
+    }
+
+    public function editarPlantaoTemporario($index)
+    {
+        $this->editando = true;
+        $this->editandoIndex = $index;
+        $plantao = $this->plantoesTemporarios[$index];
+        
+        $this->promotor_designado = $plantao['promotor_designado_id'];
+        $this->periodo_inicio = $plantao['periodo_inicio'];
+        $this->periodo_fim = $plantao['periodo_fim'];
+    }
+
+    public function atualizarPlantaoUrgente()
+    {
+        $this->plantoesTemporarios[$this->editandoIndex] = [
+            'promotor_designado_id' => $this->promotor_designado,
+            'periodo_inicio' => $this->periodo_inicio,
+            'periodo_fim' => $this->periodo_fim
+        ];
+        
+        $this->cancelarEdicao();
+    }
+
+    public function cancelarEdicao()
+    {
+        $this->editando = false;
+        $this->editandoIndex = null;
+        $this->resetInputs();
+    }
+
+    private function resetInputs()
+    {
+        $this->promotor_designado = null;
+        $this->periodo_inicio = null;
+        $this->periodo_fim = null;
     }
 }

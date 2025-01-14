@@ -62,7 +62,7 @@
             Cancelar
         </x-filament::button>
 
-        <x-filament::button wire:click="salvarEvento">
+        <x-filament::button wire:click="salvarEvento" x-on:click="$wire.on('eventoSalvo', () => close())">
             {{ $previewMode ? 'Adicionar ao Preview' : 'Salvar' }}
         </x-filament::button>
     </x-slot>
