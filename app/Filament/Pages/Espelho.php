@@ -267,7 +267,8 @@ class Espelho extends Page
     public function salvarPlantoesTemporarios()
     {
         foreach ($this->plantoesTemporarios as $plantao) {
-            PlantaoAtendimento::create($plantao);
+           $plantaoController = new PlantaoUrgenciaController();
+           $plantaoController->salvarPlantaoUrgencia($plantao);
         }
 
         $this->plantoesTemporarios = [];

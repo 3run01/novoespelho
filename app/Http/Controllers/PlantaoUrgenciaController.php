@@ -8,22 +8,32 @@ use App\Models\Historico;
 
 class PlantaoUrgenciaController extends Controller
 {
-    public function salvarPlantaoUrgencia(Request $request)
+    public function salvarPlantaoUrgencia($dados)
     {
-        $request->validate([
-            'periodo_inicio' => 'required|date',
-            'periodo_fim' => 'required|date|after_or_equal:periodo_inicio',
-            'promotor_designado_id' => 'required|exists:promotores,id',
-        ]);
+        // Validação manual dos dados
+        if (empty($dados['periodo_inicio']) || empty($dados['periodo_fim']) || empty($dados['promotor_designado_id'])) {
+            throw new \Exception('Dados incompletos para salvar o plantão');
+        }
+
+        // Buscar o período mais recente
+        $ultimoPeriodo = DB::table('periodos')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$ultimoPeriodo) {
+            throw new \Exception('Nenhum período encontrado. Por favor, cadastre um período primeiro.');
+        }
 
         DB::table('plantao_atendimento')->insert([
-            'periodo_inicio' => $request->input('periodo_inicio'),
-            'periodo_fim' => $request->input('periodo_fim'),
-            'promotor_designado_id' => $request->input('promotor_designado_id'),
+            'periodo_inicio' => $dados['periodo_inicio'],
+            'periodo_fim' => $dados['periodo_fim'],
+            'promotor_designado_id' => $dados['promotor_designado_id'],
+            'periodo_id' => $ultimoPeriodo->id,
             'created_at' => now(),
-            'updated_at' => now(),
+            'updated_at' => now()
         ]);
-        
+
+        return true;
     }
 
     public function atualizarPlantaoUrgencia(Request $request, $id)
