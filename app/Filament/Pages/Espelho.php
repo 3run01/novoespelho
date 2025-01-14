@@ -348,12 +348,26 @@ class Espelho extends Page
         try {
             DB::beginTransaction();
 
-            $ultimoPeriodo = Periodo::orderBy('id', 'desc')->first();
-            
-            if (!$ultimoPeriodo) {
-                throw new \Exception('Nenhum período encontrado. Por favor, cadastre um período primeiro.');
+            // Salva os períodos
+            $ultimoPeriodo = null;
+            foreach ($this->periodosTemporarios as $periodo) {
+                $ultimoPeriodo = Periodo::create([
+                    'periodo_inicio' => $periodo['periodo_inicio'],
+                    'periodo_fim' => $periodo['periodo_fim'],
+                    'promotor_id' => auth()->id(),
+                ]);
             }
 
+            // Se não houver períodos novos, usa o último período existente
+            if (!$ultimoPeriodo) {
+                $ultimoPeriodo = Periodo::orderBy('id', 'desc')->first();
+                
+                if (!$ultimoPeriodo) {
+                    throw new \Exception('Nenhum período encontrado. Por favor, cadastre um período primeiro.');
+                }
+            }
+
+            // Salva os eventos
             foreach ($this->eventosTemporarios as $evento) {
                 DB::table('eventos')->insert([
                     'titulo' => $evento['titulo'],
@@ -370,20 +384,26 @@ class Espelho extends Page
                 ]);
             }
 
+            // Salva os plantões de urgência
+            foreach ($this->plantoesTemporarios as $plantao) {
+                $plantaoController = new PlantaoUrgenciaController();
+                $plantaoController->salvarPlantaoUrgencia($plantao);
+            }
+
             DB::commit();
 
-            // Limpar dados temporários
+            // Limpa todos os dados temporários
             $this->eventosTemporarios = [];
             $this->periodosTemporarios = [];
+            $this->plantoesTemporarios = [];
             $this->previewMode = false;
+            $this->previewModePlantao = false;
 
-            // Notificar sucesso
             Notification::make()
-                ->title('Alterações salvas com sucesso!')
+                ->title('Todas as alterações foram salvas com sucesso!')
                 ->success()
                 ->send();
 
-            // Recarregar os dados
             $this->mount();
 
         } catch (\Exception $e) {
@@ -401,7 +421,7 @@ class Espelho extends Page
 
     public function hasAlteracoesPendentes()
     {
-        return !empty($this->eventosTemporarios) || !empty($this->periodosTemporarios);
+        return $this->hasEventosTemporarios() || $this->hasPeriodosTemporarios() || $this->hasPlantoesTemporarios();
     }
 
     public function cancelarPreview()
@@ -516,10 +536,31 @@ class Espelho extends Page
 
         $this->novo_periodo_inicio = null;
         $this->novo_periodo_fim = null;
+
+        Notification::make()
+            ->title('Período adicionado ao preview')
+            ->success()
+            ->send();
+    }
+
+    public function removerPeriodoTemporario($index)
+    {
+        unset($this->periodosTemporarios[$index]);
+        $this->periodosTemporarios = array_values($this->periodosTemporarios);
     }
 
     public function hasEventosTemporarios()
     {
         return !empty($this->eventosTemporarios);
+    }
+
+    public function hasPeriodosTemporarios()
+    {
+        return !empty($this->periodosTemporarios);
+    }
+
+    public function hasPlantoesTemporarios()
+    {
+        return !empty($this->plantoesTemporarios);
     }
 }

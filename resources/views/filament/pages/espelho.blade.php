@@ -5,23 +5,28 @@
             $watch('previewMode', value => console.log('Preview mode:', value))
         }
     }" class="flex flex-col items-center mt-8">
-        <div class="flex space-x-4 mb-4">
-            <button 
-                wire:click="$set('previewMode', false)" 
-                class="px-4 py-2 text-white rounded-md" 
-                :class="{ 'bg-blue-500 hover:bg-blue-600': !previewMode, 'bg-gray-500': previewMode }">
-                Principal
-            </button>
-            <button 
-                wire:click="togglePreview" 
-                class="px-4 py-2 text-white rounded-md" 
-                :class="{ 'bg-blue-500 hover:bg-blue-600': previewMode, 'bg-gray-500': !previewMode }">
-                Preview
-            </button>
+        <div class="relative inline-flex mb-4">
+            <div class="w-64 h-12 bg-gray-200 dark:bg-gray-700 rounded-full p-1 flex overflow-hidden">
+                <button 
+                    wire:click="$set('previewMode', false)"
+                    class="flex-1 relative z-10 flex items-center justify-center text-sm font-medium transition-colors duration-300"
+                    :class="!previewMode ? 'text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'">
+                    Principal
+                </button>
+                <button 
+                    wire:click="togglePreview"
+                    class="flex-1 relative z-10 flex items-center justify-center text-sm font-medium transition-colors duration-300"
+                    :class="previewMode ? 'text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'">
+                    Preview
+                </button>
+                <div class="absolute inset-0 w-1/2 h-full bg-blue-500 rounded-full transition-transform duration-300"
+                     :class="{ 'translate-x-full': previewMode }">
+                </div>
+            </div>
         </div>
        
         <div class="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden w-full"> 
-            @if($this->hasEventosTemporarios())
+            @if($this->hasAlteracoesPendentes())
                 <div class="fixed bottom-4 right-4 z-50">
                     <x-filament::button
                         color="success"
@@ -73,7 +78,7 @@
                             </div>
                             
                             <button 
-                                wire:click="adicionarPeriodo" 
+                                wire:click="adicionarPeriodoTemporario" 
                                 class="w-full mt-2 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-md transition-colors dark:bg-blue-600 dark:hover:bg-blue-700">
                                 Adicionar Período
                             </button>
@@ -82,12 +87,14 @@
                 </div>
         
         </div>
-        <div>
-            @include('filament.pages.components.Preview.espelho-preview', ['xData' => '$data'])
-        </div>
+        
+       
         @endif
 
         @if(!$previewMode)
+        <div >
+            @include('filament.pages.components.PlantaoUrgencia.PlantaoUrgencia', ['plantoes' => $this->plantoes])
+        </div>
         <div >
             @include('filament.pages.components.PlantaoUrgencia.PlantaoUrgencia', ['plantoes' => $this->plantoes])
         </div>
@@ -234,5 +241,27 @@
         console.log('PreviewEventos');
     }
 </script>
+
+<!-- Exibir períodos temporários -->
+@if(!empty($periodosTemporarios))
+    <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+        <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">Períodos a serem confirmados:</h3>
+        <div class="space-y-2">
+            @foreach($periodosTemporarios as $index => $periodo)
+                <div class="flex justify-between items-center p-2 bg-white dark:bg-gray-700 rounded">
+                    <span class="text-sm text-gray-600 dark:text-gray-300">
+                        {{ \Carbon\Carbon::parse($periodo['periodo_inicio'])->format('d/m/Y') }} - 
+                        {{ \Carbon\Carbon::parse($periodo['periodo_fim'])->format('d/m/Y') }}
+                    </span>
+                    <button 
+                        wire:click="removerPeriodoTemporario({{ $index }})" 
+                        class="text-red-600 hover:text-red-800">
+                        <x-heroicon-s-x-circle class="w-5 h-5"/>
+                    </button>
+                </div>
+            @endforeach
+        </div>
+    </div>
+@endif
 
 
