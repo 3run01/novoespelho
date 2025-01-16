@@ -1,0 +1,32 @@
+services:
+    laravelapp:
+        container_name: laravelapp
+        image: laravelapp
+        build: .
+        ports:
+            - 8000:8000
+        volumes:
+            - ./app:/var/www/app
+            - ./resources:/var/www/resources
+            - ./routes:/var/www/routes
+            - ./config:/var/www/config
+            - ./database:/var/www/database
+            - ./.env:/var/www/.env
+        env_file:
+            - .env
+        depends_on:
+            - db
+    db:
+        container_name: db
+        image: postgres:17
+        ports:
+            - 5432:5432
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=123@senha
+            - POSTGRES_DB=espelho-docker
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+
+volumes:
+    pgdata: {}

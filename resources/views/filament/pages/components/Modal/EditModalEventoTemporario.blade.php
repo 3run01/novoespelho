@@ -38,10 +38,10 @@
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">Promotor Designado:</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">Membro Designado:</label>
             <select wire:model="promotor_designado" required 
                 class="mt-1 block w-full dark:bg-gray-700 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
-                <option value="">Selecione um promotor</option>
+                <option value="">Selecione um membro</option>
                 @foreach ($promotorias->unique('promotor_id') as $item)
                     <option value="{{ $item->promotor_id }}">{{ $item->promotor }}</option>
                 @endforeach
@@ -51,13 +51,13 @@
     </div>
 
     <x-slot name="footer" class="flex justify-between">
-        <x-filament::button x-on:click="close">
+        <x-filament::button x-on:click="close; $wire.resetFields()">
             Cancelar
         </x-filament::button>
 
         <x-filament::button 
             wire:click="updateEventoPreview"
-            x-on:click="close"
+            x-on:click="$wire.on('eventoAtualizado', () => { close(); $wire.resetFields(); })"
             wire:loading.attr="disabled"
             class="inline-flex items-center justify-center"
         >
