@@ -1,4 +1,5 @@
-<x-filament::modal class="z-50" id="add-event-{{ $promotoria->municipio }}" width="md">
+<x-filament::modal class="z-50" id="add-event-{{ $promotoria->municipio }}" width="md" 
+    x-on:close="$wire.resetFields()">
     <x-slot name="trigger">
         <button wire:click="setPromotorTitular({{ $promotoria->promotor_id }}, {{ $promotoria->promotoria_id }})" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
             Adicionar Evento
@@ -16,53 +17,72 @@
                     <option value="Férias">Férias</option>
                     <option value="Outros">Outros</option>
                 </select>
+                @error('tipo')
+                    <span class="text-red-500 text-sm">O campo "Tipo do Evento" é obrigatório.</span>
+                @enderror
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-100  dark:bg-gray-700">Título do Evento:</label>
-                <input wire:model="titulo" type="text" required class="mt-1 block w-full  dark:bg-gray-700 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">Título do Evento:</label>
+                <input wire:model="titulo" type="text" required class="mt-1 block w-full dark:bg-gray-700 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                @error('titulo')
+                    <span class="text-red-500 text-sm">O campo "Título do Evento" é obrigatório.</span>
+                @enderror
             </div>
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700  dark:text-gray-100 ">Período Início:</label>
-            <input wire:model="periodo_inicio" type="date" required class="mt-1  dark:bg-gray-700 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">Período Início:</label>
+            <input wire:model="periodo_inicio" type="date" required class="mt-1 dark:bg-gray-700 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+            @error('periodo_inicio')
+                <span class="text-red-500 text-sm">O campo "Período Início" é obrigatório.</span>
+            @enderror
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">Período Fim:</label>
-            <input wire:model="periodo_fim" type="date" required class="mt-1  dark:bg-gray-700 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+            <input wire:model="periodo_fim" type="date" required class="mt-1 dark:bg-gray-700 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+            @error('periodo_fim')
+                <span class="text-red-500 text-sm">O campo "Período Fim" é obrigatório.</span>
+            @enderror
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">Promotor Titular:</label>
-            <input type="text" disabled value="{{ $promotoria->promotor }}" class="mt-1  dark:bg-gray-700 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">Membro Titular:</label>
+            <input type="text" disabled value="{{ $promotoria->promotor }}" class="mt-1 dark:bg-gray-700 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">Promotor Designado:</label>
-            <select wire:model="promotor_designado" required class="mt-1   dark:bg-gray-700 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
-                <option value="">Selecione um promotor</option>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">Membro Designado:</label>
+            <select wire:model="promotor_designado" required class="mt-1 dark:bg-gray-700 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                <option value="">Selecione um membro</option>
                 @foreach ($promotorias->unique('promotor_id') as $item)
                     <option value="{{ $item->promotor_id }}">{{ $item->promotor }}</option>
                 @endforeach
             </select>
+            @error('promotor_designado')
+                <span class="text-red-500 text-sm">O campo "Membro Designado" é obrigatório.</span>
+            @enderror
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">Promotoria:</label>
-            <input type="text" disabled value="{{ $promotoria->promotoria }}" class="mt-1  dark:bg-gray-700 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+            <input type="text" disabled value="{{ $promotoria->promotoria }}" class="mt-1 dark:bg-gray-700 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
         </div>
 
         <input type="hidden" wire:model="promotoria_id" value="{{ $promotoria->promotoria_id }}">
     </div>
 
     <x-slot name="footer" class="flex justify-between">
-        <x-filament::button x-on:click="close">
+        <x-filament::button x-on:click="close; $wire.resetFields()">
             Cancelar
         </x-filament::button>
 
-        <x-filament::button wire:click="salvarEvento" x-on:click="$wire.on('eventoSalvo', () => close())">
+        <x-filament::button 
+            wire:click="salvarEvento" 
+            x-on:click="$wire.on('eventoSalvo', () => { close(); $wire.resetFields(); })"
+            wire:loading.attr="disabled" 
+            wire:target="salvarEvento">
             {{ $previewMode ? 'Adicionar ao Preview' : 'Salvar' }}
         </x-filament::button>
     </x-slot>

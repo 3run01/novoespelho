@@ -10,12 +10,10 @@ class PlantaoUrgenciaController extends Controller
 {
     public function salvarPlantaoUrgencia($dados)
     {
-        // Validação manual dos dados
         if (empty($dados['periodo_inicio']) || empty($dados['periodo_fim']) || empty($dados['promotor_designado_id'])) {
             throw new \Exception('Dados incompletos para salvar o plantão');
         }
 
-        // Buscar o período mais recente
         $ultimoPeriodo = DB::table('periodos')
             ->orderBy('created_at', 'desc')
             ->first();

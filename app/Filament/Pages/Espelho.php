@@ -19,6 +19,9 @@ use App\Http\Controllers\PlantaoUrgenciaController;
 use App\Models\Historico; 
 use App\Models\Periodo;
 use Livewire\Component;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use App\Models\PlantaoAtendimento;
 
 class Espelho extends Page
 {
@@ -31,7 +34,7 @@ class Espelho extends Page
     public $promotorias;
     public $titulo;
     public $tipo;
-    public $periodo_inicio ='';
+    public $periodo_inicio = '';
     public $periodo_fim = '';
     public $promotor_designado = '';
     public $promotor_titular = '';
@@ -51,6 +54,14 @@ class Espelho extends Page
     public $editando = false;
     public $editandoIndex = null;
     public $editingEventoIndex = null;
+    public $plantao_periodo_inicio = '';
+    public $plantao_periodo_fim = '';
+    public $plantao_promotor_designado = '';
+    public $ultimoPeriodo;
+    public $showConfirmacaoPeriodo = false;
+    public $periodoSelecionado;
+    public $eventos;
+
     protected $rules = [
         'titulo' => 'required',
         'tipo' => 'required',
@@ -70,8 +81,13 @@ class Espelho extends Page
         $this->plantoes = $plantaoController->listarPlantaoUrgencia();
 
         $this->periodos = Periodo::all();
-
         
+        $this->ultimoPeriodo = Periodo::orderBy('created_at', 'desc')->first();
+
+        if ($this->ultimoPeriodo) {
+            $this->novo_periodo_inicio = $this->ultimoPeriodo->periodo_inicio;
+            $this->novo_periodo_fim = $this->ultimoPeriodo->periodo_fim;
+        }
     }
 
 
@@ -104,12 +120,15 @@ class Espelho extends Page
         try {
             $eventoController = new EventoController();
             $eventoController->deleteEvento($id);
-    
+
+            $promotoriaController = new PromotoriaController();
+            $this->promotorias = $promotoriaController->getPromotorias();
+
             Notification::make()
                 ->title('Evento excluído com sucesso')
                 ->success()
                 ->send();
-    
+            
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Erro ao excluir evento')
@@ -137,7 +156,13 @@ class Espelho extends Page
 
     $this->eventosTemporarios[] = $novoEvento;
 
-    // Limpa todos os campos do formulário
+    // Registro no histórico
+    Historico::create([
+        'users_id' => auth()->id(),
+        'detalhes' => "Criou um novo evento: " . $this->titulo,
+        'modificado' => now(),
+    ]);
+
     $this->reset([
         'titulo',
         'tipo',
@@ -167,7 +192,7 @@ class Espelho extends Page
                 ->send();
             return;
         }
-
+        
         $eventoController = new EventoController();
         $response = $eventoController->updateEvento($id, [
             'titulo' => $this->titulo,
@@ -252,24 +277,22 @@ class Espelho extends Page
     public function adicionarPlantaoUrgente()
     {
         $this->validate([
-            'promotor_designado' => 'required',
-            'periodo_inicio' => 'required|date',
-            'periodo_fim' => 'required|date',
+            'plantao_periodo_inicio' => 'required|date',
+            'plantao_periodo_fim' => 'required|date|after_or_equal:plantao_periodo_inicio',
+            'plantao_promotor_designado' => 'required',
+        ], [
+            'plantao_promotor_designado.required' => 'O campo "Membro" é obrigatório.',
+            'plantao_periodo_inicio.required' => 'O campo "Data Inicial" é obrigatório.',
+            'plantao_periodo_fim.required' => 'O campo "Data Final" é obrigatório.',
         ]);
 
         $this->plantoesTemporarios[] = [
-            'promotor_designado_id' => $this->promotor_designado,
-            'periodo_inicio' => $this->periodo_inicio,
-            'periodo_fim' => $this->periodo_fim,
+            'promotor_designado_id' => $this->plantao_promotor_designado,
+            'periodo_inicio' => $this->plantao_periodo_inicio,
+            'periodo_fim' => $this->plantao_periodo_fim,
         ];
 
-        // Limpa todos os campos do formulário
-        $this->reset([
-            'promotor_designado',
-            'periodo_inicio',
-            'periodo_fim'
-        ]);
-
+        $this->resetPlantaoFields();
         $this->previewModePlantao = true;
 
         Notification::make()
@@ -316,6 +339,10 @@ class Espelho extends Page
             'detalhes' => 'Excluiu um plantão de urgência: ',
             'modificado' => now(),
         ]);
+
+        // Atualiza a lista de plantões
+        $plantaoController = new PlantaoUrgenciaController();
+        $this->plantoes = $plantaoController->listarPlantaoUrgencia();
 
         Notification::make()
             ->title('Plantão excluído com sucesso!')
@@ -555,7 +582,7 @@ class Espelho extends Page
 
     public function removeEventoTemporario($index)
     {
-        // Remove um evento do array temporário
+        
         unset($this->eventosTemporarios[$index]);
         $this->eventosTemporarios = array_values($this->eventosTemporarios);
     }
@@ -565,21 +592,30 @@ class Espelho extends Page
         $this->validate([
             'novo_periodo_inicio' => 'required|date',
             'novo_periodo_fim' => 'required|date|after_or_equal:novo_periodo_inicio',
+        ], [
+            'novo_periodo_inicio.required' => 'O campo "Data Inicial" é obrigatório.',
+            'novo_periodo_fim.required' => 'O campo "Data Final" é obrigatório.',
+            'novo_periodo_fim.after_or_equal' => 'A "Data Final" deve ser igual ou posterior à "Data Inicial".',
         ]);
 
+        
         $this->periodosTemporarios[] = [
             'periodo_inicio' => $this->novo_periodo_inicio,
             'periodo_fim' => $this->novo_periodo_fim,
         ];
 
-        // Limpa todos os campos do formulário
+        
         $this->reset([
             'novo_periodo_inicio',
             'novo_periodo_fim'
         ]);
 
         Notification::make()
-            ->title('Período adicionado ao preview')
+            ->title('Período adicionado com sucesso!')
+            ->body('O período foi adicionado ao preview.')
+            ->icon('heroicon-o-calendar')
+            ->iconColor('success')
+            ->duration(3000)
             ->success()
             ->send();
     }
@@ -639,5 +675,116 @@ class Espelho extends Page
         $this->promotor_designado = null;
         $this->periodo_inicio = null;
         $this->periodo_fim = null;
+    }
+
+    public function gerarPDF()
+    {
+        try {
+            // Busca o período mais recente
+            $periodo = Periodo::latest()->first();
+            
+            if (!$periodo) {
+                Notification::make()
+                    ->title('Erro ao gerar PDF')
+                    ->body('Nenhum período encontrado')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            // Busca os eventos do período
+            $eventos = Evento::with(['promotorTitular', 'promotorDesignado', 'promotoria'])
+                ->where('periodo_id', $periodo->id)
+                ->get();
+
+            // Busca os plantões de urgência do período
+            $plantoes = DB::table('plantao_atendimento')
+                ->join('users', 'plantao_atendimento.promotor_designado_id', '=', 'users.id')
+                ->whereBetween('periodo_inicio', [$periodo->periodo_inicio, $periodo->periodo_fim])
+                ->select('plantao_atendimento.*', 'users.name as promotor_nome')
+                ->get();
+
+            // Gera o PDF
+            $pdf = PDF::loadView('pdf.espelho', [
+                'periodo' => $periodo,
+                'eventos' => $eventos,
+                'plantoes' => $plantoes,
+            ]);
+
+            // Registra no histórico
+            Historico::create([
+                'users_id' => auth()->id(),
+                'detalhes' => 'Gerou PDF do espelho',
+                'modificado' => now(),
+            ]);
+
+            // Define o nome do arquivo
+            $fileName = 'espelho_' . Carbon::now()->format('d_m_Y') . '.pdf';
+
+            // Retorna o PDF para download
+            return response()->streamDownload(
+                fn () => print($pdf->output()),
+                $fileName
+            );
+
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Erro ao gerar PDF')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+            
+            \Log::error('Erro ao gerar PDF: ' . $e->getMessage());
+        }
+    }
+
+    public function resetFields()
+    {
+        $this->reset([
+            'tipo',
+            'titulo',
+            'periodo_inicio',
+            'periodo_fim',
+            'promotor_designado'
+        ]);
+    }
+
+    public function resetPlantaoFields()
+    {
+        $this->reset([
+            'plantao_periodo_inicio',
+            'plantao_periodo_fim',
+            'plantao_promotor_designado'
+        ]);
+    }
+
+    public function adicionarPeriodoTemporarioEFecharModal()
+    {
+        $this->adicionarPeriodoTemporario();
+        $this->showConfirmacaoPeriodo = false;
+    }
+
+    public function atualizarDados()
+    {
+        // Verifica se um período foi selecionado
+        if ($this->periodoSelecionado) {
+            // Busca os plantões do período selecionado
+            $this->plantoes = PlantaoAtendimento::where('periodo_id', $this->periodoSelecionado)
+                ->get();
+
+            // Busca os eventos do período selecionado
+            $this->eventos = Evento::where('periodo_id', $this->periodoSelecionado)
+                ->get();
+        } else {
+            // Se nenhum período estiver selecionado, pode ser que você queira limpar os dados
+            $this->plantoes = [];
+            $this->eventos = [];
+        }
+    }
+
+    public function selecionarPeriodo($periodoId)
+    {
+        $this->periodoSelecionado = $periodoId;
+        $this->atualizarDados(); // Chama o método para atualizar os dados
     }
 }
