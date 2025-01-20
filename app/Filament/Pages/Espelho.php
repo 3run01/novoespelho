@@ -381,7 +381,9 @@ class Espelho extends Page
         $this->novo_periodo_inicio = null;
         $this->novo_periodo_fim = null;
 
-        // Optionally, you can add a success message or redirect
+        // Após adicionar o novo período, limpe os dados dos períodos anteriores
+        $this->plantoes = [];
+        $this->eventos = [];
     }
 
     public function confirmarAlteracoes()
