@@ -84,20 +84,32 @@ class Espelho extends Page
         
         $this->ultimoPeriodo = Periodo::orderBy('created_at', 'desc')->first();
 
+        $this->atualizarDados();
+
         if ($this->ultimoPeriodo) {
             $this->novo_periodo_inicio = $this->ultimoPeriodo->periodo_inicio;
             $this->novo_periodo_fim = $this->ultimoPeriodo->periodo_fim;
         }
     }
 
-
-    
+    public function atualizarDados()
+    {
+        if ($this->ultimoPeriodo) {
+            $promotoriaController = new PromotoriaController();
+            $this->promotorias = $promotoriaController->getPromotoriasByPeriodo($this->ultimoPeriodo->id);
+            
+            $this->plantoes = PlantaoAtendimento::where('periodo_id', $this->ultimoPeriodo->id)->get();
+        } else {
+            $this->promotorias = collect();
+            $this->plantoes = collect();
+        }
+    }
 
     public function setPromotorTitular($promotorId, $promotoriaId)
-{
-    $this->promotor_titular = $promotorId;
-    $this->promotoria_id = $promotoriaId;
-}
+    {
+        $this->promotor_titular = $promotorId;
+        $this->promotoria_id = $promotoriaId;
+    }
 
     public function closeModal()
     {
@@ -118,11 +130,22 @@ class Espelho extends Page
     public function deleteEvento($id)
     {
         try {
+            $evento = DB::table('eventos')->where('id', $id)->first();
+            
             $eventoController = new EventoController();
             $eventoController->deleteEvento($id);
 
-            $promotoriaController = new PromotoriaController();
-            $this->promotorias = $promotoriaController->getPromotorias();
+            Historico::create([
+                'users_id' => auth()->id(),
+                'detalhes' => "Excluiu o evento: " . $evento->titulo . 
+                    " do período de " . 
+                    \Carbon\Carbon::parse($evento->periodo_inicio)->format('d/m/Y') . 
+                    " até " . 
+                    \Carbon\Carbon::parse($evento->periodo_fim)->format('d/m/Y'),
+                'modificado' => now(),
+            ]);
+
+            $this->atualizarDados();
 
             Notification::make()
                 ->title('Evento excluído com sucesso')
@@ -139,46 +162,57 @@ class Espelho extends Page
 
 
     public function salvarEvento()
-{
-    $this->validate();
+    {
+        $this->validate();
 
-    $novoEvento = [
-        'promotor_id' => $this->promotor_titular,
-        'titulo' => $this->titulo,
-        'tipo' => $this->tipo,
-        'periodo_inicio' => $this->periodo_inicio,
-        'periodo_fim' => $this->periodo_fim,
-        'promotor_titular' => $this->promotor_titular,
-        'promotor_designado' => $this->promotor_designado,
-        'promotoria_id' => $this->promotoria_id,
-        'is_urgente' => $this->is_urgente ?? false
-    ];
+        $novoEvento = [
+            'promotor_id' => $this->promotor_titular,
+            'titulo' => $this->titulo,
+            'tipo' => $this->tipo,
+            'periodo_inicio' => $this->periodo_inicio,
+            'periodo_fim' => $this->periodo_fim,
+            'promotor_titular' => $this->promotor_titular,
+            'promotor_designado' => $this->promotor_designado,
+            'promotoria_id' => $this->promotoria_id,
+            'is_urgente' => $this->is_urgente ?? false
+        ];
 
-    $this->eventosTemporarios[] = $novoEvento;
+        $this->eventosTemporarios[] = $novoEvento;
 
-    // Registro no histórico
-    Historico::create([
-        'users_id' => auth()->id(),
-        'detalhes' => "Criou um novo evento: " . $this->titulo,
-        'modificado' => now(),
-    ]);
+        // Registro no histórico
+        Historico::create([
+            'users_id' => auth()->id(),
+            'detalhes' => "Criou um novo evento: " . $this->titulo,
+            'modificado' => now(),
+        ]);
 
-    $this->reset([
-        'titulo',
-        'tipo',
-        'periodo_inicio',
-        'periodo_fim',
-        'promotor_designado',
-        'is_urgente'
-    ]);
-    
-    $this->closeModal();
 
-    Notification::make()
-        ->title('Evento adicionado ao preview')
-        ->success()
-        ->send();
-}
+        Historico::create([
+            'users_id' => auth()->id(),
+            'detalhes' => "Criou um novo evento: " . 
+                $this->titulo . 
+                " no período de " . 
+                \Carbon\Carbon::parse($this->periodo_inicio)->format('d/m/Y') . 
+                " até " . 
+                \Carbon\Carbon::parse($this->periodo_fim)->format('d/m/Y'),
+            'modificado' => now(),
+        ]);
+        $this->reset([
+            'titulo',
+            'tipo',
+            'periodo_inicio',
+            'periodo_fim',
+            'promotor_designado',
+            'is_urgente'
+        ]);
+        
+        $this->closeModal();
+
+        Notification::make()
+            ->title('Evento adicionado ao preview')
+            ->success()
+            ->send();
+    }
 
     public function updateEvento($id)
     {
@@ -330,32 +364,31 @@ class Espelho extends Page
     
 
     public function deletePlantaoUrgente($plantaoId)
-{
-    try {
-        DB::table('plantao_atendimento')->where('id', $plantaoId)->delete();
+    {
+        try {
+            DB::table('plantao_atendimento')->where('id', $plantaoId)->delete();
 
-        Historico::create([
-            'users_id' => auth()->id(),
-            'detalhes' => 'Excluiu um plantão de urgência: ',
-            'modificado' => now(),
-        ]);
+            Historico::create([
+                'users_id' => auth()->id(),
+                'detalhes' => 'Excluiu um plantão de urgência: ',
+                'modificado' => now(),
+            ]);
 
-        // Atualiza a lista de plantões
-        $plantaoController = new PlantaoUrgenciaController();
-        $this->plantoes = $plantaoController->listarPlantaoUrgencia();
+            $plantaoController = new PlantaoUrgenciaController();
+            $this->plantoes = $plantaoController->listarPlantaoUrgencia();
 
-        Notification::make()
-            ->title('Plantão excluído com sucesso!')
-            ->success()
-            ->send();
-    } catch (\Exception $e) {
-        Notification::make()
-            ->title('Erro ao excluir plantão')
-            ->body($e->getMessage())
-            ->danger()
-            ->send();
+            Notification::make()
+                ->title('Plantão excluído com sucesso!')
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Erro ao excluir plantão')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
-}
 
     
 
@@ -374,16 +407,15 @@ class Espelho extends Page
         Periodo::create([
             'periodo_inicio' => $this->novo_periodo_inicio,
             'periodo_fim' => $this->novo_periodo_fim,
-            'promotor_id' => auth()->id(), // Assuming you want to associate it with the logged-in user
+            'promotor_id' => auth()->id(),
         ]);
+
+        // Atualiza os dados após adicionar o novo período
+        $this->atualizarDados();
 
         // Reset the input fields
         $this->novo_periodo_inicio = null;
         $this->novo_periodo_fim = null;
-
-        // Após adicionar o novo período, limpe os dados dos períodos anteriores
-        $this->plantoes = [];
-        $this->eventos = [];
     }
 
     public function confirmarAlteracoes()
@@ -764,24 +796,6 @@ class Espelho extends Page
     {
         $this->adicionarPeriodoTemporario();
         $this->showConfirmacaoPeriodo = false;
-    }
-
-    public function atualizarDados()
-    {
-        // Verifica se um período foi selecionado
-        if ($this->periodoSelecionado) {
-            // Busca os plantões do período selecionado
-            $this->plantoes = PlantaoAtendimento::where('periodo_id', $this->periodoSelecionado)
-                ->get();
-
-            // Busca os eventos do período selecionado
-            $this->eventos = Evento::where('periodo_id', $this->periodoSelecionado)
-                ->get();
-        } else {
-            // Se nenhum período estiver selecionado, pode ser que você queira limpar os dados
-            $this->plantoes = [];
-            $this->eventos = [];
-        }
     }
 
     public function selecionarPeriodo($periodoId)

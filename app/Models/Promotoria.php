@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Promotoria extends Model
 {
     use HasFactory;
+
+    protected $table = 'promotorias';
 
     public function grupoPromotoria()
     {
@@ -27,5 +30,10 @@ class Promotoria extends Model
     public function promotoria()
     {
         return $this->belongsTo(Promotoria::class);
+    }
+
+    public function eventos(): HasMany
+    {
+        return $this->hasMany(Evento::class, 'promotoria_id');
     }
 }

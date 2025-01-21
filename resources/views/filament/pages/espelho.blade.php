@@ -134,9 +134,7 @@
                                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                                  class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 ring-1 ring-gray-200 dark:ring-gray-700">
                                 
-                                <div class="m-10 flex h-20 w-12 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900 mb-4 mt-[40px]">
-                                        <h1 class="text-2xl font-bold text-primary-600 dark:text-primary-400"></h1>
-                                </div>
+                                
                                 
                                 <div class="text-center">
                                     <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white mb-2">
@@ -313,6 +311,9 @@
                                             <br>
                                         @endif
                                     @endforeach
+                                @elseif($ultimoPeriodo)
+                                    De: {{ \Carbon\Carbon::parse($ultimoPeriodo->periodo_inicio)->format('d/m/Y') }}
+                                    - Até: {{ \Carbon\Carbon::parse($ultimoPeriodo->periodo_fim)->format('d/m/Y') }}
                                 @else
                                     Nenhum período selecionado
                                 @endif
@@ -324,18 +325,42 @@
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 w-full max-w-none">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Plantões de Atendimento Emergenciais</h3>
                         <div class="space-y-4">
+                            @if(!empty($plantoesTemporarios))
+                                @foreach($plantoesTemporarios as $plantao)
+                                    <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                            Promotor Designado: 
+                                            @if(isset($promotorias))
+                                                {{ $promotorias->where('promotor_id', $plantao['promotor_designado_id'])->first()->promotor ?? 'Não definido' }}
+                                            @endif
+                                            <span class="ml-2 text-xs text-primary-500">(Preview)</span>
+                                        </p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                                            Período: {{ \Carbon\Carbon::parse($plantao['periodo_inicio'])->format('d/m/Y') }} até {{ \Carbon\Carbon::parse($plantao['periodo_fim'])->format('d/m/Y') }}
+                                        </p>
+                                    </div>
+                                @endforeach
+                            @endif
+
                             @if($plantoes && count($plantoes) > 0)
                                 @foreach($plantoes as $plantao)
                                     <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                         <p class="text-sm font-medium text-gray-900 dark:text-white">
-                                            Promotor Designado: {{ $plantao->promotor_designado }}
+                                            Promotor Designado: 
+                                            @if(isset($promotorias))
+                                                {{ $promotorias->where('promotor_id', $plantao->promotor_designado_id)->first()->promotor ?? $plantao->promotor_designado }}
+                                            @else
+                                                {{ $plantao->promotor_designado }}
+                                            @endif
                                         </p>
                                         <p class="text-sm text-gray-500 dark:text-gray-400">
                                             Período: {{ \Carbon\Carbon::parse($plantao->periodo_inicio)->format('d/m/Y') }} até {{ \Carbon\Carbon::parse($plantao->periodo_fim)->format('d/m/Y') }}
                                         </p>
                                     </div>
                                 @endforeach
-                            @else
+                            @endif
+
+                            @if(empty($plantoesTemporarios) && (!$plantoes || count($plantoes) === 0))
                                 <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum plantão emergencial para o período selecionado.</p>
                             @endif
                         </div>
@@ -354,7 +379,7 @@
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Município</th>
                                         <th class="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Grupo Promotoria</th>
                                         <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Promotoria</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Membro</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Membro Titular</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Eventos Previstos</th>
                                     </tr>
                                 </thead>
@@ -390,7 +415,7 @@
                                                                     Período: {{ \Carbon\Carbon::parse($evento['periodo_inicio'])->format('d/m/Y') }} até {{ \Carbon\Carbon::parse($evento['periodo_fim'])->format('d/m/Y') }}
                                                                 </p>
                                                                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                                    Membro Designado: 
+                                                                    Promotor Designado: 
                                                                     @if(isset($promotorias))
                                                                         {{ $promotorias->where('promotor_id', $evento['promotor_designado'])->first()->promotor ?? 'Não definido' }}
                                                                     @endif
@@ -404,9 +429,26 @@
                                             @foreach ($promotoriasGroup as $promotoria)
                                                 @if($promotoria->evento)
                                                     <div class="mb-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                                        <p class="text-sm text-gray-700 dark:text-gray-300">
-                                                            {{ $promotoria->evento }}
-                                                        </p>
+                                                        <div class="space-y-2">
+                                                            <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                                                {{ $promotoria->evento }}
+                                                            </p>
+                                                            @if($promotoria->tipo_evento)
+                                                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                                    Tipo: {{ $promotoria->tipo_evento }}
+                                                                </p>
+                                                            @endif
+                                                            @if($promotoria->periodo_inicio && $promotoria->periodo_fim)
+                                                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                                    Período: {{ \Carbon\Carbon::parse($promotoria->periodo_inicio)->format('d/m/Y') }} até {{ \Carbon\Carbon::parse($promotoria->periodo_fim)->format('d/m/Y') }}
+                                                                </p>
+                                                            @endif
+                                                            @if(isset($promotorias))
+                                                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                                    Promotor Designado: {{ $promotorias->where('promotor_id', $promotoria->promotor_id)->first()->promotor ?? 'Não definido' }}
+                                                                </p>
+                                                            @endif
+                                                        </div>
                                                     </div>
                                                 @endif
                                             @endforeach

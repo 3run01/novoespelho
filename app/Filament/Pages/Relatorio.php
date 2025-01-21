@@ -13,6 +13,9 @@ use Filament\Notifications\Notification;
 class Relatorio extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
+
+    protected static ?string $navigationGroup = 'Outras Informações';
+
     protected static string $view = 'filament.pages.relatorio';
 
     public $dataInicial;
@@ -29,10 +32,8 @@ class Relatorio extends Page
 
     public function mount()
     {
-        // Carrega todos os períodos disponíveis
         $this->periodos = Periodo::orderBy('periodo_inicio', 'desc')->get();
         
-        // Inicializa com o período mais recente se não estiver mostrando todos
         if (!$this->mostrarTodos) {
             $ultimoPeriodo = $this->periodos->first();
             if ($ultimoPeriodo) {
@@ -50,7 +51,6 @@ class Relatorio extends Page
         if ($this->mostrarTodos) {
             $this->gerarRelatorioCompleto();
         } else {
-            // Volta para o período mais recente
             $this->selecionarPeriodo($this->periodos->first()->id);
         }
     }
@@ -58,7 +58,6 @@ class Relatorio extends Page
     public function gerarRelatorioCompleto()
     {
         try {
-            // Limpa os dados anteriores
             $this->reset(['eventos', 'plantoes', 'totalDiasPorPromotor']);
 
             // Busca todos os eventos com paginação
@@ -66,29 +65,29 @@ class Relatorio extends Page
                 ->orderBy('periodo_inicio', 'desc')
                 ->paginate($this->itensPorPagina);
 
-            // Adiciona total_dias para cada evento
+            // Adiciona total_dias para cada evento usando abs() para garantir valor positivo
             $this->eventos->getCollection()->transform(function ($evento) {
-                $evento->total_dias = Carbon::parse($evento->periodo_fim)->diffInDays(Carbon::parse($evento->periodo_inicio)) + 1;
+                $evento->total_dias = abs(Carbon::parse($evento->periodo_fim)->diffInDays(Carbon::parse($evento->periodo_inicio))) + 1;
                 return $evento;
             });
 
-            // Busca todos os plantões com paginação
+            // Busca todos os plantões com paginação usando abs() na fórmula
             $this->plantoes = PlantaoAtendimento::join('promotores', 'plantao_atendimento.promotor_designado_id', '=', 'promotores.id')
                 ->select(
                     'plantao_atendimento.*',
                     'promotores.nome as promotor_nome',
-                    DB::raw('(plantao_atendimento.periodo_fim::date - plantao_atendimento.periodo_inicio::date) + 1 as total_dias')
+                    DB::raw('ABS(plantao_atendimento.periodo_fim::date - plantao_atendimento.periodo_inicio::date) + 1 as total_dias')
                 )
                 ->orderBy('plantao_atendimento.periodo_inicio', 'desc')
                 ->paginate($this->itensPorPagina);
 
-            // Calcula o total geral por promotor
+            // Calcula o total geral por promotor usando abs() na fórmula
             $this->totalDiasPorPromotor = DB::table('plantao_atendimento')
                 ->join('promotores', 'plantao_atendimento.promotor_designado_id', '=', 'promotores.id')
                 ->select(
                     'promotores.nome',
                     DB::raw('COUNT(DISTINCT plantao_atendimento.id) as total_plantoes'),
-                    DB::raw('SUM((plantao_atendimento.periodo_fim::date - plantao_atendimento.periodo_inicio::date) + 1) as total_dias')
+                    DB::raw('SUM(ABS(plantao_atendimento.periodo_fim::date - plantao_atendimento.periodo_inicio::date) + 1) as total_dias')
                 )
                 ->groupBy('promotores.nome')
                 ->orderBy('total_dias', 'desc')
@@ -123,21 +122,21 @@ class Relatorio extends Page
 
             // Busca os eventos do período específico
             $this->eventos = Evento::with(['promotorTitular', 'promotorDesignado', 'promotoria'])
-                ->where('periodo_id', $this->periodoSelecionado) // Filtra pelo período selecionado
+                ->where('periodo_id', $this->periodoSelecionado)
                 ->orderBy('periodo_inicio')
                 ->get()
                 ->map(function ($evento) {
-                    $evento->total_dias = Carbon::parse($evento->periodo_fim)->diffInDays(Carbon::parse($evento->periodo_inicio)) + 1;
+                    $evento->total_dias = abs(Carbon::parse($evento->periodo_fim)->diffInDays(Carbon::parse($evento->periodo_inicio))) + 1;
                     return $evento;
                 });
 
             // Busca os plantões do período específico
             $this->plantoes = PlantaoAtendimento::join('promotores', 'plantao_atendimento.promotor_designado_id', '=', 'promotores.id')
-                ->where('plantao_atendimento.periodo_id', $this->periodoSelecionado) // Filtra pelo período selecionado
+                ->where('plantao_atendimento.periodo_id', $this->periodoSelecionado)
                 ->select(
                     'plantao_atendimento.*',
                     'promotores.nome as promotor_nome',
-                    DB::raw('(plantao_atendimento.periodo_fim::date - plantao_atendimento.periodo_inicio::date) + 1 as total_dias')
+                    DB::raw('ABS(plantao_atendimento.periodo_fim::date - plantao_atendimento.periodo_inicio::date) + 1 as total_dias')
                 )
                 ->orderBy('plantao_atendimento.periodo_inicio')
                 ->get();
@@ -145,11 +144,11 @@ class Relatorio extends Page
             // Calcula o total de dias por promotor para o período específico
             $this->totalDiasPorPromotor = DB::table('plantao_atendimento')
                 ->join('promotores', 'plantao_atendimento.promotor_designado_id', '=', 'promotores.id')
-                ->where('plantao_atendimento.periodo_id', $this->periodoSelecionado) // Filtra pelo período selecionado
+                ->where('plantao_atendimento.periodo_id', $this->periodoSelecionado)
                 ->select(
                     'promotores.nome',
                     DB::raw('COUNT(DISTINCT plantao_atendimento.id) as total_plantoes'),
-                    DB::raw('SUM((plantao_atendimento.periodo_fim::date - plantao_atendimento.periodo_inicio::date) + 1) as total_dias')
+                    DB::raw('SUM(ABS(plantao_atendimento.periodo_fim::date - plantao_atendimento.periodo_inicio::date) + 1) as total_dias')
                 )
                 ->groupBy('promotores.nome')
                 ->orderBy('total_dias', 'desc')
@@ -181,6 +180,66 @@ class Relatorio extends Page
             $this->dataInicial = $periodo->periodo_inicio;
             $this->dataFinal = $periodo->periodo_fim;
             $this->gerarRelatorio();
+        }
+    }
+
+    public function filtrarPorPeriodo()
+    {
+        try {
+            $this->validate([
+                'dataInicial' => 'required|date',
+                'dataFinal' => 'required|date|after_or_equal:dataInicial',
+            ]);
+
+            $this->reset(['eventos', 'plantoes', 'totalDiasPorPromotor']);
+
+            // Busca os eventos do período específico
+            $this->eventos = Evento::with(['promotorTitular', 'promotorDesignado', 'promotoria'])
+                ->whereBetween('periodo_inicio', [$this->dataInicial, $this->dataFinal])
+                ->orderBy('periodo_inicio')
+                ->get()
+                ->map(function ($evento) {
+                    $evento->total_dias = abs(Carbon::parse($evento->periodo_fim)->diffInDays(Carbon::parse($evento->periodo_inicio))) + 1;
+                    return $evento;
+                });
+
+            // Busca os plantões do período específico
+            $this->plantoes = PlantaoAtendimento::join('promotores', 'plantao_atendimento.promotor_designado_id', '=', 'promotores.id')
+                ->whereBetween('plantao_atendimento.periodo_inicio', [$this->dataInicial, $this->dataFinal])
+                ->select(
+                    'plantao_atendimento.*',
+                    'promotores.nome as promotor_nome',
+                    DB::raw('ABS(plantao_atendimento.periodo_fim::date - plantao_atendimento.periodo_inicio::date) + 1 as total_dias')
+                )
+                ->orderBy('plantao_atendimento.periodo_inicio')
+                ->get();
+
+            // Calcula o total de dias por promotor para o período específico
+            $this->totalDiasPorPromotor = DB::table('plantao_atendimento')
+                ->join('promotores', 'plantao_atendimento.promotor_designado_id', '=', 'promotores.id')
+                ->whereBetween('plantao_atendimento.periodo_inicio', [$this->dataInicial, $this->dataFinal])
+                ->select(
+                    'promotores.nome',
+                    DB::raw('COUNT(DISTINCT plantao_atendimento.id) as total_plantoes'),
+                    DB::raw('SUM(ABS(plantao_atendimento.periodo_fim::date - plantao_atendimento.periodo_inicio::date) + 1) as total_dias')
+                )
+                ->groupBy('promotores.nome')
+                ->orderBy('total_dias', 'desc')
+                ->get();
+
+            Notification::make()
+                ->title('Filtro aplicado com sucesso')
+                ->success()
+                ->send();
+
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Erro ao aplicar filtro')
+                ->body('Verifique as datas selecionadas e tente novamente.')
+                ->danger()
+                ->send();
+
+            \Log::error('Erro ao aplicar filtro: ' . $e->getMessage());
         }
     }
 }
