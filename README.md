@@ -48,3 +48,14 @@ Para popular o banco de dados com dados iniciais, você pode rodar os seeders. S
  - Depois rodar php artisan serve
 
 
+ ## Docker
+
+ - docker compose up -d db
+ - docker compose build
+ - docker compose up 
+
+ ## Rodar migrations do banco de dados
+
+ - docker exec laravelapp php artisan migrate
+ - docker exec laravelapp php artisan db:seed
+
