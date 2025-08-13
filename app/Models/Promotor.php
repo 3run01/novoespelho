@@ -14,13 +14,21 @@ class Promotor extends Model
     
     protected $fillable = [
         'nome', 
+        'cargo',
+        'zona_eleitoral',
+        'numero_da_zona_eleitoral',
+        'periodo_inicio',
+        'periodo_fim',
         'tipo',
         'is_substituto',
         'observacoes',
     ];
 
     protected $casts = [
-        'is_substituto' => 'boolean'
+        'is_substituto' => 'boolean',
+        'zona_eleitoral' => 'boolean',
+        'periodo_inicio' => 'date',
+        'periodo_fim' => 'date',
     ];
 
     /**
@@ -56,8 +64,6 @@ class Promotor extends Model
                     ->withTimestamps();
     }
 
-   
-
     /**
      * Scope para promotores por tipo.
      */
@@ -74,6 +80,11 @@ class Promotor extends Model
         return $query->where('is_substituto', true);
     }
 
-   
-    
+    /**
+     * Scope para promotores de zona eleitoral.
+     */
+    public function scopeZonaEleitoral($query)
+    {
+        return $query->where('zona_eleitoral', true);
+    }
 }

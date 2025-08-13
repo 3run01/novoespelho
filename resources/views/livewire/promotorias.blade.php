@@ -2,21 +2,21 @@
     <!-- Header com título e botão de criar -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-            <h2 class="text-2xl font-bold text-gray-900">Grupos de Promotorias</h2>
-            <p class="mt-1 text-sm text-gray-600">Gerencie os grupos de promotorias</p>
+            <h2 class="text-2xl font-bold text-gray-900">Promotorias</h2>
+            <p class="mt-1 text-sm text-gray-600">Gerencie as promotorias e seus promotores titulares</p>
         </div>
         <button wire:click="abrirModalCriar"
             class="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
-            Novo Grupo
+            Nova Promotoria
         </button>
     </div>
 
     <!-- Barra de busca e filtros -->
     <div class="mb-6 space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Busca por nome -->
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -27,16 +27,27 @@
                 </div>
                 <input wire:model.live.debounce.300ms="termoBusca" type="text"
                     class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    placeholder="Buscar por nome...">
+                    placeholder="Buscar por nome da promotoria...">
             </div>
 
-            <!-- Filtro por município -->
+            <!-- Filtro por grupo -->
             <div>
-                <select wire:model.live="filtroMunicipio"
+                <select wire:model.live="filtroGrupo"
                     class="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="">Todos os municípios</option>
-                    @foreach ($this->municipios as $municipio)
-                        <option value="{{ $municipio->id }}">{{ $municipio->nome }}</option>
+                    <option value="">Todos os grupos</option>
+                    @foreach ($grupos as $grupo)
+                        <option value="{{ $grupo->id }}">{{ $grupo->nome }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Filtro por promotor -->
+            <div>
+                <select wire:model.live="filtroPromotor"
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <option value="">Todos os promotores</option>
+                    @foreach ($promotores as $promotor)
+                        <option value="{{ $promotor->id }}">{{ $promotor->nome }}</option>
                     @endforeach
                 </select>
             </div>
@@ -116,11 +127,11 @@
         </div>
     @endif
 
-    <!-- Tabela de grupos de promotorias -->
+    <!-- Tabela de promotorias -->
     <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        @if ($this->grupos->count() > 0)
+        @if ($this->promotorias->count() > 0)
             <ul class="divide-y divide-gray-200">
-                @foreach ($this->grupos as $grupo)
+                @foreach ($this->promotorias as $promotoria)
                     <li class="px-6 py-4 hover:bg-gray-50 transition-colors duration-150">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
@@ -135,23 +146,23 @@
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <div class="text-lg font-semibold text-gray-900">{{ $grupo->nome }}</div>
+                                    <div class="text-lg font-semibold text-gray-900">{{ $promotoria->nome }}</div>
+                                    <div class="text-sm text-gray-600 mt-1">
+                                        {{ $promotoria->promotorTitular->nome ?? 'Promotor não definido' }}</div>
                                     <div class="flex items-center space-x-2 mt-2 text-sm text-gray-500">
                                         <span
                                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            {{ $grupo->municipio->nome }}
+                                            {{ $promotoria->grupoPromotoria->nome ?? 'Grupo não definido' }}
                                         </span>
-                                        @if ($grupo->promotorias->count() > 0)
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                {{ $grupo->promotorias->count() }} Promotoria(s)
-                                            </span>
-                                        @endif
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            {{ $promotoria->grupoPromotoria->municipio->nome ?? 'Município não definido' }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-2">
-                                <button wire:click="abrirModalEditar({{ $grupo->id }})"
+                                <button wire:click="abrirModalEditar({{ $promotoria->id }})"
                                     class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -161,8 +172,8 @@
                                     </svg>
                                     Editar
                                 </button>
-                                <button wire:click="deletar({{ $grupo->id }})"
-                                    wire:confirm="Tem certeza que deseja deletar este grupo de promotoria?"
+                                <button wire:click="deletar({{ $promotoria->id }})"
+                                    wire:confirm="Tem certeza que deseja deletar esta promotoria?"
                                     class="inline-flex items-center px-3 py-1.5 border border-red-300 shadow-sm text-xs font-medium rounded text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-150">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -185,15 +196,15 @@
                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
                     </path>
                 </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhum grupo encontrado</h3>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhuma promotoria encontrada</h3>
                 <p class="mt-1 text-sm text-gray-500">
-                    @if ($termoBusca || $filtroMunicipio)
-                        Nenhum grupo encontrado com os filtros aplicados.
+                    @if ($termoBusca || $filtroGrupo || $filtroPromotor)
+                        Nenhuma promotoria encontrada com os filtros aplicados.
                     @else
-                        Comece criando um novo grupo de promotoria.
+                        Comece criando uma nova promotoria.
                     @endif
                 </p>
-                @if (!$termoBusca && !$filtroMunicipio)
+                @if (!$termoBusca && !$filtroGrupo && !$filtroPromotor)
                     <div class="mt-6">
                         <button wire:click="abrirModalCriar"
                             class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -201,7 +212,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 4v16m8-8H4"></path>
                             </svg>
-                            Novo Grupo
+                            Nova Promotoria
                         </button>
                     </div>
                 @endif
@@ -210,19 +221,20 @@
     </div>
 
     <!-- Paginação -->
-    @if ($this->grupos->hasPages())
+    @if ($this->promotorias->hasPages())
         <div class="mt-6">
             <nav role="navigation" aria-label="Navegação de Páginas" class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-500">
-                        Mostrando <span class="font-medium text-gray-700">{{ $this->grupos->firstItem() }}</span> até
-                        <span class="font-medium text-gray-700">{{ $this->grupos->lastItem() }}</span> de <span
-                            class="font-medium text-gray-700">{{ $this->grupos->total() }}</span> resultados
+                        Mostrando <span class="font-medium text-gray-700">{{ $this->promotorias->firstItem() }}</span>
+                        até
+                        <span class="font-medium text-gray-700">{{ $this->promotorias->lastItem() }}</span> de <span
+                            class="font-medium text-gray-700">{{ $this->promotorias->total() }}</span> resultados
                     </p>
                 </div>
                 <div>
                     <span class="relative z-0 inline-flex rounded-lg">
-                        @if ($this->grupos->onFirstPage())
+                        @if ($this->promotorias->onFirstPage())
                             <span
                                 class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 cursor-default rounded-l-lg">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -232,7 +244,7 @@
                                 </svg>
                             </span>
                         @else
-                            <a href="{{ $this->grupos->previousPageUrl() }}"
+                            <a href="{{ $this->promotorias->previousPageUrl() }}"
                                 class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-50 hover:text-gray-400">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
@@ -242,8 +254,8 @@
                             </a>
                         @endif
 
-                        @foreach ($this->grupos->getUrlRange(1, $this->grupos->lastPage()) as $page => $url)
-                            @if ($page == $this->grupos->currentPage())
+                        @foreach ($this->promotorias->getUrlRange(1, $this->promotorias->lastPage()) as $page => $url)
+                            @if ($page == $this->promotorias->currentPage())
                                 <span
                                     class="relative inline-flex items-center px-4 py-2 -ml-px text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 cursor-default">{{ $page }}</span>
                             @else
@@ -252,8 +264,8 @@
                             @endif
                         @endforeach
 
-                        @if ($this->grupos->hasMorePages())
-                            <a href="{{ $this->grupos->nextPageUrl() }}"
+                        @if ($this->promotorias->hasMorePages())
+                            <a href="{{ $this->promotorias->nextPageUrl() }}"
                                 class="relative inline-flex items-center px-2 py-2 -ml-px text-sm font-medium text-gray-500 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-50 hover:text-gray-400">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
@@ -288,7 +300,7 @@
 
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
+                <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6"
                     x-show="show" x-transition:enter="ease-out duration-300"
                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -310,10 +322,10 @@
                             </div>
                             <div class="ml-4">
                                 <h3 class="text-lg font-medium text-gray-900">
-                                    {{ $modoEdicao ? 'Editar Grupo de Promotoria' : 'Novo Grupo de Promotoria' }}
+                                    {{ $modoEdicao ? 'Editar Promotoria' : 'Nova Promotoria' }}
                                 </h3>
                                 <p class="text-sm text-gray-500">
-                                    {{ $modoEdicao ? 'Atualize as informações do grupo' : 'Preencha os dados para criar um novo grupo' }}
+                                    {{ $modoEdicao ? 'Atualize as informações da promotoria' : 'Preencha os dados para criar uma nova promotoria' }}
                                 </p>
                             </div>
                         </div>
@@ -330,32 +342,110 @@
                     <!-- Formulário -->
                     <div class="mt-6">
                         <form wire:submit.prevent="salvar" class="space-y-6">
-                            <!-- Nome do Grupo -->
+                            <!-- Nome da Promotoria -->
                             <div>
                                 <label for="nome" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Nome do Grupo <span class="text-red-500">*</span>
+                                    Nome da Promotoria <span class="text-red-500">*</span>
                                 </label>
                                 <input wire:model="nome" type="text" id="nome"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('nome') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
-                                    placeholder="Ex: 2ª PJ CÍVEL">
+                                    placeholder="Ex: 1ª Promotoria de Justiça Cível">
                                 @error('nome')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
 
-                            <!-- Município -->
+                            <!-- Grid para Promotor e Grupo -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Promotor Titular -->
+                                <div x-data="{ promotorSelecionado: @entangle('promotor_id').live }">
+                                    <label for="promotor_id" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Promotor Titular
+                                    </label>
+                                    <select wire:model.live="promotor_id" x-model="promotorSelecionado"
+                                        id="promotor_id"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('promotor_id') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                                        <option value="">Selecione uma opção</option>
+                                        <option value="sem_titular">Não tem titularidade</option>
+                                        @foreach ($promotores as $promotor)
+                                            <option value="{{ $promotor->id }}">{{ $promotor->nome }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('promotor_id')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+
+                                    <!-- Data de Início da Vacância -->
+                                    <div x-show="promotorSelecionado === 'sem_titular'"
+                                        x-transition:enter="transition ease-out duration-300"
+                                        x-transition:enter-start="opacity-0 transform translate-y-2"
+                                        x-transition:enter-end="opacity-100 transform translate-y-0"
+                                        x-transition:leave="transition ease-in duration-200"
+                                        x-transition:leave-start="opacity-100 transform translate-y-0"
+                                        x-transition:leave-end="opacity-0 transform translate-y-2" class="mt-3">
+                                        <label for="vacancia_data_inicio"
+                                            class="block text-sm font-medium text-gray-700 mb-1">
+                                            Data de Início da Vacância <span
+                                                class="text-gray-400 font-normal">(opcional)</span>
+                                        </label>
+                                        <input wire:model="vacancia_data_inicio" type="date"
+                                            id="vacancia_data_inicio"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('vacancia_data_inicio') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                                        @error('vacancia_data_inicio')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Data de Início da Titularidade -->
+                                    <div x-show="promotorSelecionado && promotorSelecionado !== 'sem_titular' && promotorSelecionado !== ''"
+                                        x-transition:enter="transition ease-out duration-300"
+                                        x-transition:enter-start="opacity-0 transform translate-y-2"
+                                        x-transition:enter-end="opacity-100 transform translate-y-0"
+                                        x-transition:leave="transition ease-in duration-200"
+                                        x-transition:leave-start="opacity-100 transform translate-y-0"
+                                        x-transition:leave-end="opacity-0 transform translate-y-2" class="mt-3">
+                                        <label for="titularidade_promotor_data_inicio"
+                                            class="block text-sm font-medium text-gray-700 mb-1">
+                                            Data de Início da Titularidade <span
+                                                class="text-gray-400 font-normal">(opcional)</span>
+                                        </label>
+                                        <input wire:model="titularidade_promotor_data_inicio" type="date"
+                                            id="titularidade_promotor_data_inicio"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('titularidade_promotor_data_inicio') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                                        @error('titularidade_promotor_data_inicio')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Grupo de Promotoria -->
+                                <div>
+                                    <label for="grupo_promotoria_id"
+                                        class="block text-sm font-medium text-gray-700 mb-1">
+                                        Grupo de Promotoria <span class="text-red-500">*</span>
+                                    </label>
+                                    <select wire:model="grupo_promotoria_id" id="grupo_promotoria_id"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('grupo_promotoria_id') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                                        <option value="">Selecione um grupo</option>
+                                        @foreach ($grupos as $grupo)
+                                            <option value="{{ $grupo->id }}">{{ $grupo->nome }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('grupo_promotoria_id')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Competência -->
                             <div>
-                                <label for="municipios_id" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Município <span class="text-red-500">*</span>
+                                <label for="competencia" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Competência <span class="text-gray-400 font-normal">(opcional)</span>
                                 </label>
-                                <select wire:model="municipios_id" id="municipios_id"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('municipios_id') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
-                                    <option value="">Selecione um município</option>
-                                    @foreach ($this->municipios as $municipio)
-                                        <option value="{{ $municipio->id }}">{{ $municipio->nome }}</option>
-                                    @endforeach
-                                </select>
-                                @error('municipios_id')
+                                <textarea wire:model="competencia" id="competencia" rows="3"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('competencia') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
+                                    placeholder="Ex: 1ª, 2ª, 3ª Cíveis e de Fazenda Pública"></textarea>
+                                @error('competencia')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -368,7 +458,7 @@
                                 </button>
                                 <button type="submit"
                                     class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                    {{ $modoEdicao ? 'Atualizar' : 'Criar' }} Grupo
+                                    {{ $modoEdicao ? 'Atualizar' : 'Criar' }} Promotoria
                                 </button>
                             </div>
                         </form>

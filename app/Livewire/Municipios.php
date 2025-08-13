@@ -6,6 +6,7 @@ use App\Models\Municipio;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Rule;
+use Livewire\Attributes\Computed;
 
 class Municipios extends Component
 {
@@ -24,6 +25,17 @@ class Municipios extends Component
     public function mount()
     {
         $this->resetarFormulario();
+    }
+
+    #[Computed]
+    public function municipios()
+    {
+        return Municipio::query()
+            ->when($this->termoBusca, function ($query) {
+                $query->where('nome', 'like', '%' . $this->termoBusca . '%');
+            })
+            ->orderBy('id', 'asc') 
+            ->paginate(10);
     }
 
     public function abrirModalCriar()
@@ -60,6 +72,7 @@ class Municipios extends Component
         }
 
         $this->fecharModal();
+        $this->resetPage(); // Reset da paginação para mostrar a ordem correta
         $this->dispatch('municipioSalvo');
     }
 
@@ -68,6 +81,7 @@ class Municipios extends Component
         try {
             $municipio->delete();
             session()->flash('mensagem', 'Município deletado com sucesso!');
+            $this->resetPage(); // Reset da paginação para mostrar a ordem correta
             $this->dispatch('municipioSalvo');
         } catch (\Exception $e) {
             session()->flash('erro', 'Não é possível deletar este município pois está sendo usado em outras partes do sistema.');
@@ -83,13 +97,6 @@ class Municipios extends Component
 
     public function render()
     {
-        $municipios = Municipio::query()
-            ->when($this->termoBusca, function ($query) {
-                $query->where('nome', 'like', '%' . $this->termoBusca . '%');
-            })
-            ->orderBy('nome')
-            ->paginate(10);
-
-        return view('livewire.municipios', compact('municipios'));
+        return view('livewire.municipios');
     }
 }

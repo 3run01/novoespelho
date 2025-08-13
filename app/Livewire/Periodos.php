@@ -6,6 +6,7 @@ use App\Models\Periodo;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Rule;
+use Livewire\Attributes\Computed;
 
 class Periodos extends Component
 {
@@ -26,6 +27,14 @@ class Periodos extends Component
     public function mount()
     {
         $this->resetarFormulario();
+    }
+    
+    #[Computed]
+    public function periodos()
+    {
+        return Periodo::query()
+            ->orderBy('periodo_inicio', 'desc')
+            ->paginate(10);
     }
     
     public function abrirModalCriar()
@@ -93,10 +102,6 @@ class Periodos extends Component
     
     public function render()
     {
-        $periodos = Periodo::query()
-            ->orderBy('periodo_inicio', 'desc')
-            ->paginate(10);
-        
-        return view('livewire.periodos', compact('periodos'));
+        return view('livewire.periodos');
     }
 }

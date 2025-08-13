@@ -18,12 +18,12 @@ return new class extends Migration
             
             $table->foreignId('promotor_id')->constrained('promotores')->onDelete('cascade');
             
-            $table->string('tipo')->default('titular');
+            $table->string('tipo')->nullable()->default('titular');
             
-            $table->date('data_inicio_designacao');
-            $table->date('data_fim_designacao');
+            $table->date('data_inicio_designacao')->nullable();
+            $table->date('data_fim_designacao')->nullable();
             
-            $table->integer('ordem')->default(0);
+            $table->integer('ordem')->nullable()->default(0);
             
             $table->text('observacoes')->nullable();
             
@@ -33,8 +33,7 @@ return new class extends Migration
             $table->index(['promotor_id', 'data_inicio_designacao']);
             $table->index(['evento_id', 'data_inicio_designacao']);
             
-            // Evita duplicatas do mesmo promotor no mesmo evento com sobreposição de datas
-            $table->unique(['evento_id', 'promotor_id', 'data_inicio_designacao']);
+            // Removida a constraint unique que impedia flexibilidade
         });
     }
 

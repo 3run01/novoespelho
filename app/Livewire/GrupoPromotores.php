@@ -7,6 +7,7 @@ use App\Models\Municipio;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Rule;
+use Livewire\Attributes\Computed;
 
 class GrupoPromotores extends Component
 {
@@ -15,9 +16,6 @@ class GrupoPromotores extends Component
     // Properties com validação
     #[Rule('required|min:2|max:100')]
     public string $nome = '';
-    
-    #[Rule('required|min:2|max:200')]
-    public string $competencia = '';
     
     #[Rule('required|exists:municipios,id')]
     public ?int $municipios_id = null;
@@ -37,6 +35,27 @@ class GrupoPromotores extends Component
         $this->resetarFormulario();
     }
     
+    #[Computed]
+    public function grupos()
+    {
+        return GrupoPromotoria::query()
+            ->with(['municipio', 'promotorias.promotorTitular'])
+            ->when($this->termoBusca, function ($query) {
+                $query->where('nome', 'like', '%' . $this->termoBusca . '%');
+            })
+            ->when($this->filtroMunicipio, function ($query) {
+                $query->where('municipios_id', $this->filtroMunicipio);
+            })
+            ->orderBy('id', 'asc')
+            ->paginate(10);
+    }
+    
+    #[Computed]
+    public function municipios()
+    {
+        return Municipio::orderBy('id', 'asc')->get();
+    }
+    
     public function abrirModalCriar()
     {
         $this->modoEdicao = false;
@@ -49,7 +68,6 @@ class GrupoPromotores extends Component
         $this->modoEdicao = true;
         $this->grupoEditando = $grupo;
         $this->nome = $grupo->nome;
-        $this->competencia = $grupo->competencia;
         $this->municipios_id = $grupo->municipios_id;
         $this->mostrarModal = true;
     }
@@ -67,14 +85,12 @@ class GrupoPromotores extends Component
         if ($this->modoEdicao && $this->grupoEditando) {
             $this->grupoEditando->update([
                 'nome' => $this->nome,
-                'competencia' => $this->competencia,
                 'municipios_id' => $this->municipios_id,
             ]);
             session()->flash('mensagem', 'Grupo de Promotoria atualizado com sucesso!');
         } else {
             GrupoPromotoria::create([
                 'nome' => $this->nome,
-                'competencia' => $this->competencia,
                 'municipios_id' => $this->municipios_id,
             ]);
             session()->flash('mensagem', 'Grupo de Promotoria criado com sucesso!');
@@ -98,7 +114,6 @@ class GrupoPromotores extends Component
     public function resetarFormulario()
     {
         $this->nome = '';
-        $this->competencia = '';
         $this->municipios_id = null;
         $this->grupoEditando = null;
         $this->resetValidation();
@@ -113,22 +128,6 @@ class GrupoPromotores extends Component
     
     public function render()
     {
-        $grupos = GrupoPromotoria::query()
-            ->with(['municipio', 'promotorias.promotorTitular'])
-            ->when($this->termoBusca, function ($query) {
-                $query->where(function ($q) {
-                    $q->where('nome', 'like', '%' . $this->termoBusca . '%')
-                      ->orWhere('competencia', 'like', '%' . $this->termoBusca . '%');
-                });
-            })
-            ->when($this->filtroMunicipio, function ($query) {
-                $query->where('municipios_id', $this->filtroMunicipio);
-            })
-            ->orderBy('nome')
-            ->paginate(10);
-        
-        $municipios = Municipio::orderBy('nome')->get();
-        
-        return view('livewire.grupo-promotores', compact('grupos', 'municipios'));
+        return view('livewire.grupo-promotores');
     }
 }

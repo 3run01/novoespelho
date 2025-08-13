@@ -1,7 +1,7 @@
 services:
     laravelapp:
-        container_name: laravelapp
-        image: laravelapp
+        container_name: laravel-app
+        image: laravel-app
         build: .
         ports:
             - 8000:8000
@@ -17,10 +17,10 @@ services:
         depends_on:
             - db
     db:
-        container_name: db
+        container_name: espelho-db  # Nome único
         image: postgres:17
         ports:
-            - 5433:5432
+            - 5432:5432
         environment:
             - POSTGRES_USER=postgres
             - POSTGRES_PASSWORD=123@senha

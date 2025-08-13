@@ -16,15 +16,15 @@ return new class extends Migration
             $table->foreignId('plantao_atendimento_id')->constrained('plantao_atendimento')->onDelete('cascade');
             $table->foreignId('promotor_id')->constrained('promotores')->onDelete('cascade');
             
-            $table->date('data_inicio_designacao');
-            $table->date('data_fim_designacao');
+            $table->date('data_inicio_designacao')->nullable();
+            $table->date('data_fim_designacao')->nullable();
             
-            $table->integer('ordem')->default(1);
+            $table->integer('ordem')->nullable()->default(1);
             
-            $table->string('tipo_designacao')->default('titular');
+            $table->string('tipo_designacao')->nullable()->default('titular');
             
             // Status da designação
-            $table->enum('status', ['ativo', 'inativo', 'pendente'])->default('ativo');
+            $table->enum('status', ['ativo', 'inativo', 'pendente'])->nullable()->default('ativo');
             
             $table->timestamps();
             

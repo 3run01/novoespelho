@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('grupo_promotorias', function (Blueprint $table) {
             $table->id();
             $table->string('nome');
-            $table->string('competencia')->nullable();
             $table->unsignedBigInteger('municipios_id'); 
             $table->foreign('municipios_id')->references('id')->on('municipios');
             $table->timestamps();

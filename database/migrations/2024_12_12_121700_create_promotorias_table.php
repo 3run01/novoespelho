@@ -14,7 +14,10 @@ return new class extends Migration
         Schema::create('promotorias', function (Blueprint $table) {
             $table->id();
             $table->string('nome');
-            $table->foreignId('promotor_id')->references('id')->on('promotores');
+            $table->string('competencia')->nullable();
+            $table->foreignId('promotor_id')->nullable()->references('id')->on('promotores');
+            $table->date('titularidade_promotor_data_inicio')->nullable();
+            $table->date('vacancia_data_inicio')->nullable();
             $table->foreignId('grupo_promotoria_id')->references('id')->on('grupo_promotorias');                       
             $table->timestamps();
         });

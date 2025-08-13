@@ -4,10 +4,10 @@ namespace App\Livewire;
 
 use Livewire\Component;
 
-class HelloWorld extends Component
+class Main extends Component
 {
     public function render()
     {
-        return view('livewire.hello-world');
+        return view('livewire.main');
     }
 }

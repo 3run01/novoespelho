@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Promotoria extends Model
 {
@@ -15,27 +16,20 @@ class Promotoria extends Model
     protected $fillable = [
         'nome',
         'promotor_id',
-        'grupo_promotoria_id'
+        'grupo_promotoria_id',
+        'competencia',
+        'titularidade_promotor_data_inicio',
+        'vacancia_data_inicio'
     ];
 
-    public function grupoPromotoria()
+    public function grupoPromotoria(): BelongsTo
     {
-        return $this->belongsTo(GrupoPromotoria::class);
+        return $this->belongsTo(GrupoPromotoria::class, 'grupo_promotoria_id');
     }
 
-    public function promotorTitular()
+    public function promotorTitular(): BelongsTo
     {
         return $this->belongsTo(Promotor::class, 'promotor_id');
-    }
-
-    public function periodos()
-    {
-        return $this->hasManyThrough(Periodo::class, Promotor::class, 'promotor_id', 'promotor_id');
-    }
-
-    public function promotoria()
-    {
-        return $this->belongsTo(Promotoria::class);
     }
 
     public function eventos(): HasMany

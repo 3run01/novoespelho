@@ -14,10 +14,10 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('promotoria_id')->constrained();
             $table->string('titulo')->nullable();
-            $table->string('tipo');
-            $table->date('periodo_inicio');
-            $table->date('periodo_fim');
-            $table->boolean('is_urgente')->default(false);
+            $table->string('tipo')->nullable();
+            $table->date('periodo_inicio')->nullable();
+            $table->date('periodo_fim')->nullable();
+            $table->boolean('is_urgente')->nullable()->default(false);
             $table->timestamps();
         });
     }

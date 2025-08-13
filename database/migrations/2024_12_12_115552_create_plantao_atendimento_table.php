@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('periodo_id')->constrained('periodos');
             $table->foreignId('municipio_id')->constrained('municipios')->onDelete('cascade');
-            $table->string('nome')->nullable(); // Nome do plantão
-            $table->text('observacoes')->nullable(); // Observações adicionais
+            $table->string('nome')->nullable(); 
+            $table->text('observacoes')->nullable();
             $table->timestamps();
         });
     }
