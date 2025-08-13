@@ -13,4 +13,9 @@ class Periodo extends Model
         'periodo_inicio',
         'periodo_fim',
     ];
+
+    protected $casts = [
+        'periodo_inicio' => 'date',
+        'periodo_fim' => 'date',
+    ];
 }

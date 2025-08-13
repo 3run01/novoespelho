@@ -9,6 +9,8 @@ class Municipio extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['nome'];
+
     public function grupoPromotorias()
     {
         return $this->hasMany(GrupoPromotoria::class);

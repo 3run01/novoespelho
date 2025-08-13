@@ -11,6 +11,12 @@ class Promotoria extends Model
     use HasFactory;
 
     protected $table = 'promotorias';
+    
+    protected $fillable = [
+        'nome',
+        'promotor_id',
+        'grupo_promotoria_id'
+    ];
 
     public function grupoPromotoria()
     {

@@ -9,6 +9,16 @@ class GrupoPromotoria extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'nome',
+        'competencia',
+        'municipios_id'
+    ];
+
+    protected $casts = [
+        'competencia' => 'string'
+    ];
+
     public function promotorias()
     {
         return $this->hasMany(Promotoria::class);
@@ -17,5 +27,10 @@ class GrupoPromotoria extends Model
     public function municipio()
     {
         return $this->belongsTo(Municipio::class, 'municipios_id');
+    }
+
+    public function promotores()
+    {
+        return $this->hasManyThrough(Promotor::class, Promotoria::class);
     }
 }

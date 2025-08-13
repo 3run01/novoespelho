@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('promotores', function (Blueprint $table) {
             $table->id();
             $table->string('nome');
-            $table->string('is_substituto')->default(false);
+            $table->string('tipo')->default('titular');
+            $table->boolean('is_substituto')->default(false);
+            $table->text('observacoes')->nullable();
             $table->timestamps();
         });
     }

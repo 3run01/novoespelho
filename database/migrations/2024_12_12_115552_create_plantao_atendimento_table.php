@@ -14,10 +14,9 @@ return new class extends Migration
         Schema::create('plantao_atendimento', function (Blueprint $table) {
             $table->id();
             $table->foreignId('periodo_id')->constrained('periodos');
-
-            $table->date('periodo_inicio');
-            $table->date('periodo_fim');
-            $table->foreignId('promotor_designado_id')->references('id')->on('promotores');
+            $table->foreignId('municipio_id')->constrained('municipios')->onDelete('cascade');
+            $table->string('nome')->nullable(); // Nome do plantão
+            $table->text('observacoes')->nullable(); // Observações adicionais
             $table->timestamps();
         });
     }

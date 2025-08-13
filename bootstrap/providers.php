@@ -2,5 +2,5 @@
 
 return [
     App\Providers\AppServiceProvider::class,
-    App\Providers\Filament\AdminPanelProvider::class,
 ];
+//admin panel provider tinha aqui
