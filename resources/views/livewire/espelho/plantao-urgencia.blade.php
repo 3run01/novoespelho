@@ -413,145 +413,126 @@
                                             Promotores Designados
                                         </h4>
 
-                                        <!-- Formulário para adicionar promotor -->
-                                        <div class="bg-white p-4 rounded-lg border border-blue-200 space-y-3 mb-4">
-                                            <h5 class="text-sm font-medium text-gray-800">Adicionar Promotor</h5>
-
-                                            <div class="space-y-3">
-                                                <div>
-                                                    <label
-                                                        class="block text-xs font-medium text-gray-700 mb-1">Promotor</label>
-                                                    <select wire:model.live="promotorSelecionado"
-                                                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                                                        <option value="">Selecione um promotor</option>
-                                                        @foreach ($this->promotores as $promotor)
-                                                            <option value="{{ $promotor->id }}">{{ $promotor->nome }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-
-                                                <div class="grid grid-cols-2 gap-3">
-                                                    <div>
-                                                        <label
-                                                            class="block text-xs font-medium text-gray-700 mb-1">Data
-                                                            Início</label>
-                                                        <input wire:model.live="dataInicioDesignacao" type="date"
-                                                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                        <!-- Lista de designações de promotores -->
+                                        <div class="space-y-4">
+                                            @foreach ($promotoresDesignacoes as $i => $designacao)
+                                                <div class="bg-white p-4 rounded-lg border border-blue-200">
+                                                    <div class="flex justify-between items-start mb-3">
+                                                        <h5 class="text-sm font-medium text-gray-800">
+                                                            Designação {{ $i + 1 }}
+                                                            @if ($designacao['tipo'] === 'titular')
+                                                                <span
+                                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                                                                    Titular
+                                                                </span>
+                                                            @else
+                                                                <span
+                                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 ml-2">
+                                                                    {{ ucfirst($designacao['tipo']) }}
+                                                                </span>
+                                                            @endif
+                                                        </h5>
+                                                        @if (count($promotoresDesignacoes) > 1)
+                                                            <button type="button"
+                                                                wire:click="removerLinhaPromotor({{ $i }})"
+                                                                class="text-red-600 hover:text-red-800 p-1">
+                                                                <svg class="h-4 w-4" fill="none"
+                                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round"
+                                                                        stroke-linejoin="round" stroke-width="2"
+                                                                        d="M6 18L18 6M6 6l12 12"></path>
+                                                                </svg>
+                                                            </button>
+                                                        @endif
                                                     </div>
-                                                    <div>
-                                                        <label
-                                                            class="block text-xs font-medium text-gray-700 mb-1">Data
-                                                            Fim</label>
-                                                        <input wire:model.live="dataFimDesignacao" type="date"
-                                                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                                                    </div>
-                                                </div>
 
-                                                <div class="grid grid-cols-2 gap-3">
-                                                    <div>
-                                                        <label
-                                                            class="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
-                                                        <select wire:model.live="tipoDesignacao"
-                                                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                                                            <option value="titular">Titular</option>
-                                                            <option value="substituto">Substituto</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="flex items-end">
-                                                        <button type="button" wire:click="adicionarPromotor"
-                                                            @disabled(!$promotorSelecionado || !$dataInicioDesignacao || !$dataFimDesignacao)
-                                                            class="w-full inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                                            <svg class="w-4 h-4 mr-1" fill="none"
-                                                                stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                                            </svg>
-                                                            Adicionar
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                                                        <!-- Promotor -->
+                                                        <div class="lg:col-span-2">
+                                                            <label
+                                                                class="block text-xs font-medium text-gray-700 mb-1">
+                                                                Promotor <span class="text-red-500">*</span>
+                                                            </label>
+                                                            <select
+                                                                wire:model="promotoresDesignacoes.{{ $i }}.promotor_id"
+                                                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm @error('promotoresDesignacoes.' . $i . '.promotor_id') border-red-300 @enderror">
+                                                                <option value="">Selecione um promotor</option>
+                                                                @foreach ($this->promotores as $promotor)
+                                                                    <option value="{{ $promotor->id }}">
+                                                                        {{ $promotor->nome }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                            @error('promotoresDesignacoes.' . $i . '.promotor_id')
+                                                                <p class="mt-1 text-xs text-red-600">{{ $message }}
+                                                                </p>
+                                                            @enderror
+                                                        </div>
 
-                                        <!-- Lista de promotores com muito espaço -->
-                                        <div class="bg-white rounded-lg border border-blue-200">
-                                            <div class="p-3 border-b border-blue-100 bg-blue-25">
-                                                <h5 class="text-sm font-medium text-gray-800 flex items-center">
-                                                    <span
-                                                        class="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded-full text-xs font-bold mr-2">
-                                                        {{ count($promotoresPlantao) }}
-                                                    </span>
-                                                    Promotores no Plantão
-                                                </h5>
-                                            </div>
+                                                        <!-- Tipo -->
+                                                        <div>
+                                                            <label
+                                                                class="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
+                                                            <select
+                                                                wire:model="promotoresDesignacoes.{{ $i }}.tipo"
+                                                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm @error('promotoresDesignacoes.' . $i . '.tipo') border-red-300 @enderror">
+                                                                <option value="titular">Titular</option>
+                                                                <option value="substituto">Substituto</option>
+                                                            </select>
+                                                            @error('promotoresDesignacoes.' . $i . '.tipo')
+                                                                <p class="mt-1 text-xs text-red-600">{{ $message }}
+                                                                </p>
+                                                            @enderror
+                                                        </div>
 
-                                            @if (count($promotoresPlantao) > 0)
-                                                <!-- Área com muito espaço para os promotores -->
-                                                <div class="max-h-96 overflow-y-auto">
-                                                    <div class="divide-y divide-gray-100">
-                                                        @foreach ($promotoresPlantao as $index => $promotorPlantao)
-                                                            <div class="p-3 hover:bg-gray-50 transition-colors">
-                                                                <div class="flex items-center justify-between">
-                                                                    <div class="flex items-center space-x-3">
-                                                                        <div
-                                                                            class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                                                            <span
-                                                                                class="text-xs font-medium text-blue-600">
-                                                                                {{ substr($promotorPlantao['nome'], 0, 1) }}
-                                                                            </span>
-                                                                        </div>
-                                                                        <div class="flex-1 min-w-0">
-                                                                            <p
-                                                                                class="text-sm font-medium text-gray-900 truncate">
-                                                                                {{ $promotorPlantao['nome'] }}
-                                                                            </p>
-                                                                            <div
-                                                                                class="flex items-center space-x-2 mt-1">
-                                                                                <p class="text-xs text-gray-500">
-                                                                                    {{ \Carbon\Carbon::parse($promotorPlantao['data_inicio'])->format('d/m/Y') }}
-                                                                                    -
-                                                                                    {{ \Carbon\Carbon::parse($promotorPlantao['data_fim'])->format('d/m/Y') }}
-                                                                                </p>
-                                                                                <span
-                                                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $promotorPlantao['tipo'] == 'titular' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' }}">
-                                                                                    {{ ucfirst($promotorPlantao['tipo']) }}
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <button type="button"
-                                                                        wire:click="removerPromotor({{ $index }})"
-                                                                        class="inline-flex items-center p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
-                                                                        title="Remover promotor">
-                                                                        <svg class="h-4 w-4" fill="none"
-                                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path stroke-linecap="round"
-                                                                                stroke-linejoin="round"
-                                                                                stroke-width="2"
-                                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                                            </path>
-                                                                        </svg>
-                                                                    </button>
-                                                                </div>
+                                                        @if ($i === count($promotoresDesignacoes) - 1)
+                                                            <div class="flex items-end">
+                                                                <button type="button"
+                                                                    wire:click="adicionarLinhaPromotor"
+                                                                    class="w-full px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                                                    <svg class="w-4 h-4 mx-auto" fill="none"
+                                                                        stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round"
+                                                                            stroke-linejoin="round" stroke-width="2"
+                                                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                                                    </svg>
+                                                                </button>
                                                             </div>
-                                                        @endforeach
+                                                        @endif
+                                                    </div>
+
+                                                    <!-- Datas -->
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                                                        <div>
+                                                            <label
+                                                                class="block text-xs font-medium text-gray-700 mb-1">Data
+                                                                Início</label>
+                                                            <input
+                                                                wire:model="promotoresDesignacoes.{{ $i }}.data_inicio_designacao"
+                                                                type="date"
+                                                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm @error('promotoresDesignacoes.' . $i . '.data_inicio_designacao') border-red-300 @enderror">
+                                                            @error('promotoresDesignacoes.' . $i .
+                                                                '.data_inicio_designacao')
+                                                                <p class="mt-1 text-xs text-red-600">{{ $message }}
+                                                                </p>
+                                                            @enderror
+                                                        </div>
+                                                        <div>
+                                                            <label
+                                                                class="block text-xs font-medium text-gray-700 mb-1">Data
+                                                                Fim</label>
+                                                            <input
+                                                                wire:model="promotoresDesignacoes.{{ $i }}.data_fim_designacao"
+                                                                type="date"
+                                                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm @error('promotoresDesignacoes.' . $i . '.data_fim_designacao') border-red-300 @enderror">
+                                                            @error('promotoresDesignacoes.' . $i .
+                                                                '.data_fim_designacao')
+                                                                <p class="mt-1 text-xs text-red-600">{{ $message }}
+                                                                </p>
+                                                            @enderror
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            @else
-                                                <div class="p-8 text-center">
-                                                    <svg class="mx-auto h-10 w-10 text-gray-400" fill="none"
-                                                        stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-                                                        </path>
-                                                    </svg>
-                                                    <p class="mt-2 text-sm text-gray-500">Nenhum promotor designado</p>
-                                                    <p class="text-xs text-gray-400">Use o formulário acima para
-                                                        adicionar</p>
-                                                </div>
-                                            @endif
+                                            @endforeach
                                         </div>
                                     </div>
                                 </div>
