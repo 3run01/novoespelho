@@ -102,6 +102,6 @@ class Periodos extends Component
     
     public function render()
     {
-        return view('livewire.periodos');
+        return view('livewire.espelho.periodos');
     }
 }

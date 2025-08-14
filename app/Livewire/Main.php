@@ -8,6 +8,6 @@ class Main extends Component
 {
     public function render()
     {
-        return view('livewire.main');
+        return view('livewire.espelho.main');
     }
 }

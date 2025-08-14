@@ -14,6 +14,7 @@ use App\Livewire\Municipios;
 use App\Livewire\Promotores;
 use App\Livewire\GrupoPromotores;
 use App\Livewire\Promotorias;
+use App\Http\Controllers\PdfController;
 
 
 
@@ -28,5 +29,14 @@ Route::get('/promotores', Promotores::class)->name('promotores');
 Route::get('/grupo-promotores', GrupoPromotores::class)->name('grupo-promotores');
 
 Route::get('/promotorias', Promotorias::class)->name('promotorias');
+
+// Rotas para PDFs
+Route::prefix('pdf')->group(function () {
+    Route::get('/generate/{viewName}', [PdfController::class, 'generateFromView'])->name('pdf.generate');
+    Route::post('/generate-html', [PdfController::class, 'generateFromHtml'])->name('pdf.generate-html');
+    Route::get('/stream/{viewName}', [PdfController::class, 'streamPdf'])->name('pdf.stream');
+    Route::get('/report/{reportType}', [PdfController::class, 'generateReport'])->name('pdf.report');
+    Route::post('/save/{viewName}', [PdfController::class, 'savePdf'])->name('pdf.save');
+});
 
 

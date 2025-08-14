@@ -39,7 +39,7 @@
             <select wire:model.live="filtroMunicipio"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 <option value="">Todos os municípios</option>
-                @foreach ($municipios as $municipio)
+                @foreach ($this->municipios as $municipio)
                     <option value="{{ $municipio->id }}">{{ $municipio->nome }}</option>
                 @endforeach
             </select>
@@ -50,7 +50,7 @@
             <select wire:model.live="filtroPeriodo"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 <option value="">Todos os períodos</option>
-                @foreach ($periodos as $periodo)
+                @foreach ($this->periodos as $periodo)
                     <option value="{{ $periodo->id }}">
                         {{ \Carbon\Carbon::parse($periodo->periodo_inicio)->format('d/m/Y') }} -
                         {{ \Carbon\Carbon::parse($periodo->periodo_fim)->format('d/m/Y') }}
@@ -121,11 +121,10 @@
         </div>
     @endif
 
-    <!-- Lista de plantões -->
     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        @if ($plantoes->count() > 0)
+        @if ($this->plantoes->count() > 0)
             <div class="divide-y divide-gray-200">
-                @foreach ($plantoes as $plantao)
+                @foreach ($this->plantoes as $plantao)
                     <div class="p-6 hover:bg-gray-50 transition-colors">
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
@@ -234,13 +233,13 @@
                 </svg>
                 <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhum plantão de urgência encontrado</h3>
                 <p class="mt-1 text-sm text-gray-500">
-                    @if ($termoBusca || $filtroMunicipio || $filtroPeriodo)
+                    @if ($this->termoBusca || $this->filtroMunicipio || $this->filtroPeriodo)
                         Nenhum plantão encontrado com os filtros aplicados.
                     @else
                         Comece criando um novo plantão de urgência.
                     @endif
                 </p>
-                @if (!$termoBusca && !$filtroMunicipio && !$filtroPeriodo)
+                @if (!$this->termoBusca && !$this->filtroMunicipio && !$this->filtroPeriodo)
                     <div class="mt-6">
                         <button wire:click="abrirModalCriar"
                             class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -257,9 +256,9 @@
     </div>
 
     <!-- Paginação -->
-    @if ($plantoes->hasPages())
+    @if ($this->plantoes->hasPages())
         <div class="mt-6">
-            {{ $plantoes->links() }}
+            {{ $this->plantoes->links() }}
         </div>
     @endif
 
@@ -341,7 +340,7 @@
                                                 <select wire:model="periodo_id" id="periodo_id"
                                                     class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('periodo_id') border-red-300 @enderror">
                                                     <option value="">Selecione um período</option>
-                                                    @foreach ($periodos as $periodo)
+                                                    @foreach ($this->periodos as $periodo)
                                                         <option value="{{ $periodo->id }}">
                                                             {{ \Carbon\Carbon::parse($periodo->periodo_inicio)->format('d/m/Y') }}
                                                             -
@@ -362,7 +361,7 @@
                                                 <select wire:model="municipio_id" id="municipio_id"
                                                     class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('municipio_id') border-red-300 @enderror">
                                                     <option value="">Selecione um município</option>
-                                                    @foreach ($municipios as $municipio)
+                                                    @foreach ($this->municipios as $municipio)
                                                         <option value="{{ $municipio->id }}">{{ $municipio->nome }}
                                                         </option>
                                                     @endforeach
@@ -422,10 +421,10 @@
                                                 <div>
                                                     <label
                                                         class="block text-xs font-medium text-gray-700 mb-1">Promotor</label>
-                                                    <select wire:model="promotorSelecionado"
+                                                    <select wire:model.live="promotorSelecionado"
                                                         class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
                                                         <option value="">Selecione um promotor</option>
-                                                        @foreach ($promotores as $promotor)
+                                                        @foreach ($this->promotores as $promotor)
                                                             <option value="{{ $promotor->id }}">{{ $promotor->nome }}
                                                             </option>
                                                         @endforeach
@@ -437,14 +436,14 @@
                                                         <label
                                                             class="block text-xs font-medium text-gray-700 mb-1">Data
                                                             Início</label>
-                                                        <input wire:model="dataInicioDesignacao" type="date"
+                                                        <input wire:model.live="dataInicioDesignacao" type="date"
                                                             class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
                                                     </div>
                                                     <div>
                                                         <label
                                                             class="block text-xs font-medium text-gray-700 mb-1">Data
                                                             Fim</label>
-                                                        <input wire:model="dataFimDesignacao" type="date"
+                                                        <input wire:model.live="dataFimDesignacao" type="date"
                                                             class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
                                                     </div>
                                                 </div>
@@ -453,7 +452,7 @@
                                                     <div>
                                                         <label
                                                             class="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
-                                                        <select wire:model="tipoDesignacao"
+                                                        <select wire:model.live="tipoDesignacao"
                                                             class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
                                                             <option value="titular">Titular</option>
                                                             <option value="substituto">Substituto</option>
@@ -461,6 +460,7 @@
                                                     </div>
                                                     <div class="flex items-end">
                                                         <button type="button" wire:click="adicionarPromotor"
+                                                            @disabled(!$promotorSelecionado || !$dataInicioDesignacao || !$dataFimDesignacao)
                                                             class="w-full inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                                             <svg class="w-4 h-4 mr-1" fill="none"
                                                                 stroke="currentColor" viewBox="0 0 24 24">

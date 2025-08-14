@@ -72,7 +72,7 @@ class Municipios extends Component
         }
 
         $this->fecharModal();
-        $this->resetPage(); // Reset da paginação para mostrar a ordem correta
+        $this->resetPage(); 
         $this->dispatch('municipioSalvo');
     }
 
@@ -81,7 +81,7 @@ class Municipios extends Component
         try {
             $municipio->delete();
             session()->flash('mensagem', 'Município deletado com sucesso!');
-            $this->resetPage(); // Reset da paginação para mostrar a ordem correta
+            $this->resetPage(); 
             $this->dispatch('municipioSalvo');
         } catch (\Exception $e) {
             session()->flash('erro', 'Não é possível deletar este município pois está sendo usado em outras partes do sistema.');
@@ -97,6 +97,6 @@ class Municipios extends Component
 
     public function render()
     {
-        return view('livewire.municipios');
+        return view('livewire.configuracoes.municipios');
     }
 }

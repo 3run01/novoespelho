@@ -41,7 +41,7 @@
                     <option value="">Todos os tipos</option>
                     <option value="titular">Titular</option>
                     <option value="substituto">Substituto</option>
-        
+
                 </select>
             </div>
 
@@ -321,12 +321,24 @@
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('tipo') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
                                         <option value="titular">Titular</option>
                                         <option value="substituto">Substituto</option>
-                                       
+
                                     </select>
                                     @error('tipo')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>
+                            </div>
+
+                            <!-- Checkbox Zona Eleitoral -->
+                            <div>
+                                <label class="flex items-center">
+                                    <input wire:model="zona_eleitoral" type="checkbox"
+                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <span class="ml-2 text-sm text-gray-700">Este promotor possui zona eleitoral</span>
+                                </label>
+                                @error('zona_eleitoral')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
 
 

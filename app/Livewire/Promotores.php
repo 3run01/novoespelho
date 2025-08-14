@@ -52,7 +52,6 @@ class Promotores extends Component
         $this->resetarFormulario();
     }
     
-    // Validação condicional para zona eleitoral
     public function rules()
     {
         $rules = [
@@ -66,7 +65,6 @@ class Promotores extends Component
             'observacoes' => 'nullable|max:500',
         ];
         
-        // Se zona_eleitoral for true, o número da zona é obrigatório
         if ($this->zona_eleitoral) {
             $rules['numero_da_zona_eleitoral'] = 'required|string|max:50';
         } else {
@@ -100,7 +98,6 @@ class Promotores extends Component
         $this->resetPage();
     }
     
-    // Limpa o número da zona quando zona_eleitoral é desmarcada
     public function updatedZonaEleitoral()
     {
         if (!$this->zona_eleitoral) {
@@ -198,8 +195,56 @@ class Promotores extends Component
         $this->resetPage();
     }
     
+    /**
+     * Gera PDF com a lista de promotores
+     */
+    public function gerarPdf()
+    {
+        $promotores = Promotor::query()
+            ->when($this->termoBusca, function ($query) {
+                $query->where('nome', 'like', '%' . $this->termoBusca . '%');
+            })
+            ->when($this->filtroTipo, function ($query) {
+                $query->where('tipo', $this->filtroTipo);
+            })
+            ->orderBy('nome', 'asc')
+            ->get();
+        
+        $filtros = [];
+        if ($this->termoBusca) {
+            $filtros[] = "Busca: {$this->termoBusca}";
+        }
+        if ($this->filtroTipo) {
+            $filtros[] = "Tipo: " . ucfirst($this->filtroTipo);
+        }
+        
+        $dados = [
+            'title' => 'Relatório de Promotores',
+            'filtros' => $filtros,
+            'data' => [
+                'promotores' => $promotores->map(function ($promotor) {
+                    return [
+                        'nome' => $promotor->nome,
+                        'cargo' => $promotor->cargo ?? 'N/A',
+                        'tipo' => ucfirst($promotor->tipo),
+                        'zona_eleitoral' => $promotor->zona_eleitoral ? 'Sim' : 'Não',
+                        'numero_zona' => $promotor->numero_da_zona_eleitoral ?? 'N/A',
+                        'periodo_inicio' => $promotor->periodo_inicio?->format('d/m/Y') ?? 'N/A',
+                        'periodo_fim' => $promotor->periodo_fim?->format('d/m/Y') ?? 'N/A',
+                        'substituto' => $promotor->is_substituto ? 'Sim' : 'Não',
+                        'observacoes' => $promotor->observacoes ?? 'N/A'
+                    ];
+                })->toArray()
+            ]
+        ];
+        
+        $url = route('pdf.generate', ['viewName' => 'promotores']) . '?' . http_build_query($dados);
+        
+        return redirect($url);
+    }
+    
     public function render()
     {
-        return view('livewire.promotores');
+        return view('livewire.configuracoes.promotores');
     }
 }

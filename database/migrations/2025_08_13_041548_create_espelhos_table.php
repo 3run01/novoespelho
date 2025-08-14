@@ -15,18 +15,14 @@ return new class extends Migration
             $table->id();
             
             $table->foreignId('periodo_id')->constrained('periodos')->onDelete('cascade');
-            
             $table->foreignId('plantao_atendimento_id')->nullable()->constrained('plantao_atendimento')->onDelete('cascade');
-            
             $table->foreignId('grupo_promotorias_id')->nullable()->constrained('grupo_promotorias')->onDelete('cascade');
-            
             $table->foreignId('municipio_id')->nullable()->constrained('municipios')->onDelete('cascade');
-            
             $table->string('nome')->nullable(); 
             $table->text('observacoes')->nullable(); 
             $table->enum('status', ['ativo', 'inativo', 'pendente'])->default('ativo');
-            
             $table->timestamps();
+            
         });
     }
 

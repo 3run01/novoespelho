@@ -19,6 +19,7 @@ class Evento extends Model
 		'periodo_fim', 
 		'is_urgente',
 		'promotoria_id',
+		'periodo_id', 
 	];
 
 	protected $casts = [
@@ -26,6 +27,14 @@ class Evento extends Model
 		'periodo_fim' => 'date',
 		'is_urgente' => 'boolean'
 	];
+
+	/**
+	 * Relacionamento com o período.
+	 */
+	public function periodo(): BelongsTo
+	{
+		return $this->belongsTo(Periodo::class);
+	}
 
 	/**
 	 * Relacionamento com a promotoria.
@@ -137,29 +146,5 @@ class Evento extends Model
 	public function scopeComPromotores($query)
 	{
 		return $query->whereHas('promotores');
-	}
-
-	/**
-	 * Método para obter o período pai através do espelho.
-	 */
-	public function getPeriodoPai()
-	{
-		return $this->espelhos()->first()?->periodo;
-	}
-
-	/**
-	 * Accessor para periodo_id - busca do espelho pai
-	 */
-	public function getPeriodoIdAttribute()
-	{
-		return $this->getPeriodoPai()?->id;
-	}
-
-	/**
-	 * Relacionamento virtual com período através do espelho
-	 */
-	public function periodo()
-	{
-		return $this->getPeriodoPai();
 	}
 }

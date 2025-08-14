@@ -14,7 +14,6 @@ class PlantaoUrgencia extends Component
 {
     use WithPagination;
     
-    // Properties com validação
     #[Rule('required')]
     public string $periodo_id = '';
     
@@ -27,7 +26,6 @@ class PlantaoUrgencia extends Component
     #[Rule('nullable|max:500')]
     public string $observacoes = '';
     
-    // Estado do componente
     public ?PlantaoAtendimento $plantaoEditando = null;
     public bool $mostrarModal = false;
     public bool $modoEdicao = false;
@@ -35,7 +33,6 @@ class PlantaoUrgencia extends Component
     public string $filtroMunicipio = '';
     public string $filtroPeriodo = '';
     
-    // Para gerenciar promotores do plantão
     public array $promotoresPlantao = [];
     public string $promotorSelecionado = '';
     public string $dataInicioDesignacao = '';
@@ -140,10 +137,57 @@ class PlantaoUrgencia extends Component
 
     public function adicionarPromotor()
     {
+        // Debug mais detalhado
+        \Log::info('=== DEBUG DETALHADO ===');
+        \Log::info('Valores das propriedades:', [
+            'promotorSelecionado' => $this->promotorSelecionado,
+            'dataInicioDesignacao' => $this->dataInicioDesignacao,
+            'dataFimDesignacao' => $this->dataFimDesignacao,
+            'tipoDesignacao' => $this->tipoDesignacao
+        ]);
+        
+        \Log::info('Tipo das propriedades:', [
+            'promotor_tipo' => gettype($this->promotorSelecionado),
+            'data_inicio_tipo' => gettype($this->dataInicioDesignacao),
+            'data_fim_tipo' => gettype($this->dataFimDesignacao)
+        ]);
+        
+        \Log::info('Verificação booleana:', [
+            'promotor_vazio' => empty($this->promotorSelecionado),
+            'data_inicio_vazia' => empty($this->dataInicioDesignacao),
+            'data_fim_vazia' => empty($this->dataFimDesignacao)
+        ]);
+        
+        \Log::info('Verificação com isset:', [
+            'promotor_isset' => isset($this->promotorSelecionado),
+            'data_inicio_isset' => isset($this->dataInicioDesignacao),
+            'data_fim_isset' => isset($this->dataFimDesignacao)
+        ]);
+        
         if ($this->promotorSelecionado && $this->dataInicioDesignacao && $this->dataFimDesignacao) {
+            \Log::info('Todos os campos estão preenchidos');
+            
             $promotor = Promotor::find($this->promotorSelecionado);
             
             if ($promotor) {
+                \Log::info('Promotor encontrado:', ['nome' => $promotor->nome]);
+                
+                $dataInicio = \Carbon\Carbon::parse($this->dataInicioDesignacao);
+                $dataFim = \Carbon\Carbon::parse($this->dataFimDesignacao);
+                
+                \Log::info('Datas parseadas:', [
+                    'inicio' => $dataInicio->format('Y-m-d'),
+                    'fim' => $dataFim->format('Y-m-d')
+                ]);
+                
+                if ($dataInicio->gt($dataFim)) {
+                    \Log::warning('ERRO: Data início maior que data fim');
+                    session()->flash('erro', 'A data de início deve ser anterior à data de fim.');
+                    return;
+                }
+                
+                \Log::info('Datas válidas, adicionando ao array...');
+                
                 $this->promotoresPlantao[] = [
                     'id' => $promotor->id,
                     'nome' => $promotor->nome,
@@ -154,13 +198,28 @@ class PlantaoUrgencia extends Component
                     'status' => 'ativo',
                 ];
                 
-                // Resetar campos de promotor
+                // CORREÇÃO: Passar como array
+                \Log::info('Promotor adicionado com sucesso. Total no array:', ['total' => count($this->promotoresPlantao)]);
+                
+                // Resetar campos
                 $this->promotorSelecionado = '';
                 $this->dataInicioDesignacao = '';
                 $this->dataFimDesignacao = '';
                 $this->tipoDesignacao = 'titular';
+                
+                session()->flash('mensagem', 'Promotor adicionado com sucesso!');
+            } else {
+                \Log::error('Promotor não encontrado no banco', ['id' => $this->promotorSelecionado]);
             }
+        } else {
+            \Log::warning('Campos obrigatórios não preenchidos:', [
+                'promotor_preenchido' => !empty($this->promotorSelecionado),
+                'data_inicio_preenchida' => !empty($this->dataInicioDesignacao),
+                'data_fim_preenchida' => !empty($this->dataFimDesignacao)
+            ]);
         }
+        
+        \Log::info('=== FIM DA FUNÇÃO adicionarPromotor ===');
     }
 
     public function removerPromotor($index)
@@ -201,26 +260,49 @@ class PlantaoUrgencia extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function getPlantoesProperty()
     {
-        $plantoes = PlantaoAtendimento::query()
+        return PlantaoAtendimento::query()
             ->with(['municipio', 'periodo', 'promotores'])
-            ->when($this->termoBusca, function ($query) {
-                $query->where('nome', 'like', '%' . $this->termoBusca . '%');
-            })
-            ->when($this->filtroMunicipio, function ($query) {
-                $query->where('municipio_id', $this->filtroMunicipio);
-            })
-            ->when($this->filtroPeriodo, function ($query) {
-                $query->where('periodo_id', $this->filtroPeriodo);
-            })
+            ->when($this->termoBusca, fn ($q) => $q->where('nome', 'like', '%' . $this->termoBusca . '%'))
+            ->when($this->filtroMunicipio, fn ($q) => $q->where('municipio_id', $this->filtroMunicipio))
+            ->when($this->filtroPeriodo, fn ($q) => $q->where('periodo_id', $this->filtroPeriodo))
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+    }
 
-        $municipios = Municipio::orderBy('nome')->get();
-        $periodos = Periodo::orderBy('periodo_inicio', 'desc')->get();
-        $promotores = Promotor::orderBy('nome')->get();
-        
-        return view('livewire.plantao-urgencia', compact('plantoes', 'municipios', 'periodos', 'promotores'));
+    public function getMunicipiosProperty()
+    {
+        return Municipio::orderBy('nome')->get();
+    }
+
+    public function getPeriodosProperty()
+    {
+        return Periodo::orderBy('periodo_inicio', 'desc')->get();
+    }
+
+    public function getPromotoresProperty()
+    {
+        return Promotor::orderBy('nome')->get();
+    }
+
+    public function updatedTermoBusca()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFiltroMunicipio()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFiltroPeriodo()
+    {
+        $this->resetPage();
+    }
+
+    public function render()
+    {
+        return view('livewire.espelho.plantao-urgencia');
     }
 }

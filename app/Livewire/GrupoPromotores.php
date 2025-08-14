@@ -13,21 +13,18 @@ class GrupoPromotores extends Component
 {
     use WithPagination;
     
-    // Properties com validação
     #[Rule('required|min:2|max:100')]
     public string $nome = '';
     
     #[Rule('required|exists:municipios,id')]
     public ?int $municipios_id = null;
     
-    // Estado do componente
     public ?GrupoPromotoria $grupoEditando = null;
     public bool $mostrarModal = false;
     public bool $modoEdicao = false;
     public string $termoBusca = '';
     public string $filtroMunicipio = '';
     
-    // Listeners para eventos
     protected $listeners = ['grupoPromotoriaSalvo' => '$refresh'];
     
     public function mount()
@@ -128,6 +125,6 @@ class GrupoPromotores extends Component
     
     public function render()
     {
-        return view('livewire.grupo-promotores');
+        return view('livewire.configuracoes.grupo-promotores');
     }
 }

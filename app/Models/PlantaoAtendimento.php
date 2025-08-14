@@ -96,4 +96,17 @@ class PlantaoAtendimento extends Model
     {
         $this->promotores()->detach($promotorId);
     }
+
+    /**
+     * Adicionar promotor ao plantão com validação
+     */
+    public function adicionarPromotorComValidacao($promotorId, $dataInicio, $dataFim, $ordem = 1, $tipo = 'titular')
+    {
+        if (!$promotorId || !$dataInicio || !$dataFim) {
+            session()->flash('erro', 'Selecione o promotor e informe as duas datas.');
+            return;
+        }
+
+        $this->adicionarPromotor($promotorId, $dataInicio, $dataFim, $ordem, $tipo);
+    }
 }

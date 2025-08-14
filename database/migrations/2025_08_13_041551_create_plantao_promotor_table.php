@@ -23,12 +23,10 @@ return new class extends Migration
             
             $table->string('tipo_designacao')->nullable()->default('titular');
             
-            // Status da designação
             $table->enum('status', ['ativo', 'inativo', 'pendente'])->nullable()->default('ativo');
             
             $table->timestamps();
             
-            // Índices para performance
             $table->index(['plantao_atendimento_id', 'promotor_id']);
             $table->index(['data_inicio_designacao', 'data_fim_designacao']);
         });

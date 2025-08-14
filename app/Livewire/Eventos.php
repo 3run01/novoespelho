@@ -12,13 +12,14 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Models\ActivityLog;
 
 class Eventos extends Component
 {
 	use WithPagination;
 	
-	// Properties com validação - removidas as obrigatoriedades
 	#[Rule('nullable|min:3|max:200')]
 	public string $titulo = '';
 	
@@ -34,7 +35,9 @@ class Eventos extends Component
 	#[Rule('required|exists:promotorias,id')]
 	public string $promotoria_id = '';
 	
-	// Removida a propriedade is_urgente
+	#[Rule('required')]
+	public string $periodo_id = '';
+	
 	
 	public ?Evento $eventoEditando = null;
 	public bool $mostrarModal = false;
@@ -45,7 +48,6 @@ class Eventos extends Component
 	
 	public $promotorias = [];
 	public $promotores = [];
-	public $periodos = [];
 	public $promotoriasListado = [];
 	
 	public array $promotoresDesignacoes = [];
@@ -65,7 +67,11 @@ class Eventos extends Component
 	{
 		$this->promotorias = Promotoria::orderBy('nome')->get();
 		$this->promotores = Promotor::orderBy('nome')->get();
-		$this->periodos = Periodo::orderBy('periodo_inicio', 'desc')->get();
+	}
+	
+	public function getPeriodosProperty()
+	{
+		return Periodo::orderBy('periodo_inicio', 'desc')->get();
 	}
 	
 	public function atualizarPromotoriasListado()
@@ -75,8 +81,22 @@ class Eventos extends Component
 			'promotorias.eventos' => function ($q) {
 				$q->with(['designacoes.promotor'])
 				  ->when($this->periodoSelecionado, function ($query) {
-					  $query->where('periodo_inicio', '>=', $this->periodoSelecionado->periodo_inicio)
-							->where('periodo_fim', '<=', $this->periodoSelecionado->periodo_fim);
+					  // Incluir eventos que:
+					  // 1. Não têm datas específicas (período_inicio OU período_fim são NULL)
+					  // 2. Ou têm datas que se sobrepõem com o período selecionado
+					  $query->where(function ($subQuery) {
+						  $subQuery->where(function ($dateQuery) {
+							  // Eventos sem datas específicas (pelo menos uma data é NULL)
+							  $dateQuery->whereNull('periodo_inicio')
+										->orWhereNull('periodo_fim');
+						  })->orWhere(function ($dateQuery) {
+							  // Eventos com ambas as datas preenchidas que se sobrepõem com o período selecionado
+							  $dateQuery->whereNotNull('periodo_inicio')
+										->whereNotNull('periodo_fim')
+										->where('periodo_inicio', '<=', $this->periodoSelecionado->periodo_fim)
+										->where('periodo_fim', '>=', $this->periodoSelecionado->periodo_inicio);
+						  });
+					  });
 				  })
 				  ->orderBy('periodo_inicio');
 			}
@@ -119,9 +139,11 @@ class Eventos extends Component
 		$this->modoEdicao = false;
 		$this->resetarFormulario();
 		
-		if ($this->periodoSelecionado) {
-			$this->periodo_inicio = $this->periodoSelecionado->periodo_inicio->format('Y-m-d');
-			$this->periodo_fim = $this->periodoSelecionado->periodo_fim->format('Y-m-d');
+		$ultimoPeriodo = Periodo::orderBy('created_at', 'desc')->first();
+		if ($ultimoPeriodo) {
+			$this->periodo_id = (string) $ultimoPeriodo->id;
+			$this->periodo_inicio = $ultimoPeriodo->periodo_inicio->format('Y-m-d');
+			$this->periodo_fim = $ultimoPeriodo->periodo_fim->format('Y-m-d');
 		}
 		
 		$this->promotoresDesignacoes = [[
@@ -144,7 +166,6 @@ class Eventos extends Component
 
 	public function abrirModalEditar($eventoId)
 	{
-		// Carregar o evento com as designações (cada linha da pivot)
 		$evento = Evento::with('designacoes.promotor')->find($eventoId);
 		
 		if (!$evento) {
@@ -159,6 +180,11 @@ class Eventos extends Component
 		$this->periodo_inicio = $evento->periodo_inicio ? $evento->periodo_inicio->format('Y-m-d') : '';
 		$this->periodo_fim = $evento->periodo_fim ? $evento->periodo_fim->format('Y-m-d') : '';
 		$this->promotoria_id = $evento->promotoria_id;
+		
+		$ultimoPeriodo = Periodo::orderBy('created_at', 'desc')->first();
+		if ($ultimoPeriodo) {
+			$this->periodo_id = (string) $ultimoPeriodo->id;
+		}
 		
 		$this->promotoresDesignacoes = $evento->designacoes->map(function ($designacao) {
 			return [
@@ -193,13 +219,14 @@ class Eventos extends Component
 
 	public function salvar()
 	{
+		
+
 		$this->validate();
 		
-		// Validação das designações - ainda mais flexíveis
 		$this->validate([
 			'promotoresDesignacoes' => 'array|min:1',
 			'promotoresDesignacoes.*.promotor_id' => 'required|exists:promotores,id',
-			'promotoresDesignacoes.*.tipo' => 'nullable|in:titular,substituto,plantao,outro',
+			'promotoresDesignacoes.*.tipo' => 'nullable|in:titular,substituto,respondendo,auxiliando',
 			'promotoresDesignacoes.*.data_inicio_designacao' => 'nullable|date',
 			'promotoresDesignacoes.*.data_fim_designacao' => 'nullable|date',
 			'promotoresDesignacoes.*.observacoes' => 'nullable|string|max:500',
@@ -214,19 +241,56 @@ class Eventos extends Component
 				'periodo_inicio' => $this->periodo_inicio ?: null,
 				'periodo_fim' => $this->periodo_fim ?: null,
 				'promotoria_id' => $this->promotoria_id,
-				'is_urgente' => false
+				'periodo_id' => $this->periodo_id, 
+				'is_urgente' => false,
+				'promotores_designacoes' => $this->promotoresDesignacoes
 			];
 			
 			if ($this->modoEdicao && $this->eventoEditando) {
 				$this->eventoEditando->update($dadosEvento);
 				$evento = $this->eventoEditando;
+				
+				ActivityLog::createLog(
+					'info',
+					'Evento atualizado com sucesso',
+					[
+						'action' => 'update_evento',
+						'evento_id' => $evento->id,
+						'titulo' => $evento->titulo,
+						'promotoria_id' => $evento->promotoria_id,
+						'periodo_id' => $evento->periodo_id,
+						'new_values' => $dadosEvento,
+						'old_values' => $this->eventoEditando->getOriginal()
+					],
+					'update_evento',
+					$evento,
+					$evento->periodo_id
+				);
+				
 				session()->flash('mensagem', 'Evento atualizado com sucesso!');
 			} else {
 				$evento = Evento::create($dadosEvento);
+				
+				ActivityLog::createLog(
+					'info',
+					'Novo evento criado com sucesso',
+					[
+						'action' => 'create_evento',
+						'evento_id' => $evento->id,
+						'titulo' => $evento->titulo,
+						'promotoria_id' => $evento->promotoria_id,
+						'periodo_id' => $evento->periodo_id,
+						'new_values' => $dadosEvento,
+						'old_values' => null
+					],
+					'create_evento',
+					$evento,
+					$evento->periodo_id
+				);
+				
 				session()->flash('mensagem', 'Evento criado com sucesso!');
 			}
 			
-			// Recria as designações (permite várias por mesmo promotor)
 			EventoPromotor::where('evento_id', $evento->id)->delete();
 			$ordem = 1;
 			foreach ($this->promotoresDesignacoes as $designacao) {
@@ -245,60 +309,112 @@ class Eventos extends Component
 				]);
 			}
 
-			// Criar espelho apenas se o período estiver selecionado - SEM valores fixos
-			if (!$this->modoEdicao && $this->periodoSelecionado) {
-				$espelho = Espelho::firstOrCreate([
-					'periodo_id' => $this->periodoSelecionado->id,
-				], [
-					'nome' => 'Espelho ' . $this->periodoSelecionado->periodo_inicio->format('m/Y'),
-					'status' => 'ativo',
-					'municipio_id' => null,
-					'grupo_promotorias_id' => null,
-					'plantao_atendimento_id' => null,
-				]);
-				
-				// Vincular evento ao espelho
-				$espelho->eventos()->syncWithoutDetaching([$evento->id => [
-					'ordem' => $espelho->eventos()->count() + 1
-				]]);
+			if (!$this->modoEdicao && $this->periodo_id) {
+				$periodo = Periodo::find($this->periodo_id);
+				if ($periodo) {
+					$espelho = Espelho::firstOrCreate([
+						'periodo_id' => $periodo->id,
+					], [
+						'nome' => 'Espelho ' . $periodo->periodo_inicio->format('m/Y'),
+						'status' => 'ativo',
+						'municipio_id' => null,
+						'grupo_promotorias_id' => null,
+						'plantao_atendimento_id' => null,
+					]);
+					
+					$espelho->eventos()->syncWithoutDetaching([$evento->id => [
+						'ordem' => $espelho->eventos()->count() + 1
+					]]);
+				}
 			}
 			
 			DB::commit();
 			$this->fecharModal();
 			
-			// Forçar atualização da listagem após salvar
 			$this->atualizarPromotoriasListado();
 			$this->dispatch('eventoSalvo');
 			
 		} catch (\Exception $e) {
 			DB::rollback();
+			
+			ActivityLog::createLog(
+				'error',
+				'Erro ao salvar evento: ' . $e->getMessage(),
+				[
+					'user_id' => auth()->id(),
+					'modo_edicao' => $this->modoEdicao,
+					'evento_id' => $this->eventoEditando?->id,
+					'error_message' => $e->getMessage(),
+					'error_file' => $e->getFile(),
+					'error_line' => $e->getLine(),
+					'dados_evento' => [
+						'titulo' => $this->titulo,
+						'promotoria_id' => $this->promotoria_id,
+						'periodo_id' => $this->periodo_id
+					],
+					'stack_trace' => $e->getTraceAsString()
+				],
+				'error_save_evento',
+				null,
+				(int) $this->periodo_id
+			);
+			
 			session()->flash('erro', 'Erro ao salvar evento: ' . $e->getMessage());
 		}
 	}
 
 	public function deletar(int $eventoId)
 	{
+		$evento = Evento::find($eventoId);
+		
+
 		try {
 			DB::beginTransaction();
 			
-			$evento = Evento::find($eventoId);
 			if (!$evento) {
+				ActivityLog::createLog(
+					'warning',
+					'Tentativa de deletar evento inexistente',
+					[
+						'user_id' => auth()->id(),
+						'evento_id' => $eventoId,
+						'old_values' => null,
+						'new_values' => null
+					],
+					'delete_evento_error',
+					null,
+					null
+				);
+				
 				DB::rollBack();
 				session()->flash('erro', 'Evento não encontrado.');
 				return;
 			}
 			
-			// Remove vinculações com espelhos
 			$evento->espelhos()->detach();
 			
-			// Remove todas as designações explicitamente
 			EventoPromotor::where('evento_id', $evento->id)->delete();
 			
-			// Remove vinculações many-to-many apenas por garantia
 			$evento->promotores()->detach();
 			
-			// Remove o evento
 			$evento->delete();
+			
+			ActivityLog::createLog(
+				'info',
+				'Evento deletado com sucesso',
+				[
+					'action' => 'delete_evento',
+					'evento_id' => $eventoId,
+					'evento_titulo' => $evento->titulo,
+					'promotoria_id' => $evento->promotoria_id,
+					'periodo_id' => $evento->periodo_id,
+					'old_values' => $evento->toArray(),
+					'new_values' => null
+				],
+				'delete_evento',
+				$evento,
+				$evento->periodo_id
+			);
 			
 			DB::commit();
 			session()->flash('mensagem', 'Evento deletado com sucesso!');
@@ -307,6 +423,30 @@ class Eventos extends Component
 			
 		} catch (\Exception $e) {
 			DB::rollback();
+			
+			ActivityLog::createLog(
+				'error',
+				'Erro ao deletar evento: ' . $e->getMessage(),
+				[
+					'user_id' => auth()->id(),
+					'evento_id' => $eventoId,
+					'error_message' => $e->getMessage(),
+					'error_file' => $e->getFile(),
+					'error_line' => $e->getLine(),
+					'dados_evento' => [
+						'titulo' => $this->titulo,
+						'promotoria_id' => $this->promotoria_id,
+						'periodo_id' => $this->periodo_id
+					],
+					'stack_trace' => $e->getTraceAsString(),
+					'old_values' => $evento ? $evento->toArray() : null,
+					'new_values' => null
+				],
+				'error_delete_evento',
+				null,
+				null
+			);
+			
 			session()->flash('erro', 'Não é possível deletar este evento: ' . $e->getMessage());
 		}
 	}
@@ -318,21 +458,18 @@ class Eventos extends Component
 		$this->periodo_inicio = '';
 		$this->periodo_fim = '';
 		$this->promotoria_id = '';
+		$this->periodo_id = '';
 		$this->eventoEditando = null;
 		$this->resetValidation();
 	}
 	
-	public function render()
-	{
-		return view('livewire.eventos');
-	}
 	
 	public function adicionarLinhaPromotor(): void
 	{
 		$this->promotoresDesignacoes[] = [
 			'uid' => (string) Str::uuid(),
 			'promotor_id' => '',
-			'tipo' => 'substituto',
+			'tipo' => 'substituto', 
 			'data_inicio_designacao' => $this->periodo_inicio ?: '',
 			'data_fim_designacao' => $this->periodo_fim ?: '',
 			'observacoes' => ''
@@ -344,5 +481,11 @@ class Eventos extends Component
 		if (isset($this->promotoresDesignacoes[$index])) {
 			array_splice($this->promotoresDesignacoes, $index, 1);
 		}
+	}
+
+
+	public function render()
+	{
+		return view('livewire.espelho.eventos');
 	}
 }

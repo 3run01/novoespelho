@@ -197,6 +197,6 @@ class Promotorias extends Component
     
     public function render()
     {
-        return view('livewire.promotorias');
+        return view('livewire.configuracoes.promotorias');
     }
 }

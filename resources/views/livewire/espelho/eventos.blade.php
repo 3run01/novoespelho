@@ -206,7 +206,7 @@
                                                     <div class="text-center text-gray-500 italic py-8">
                                                         <p>Nenhum promotor titular designado</p>
                                                         @if ($promotoria->vacancia_data_inicio)
-                                                            <p class="mt-1">Vacância desde
+                                                            <p class="mt-1 text-red-600">Vacância desde
                                                                 {{ \Carbon\Carbon::parse($promotoria->vacancia_data_inicio)->format('d/m/Y') }}
                                                             </p>
                                                         @endif
@@ -447,6 +447,26 @@
                                 @enderror
                             </div>
 
+                            <!-- Período -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Período <span class="text-red-500">*</span>
+                                </label>
+                                <select wire:model.defer="periodo_id"
+                                    class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 @error('periodo_id') border-red-300 @enderror">
+                                    <option value="">Selecione um período</option>
+                                    @foreach ($this->periodos as $periodo)
+                                        <option value="{{ $periodo->id }}">
+                                            {{ $periodo->periodo_inicio->format('d/m/Y') }} -
+                                            {{ $periodo->periodo_fim->format('d/m/Y') }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('periodo_id')
+                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+
                             <!-- Tipo -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -547,9 +567,9 @@
                                             <select wire:model.defer="promotoresDesignacoes.{{ $i }}.tipo"
                                                 class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                                                 <option value="titular">Titular</option>
-                                                <option value="Substituindo">Substituindo</option>
-                                                <option value="Respondendo">Respondendo</option>
-                                                <option value="Auxiliando">Auxiliando</option>
+                                                <option value="substituto">Substituto</option>
+                                                <option value="respondendo">Respondendo</option>
+                                                <option value="auxiliando">Auxiliando</option>
                                             </select>
                                             @error('promotoresDesignacoes.' . $i . '.tipo')
                                                 <span class="text-red-500 text-xs">{{ $message }}</span>
