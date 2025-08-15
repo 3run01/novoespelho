@@ -201,11 +201,13 @@
 
                                                             <!-- Informações Adicionais -->
                                                             <div class="space-y-2 text-sm text-gray-600">
-                                                                @if ($promotoria->promotorTitular->cargo)
+                                                                @php
+                                                                    $cargosLista = is_array($promotoria->promotorTitular->cargos ?? null) ? $promotoria->promotorTitular->cargos : [];
+                                                                @endphp
+                                                                @if (!empty($cargosLista))
                                                                     <div>
-                                                                        <span
-                                                                            class="font-medium text-gray-900">Cargo:</span>
-                                                                        {{ $promotoria->promotorTitular->cargo }}
+                                                                        <span class="font-medium text-gray-900">Cargo(s):</span>
+                                                                        {{ implode(', ', $cargosLista) }}
                                                                     </div>
                                                                 @endif
 

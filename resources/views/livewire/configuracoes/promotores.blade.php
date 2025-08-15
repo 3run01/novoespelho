@@ -155,9 +155,12 @@
                                                 Zona Eleitoral {{ $promotor->numero_da_zona_eleitoral }}
                                             </span>
                                         @endif
-                                        @if ($promotor->cargo)
+                                        @php
+                                            $cargosLista = is_array($promotor->cargos ?? null) ? $promotor->cargos : [];
+                                        @endphp
+                                        @if (!empty($cargosLista))
                                             <span class="text-gray-400">•</span>
-                                            <span>{{ $promotor->cargo }}</span>
+                                            <span>{{ implode(', ', $cargosLista) }}</span>
                                         @endif
                                     </div>
                                     @if ($promotor->observacoes)
@@ -299,17 +302,47 @@
 
                             <!-- Grid para Cargo e Tipo -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Cargo -->
+                                <!-- Cargos (chips) -->
                                 <div>
-                                    <label for="cargo" class="block text-sm font-medium text-gray-700 mb-1">
-                                        Cargo
+                                    <label for="novoCargo" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Cargos
                                     </label>
-                                    <input wire:model="cargo" type="text" id="cargo"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('cargo') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
-                                        placeholder="Ex: Promotor de Justiça">
-                                    @error('cargo')
+                                    <div class="flex items-center gap-2">
+                                        <input wire:model.live="novoCargo" type="text" id="novoCargo"
+                                            class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('novoCargo') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
+                                            placeholder="Digite um cargo e pressione Enter"
+                                            wire:keydown.enter.prevent="addCargo" />
+                                        <button type="button" wire:click="addCargo" title="Adicionar cargo"
+                                            @if(empty($novoCargo)) disabled @endif
+                                            wire:loading.attr="disabled"
+                                            class="inline-flex items-center justify-center h-9 w-9 bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M12 5v14M5 12h14" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    @error('novoCargo')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
+                                    @error('cargos')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+
+                                    <!-- Lista de chips -->
+                                    <div class="mt-2 flex flex-wrap gap-2">
+                                        @forelse ($cargos as $i => $cargo)
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                {{ $cargo }}
+                                                <button type="button" wire:click="removeCargo({{ $i }})" title="Remover"
+                                                    class="ml-1 text-blue-700 hover:text-blue-900 focus:outline-none">
+                                                    &times;
+                                                </button>
+                                            </span>
+                                        @empty
+                                            <span class="text-xs text-gray-400">Nenhum cargo adicionado</span>
+                                        @endforelse
+                                    </div>
+                                    <!-- Sem limite de cargos e não obrigatório -->
                                 </div>
 
                                 <!-- Tipo -->

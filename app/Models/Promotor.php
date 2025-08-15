@@ -14,7 +14,7 @@ class Promotor extends Model
     
     protected $fillable = [
         'nome', 
-        'cargo',
+        'cargos',
         'zona_eleitoral',
         'numero_da_zona_eleitoral',
         'periodo_inicio',
@@ -29,6 +29,7 @@ class Promotor extends Model
         'zona_eleitoral' => 'boolean',
         'periodo_inicio' => 'date',
         'periodo_fim' => 'date',
+        'cargos' => 'array',
     ];
 
     /**

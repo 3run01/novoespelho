@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('promotores', function (Blueprint $table) {
             $table->id();
             $table->string('nome');
-            $table->string('cargo')->nullable();
+            $table->json('cargos')->nullable();
             $table->boolean('zona_eleitoral')->default(false);
             $table->string('numero_da_zona_eleitoral')->nullable();
             $table->date('periodo_inicio')->nullable();

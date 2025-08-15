@@ -15,8 +15,10 @@ class Promotores extends Component
     #[Rule('required|min:2|max:100')]
     public string $nome = '';
     
-    #[Rule('nullable|max:100')]
-    public ?string $cargo = null;
+    // Campo para adicionar um cargo por vez e lista agregada de cargos
+    #[Rule('nullable|string|max:100')]
+    public string $novoCargo = '';
+    public array $cargos = [];
     
     #[Rule('boolean')]
     public bool $zona_eleitoral = false;
@@ -56,7 +58,8 @@ class Promotores extends Component
     {
         $rules = [
             'nome' => 'required|min:2|max:100',
-            'cargo' => 'nullable|max:100',
+            'cargos' => 'nullable|array',
+            'cargos.*' => 'string|max:100',
             'zona_eleitoral' => 'boolean',
             'periodo_inicio' => 'nullable|date',
             'periodo_fim' => 'nullable|date',
@@ -117,7 +120,7 @@ class Promotores extends Component
         $this->modoEdicao = true;
         $this->promotorEditando = $promotor;
         $this->nome = $promotor->nome;
-        $this->cargo = $promotor->cargo;
+        $this->cargos = is_array($promotor->cargos) ? $promotor->cargos : [];
         $this->zona_eleitoral = $promotor->zona_eleitoral;
         $this->numero_da_zona_eleitoral = $promotor->numero_da_zona_eleitoral;
         $this->periodo_inicio = $promotor->periodo_inicio?->format('Y-m-d');
@@ -138,9 +141,17 @@ class Promotores extends Component
     {
         $this->validate();
         
+        // Sanitizar cargos: limpar espaços, remover vazios e duplicados
+        $cargosArray = collect($this->cargos)
+            ->map(fn ($v) => trim((string) $v))
+            ->filter(fn ($v) => $v !== '')
+            ->unique()
+            ->values()
+            ->all();
+
         $dados = [
             'nome' => $this->nome,
-            'cargo' => $this->cargo,
+            'cargos' => !empty($cargosArray) ? $cargosArray : null,
             'zona_eleitoral' => $this->zona_eleitoral,
             'numero_da_zona_eleitoral' => $this->zona_eleitoral ? $this->numero_da_zona_eleitoral : null,
             'periodo_inicio' => $this->periodo_inicio ?: null,
@@ -176,7 +187,8 @@ class Promotores extends Component
     public function resetarFormulario()
     {
         $this->nome = '';
-        $this->cargo = null;
+        $this->novoCargo = '';
+        $this->cargos = [];
         $this->zona_eleitoral = false;
         $this->numero_da_zona_eleitoral = null;
         $this->periodo_inicio = null;
@@ -186,6 +198,44 @@ class Promotores extends Component
         $this->observacoes = '';
         $this->promotorEditando = null;
         $this->resetValidation();
+    }
+
+    public function addCargo()
+    {
+        $valor = trim((string) $this->novoCargo);
+        if ($valor === '') {
+            return;
+        }
+
+        if (mb_strlen($valor) > 100) {
+            $this->addError('novoCargo', 'O cargo deve ter no máximo 100 caracteres.');
+            return;
+        }
+
+        // Sem limite de quantidade de cargos
+
+        // Evitar duplicados (case-insensitive)
+        $existe = collect($this->cargos)
+            ->map(fn ($v) => mb_strtolower(trim((string) $v)))
+            ->contains(mb_strtolower($valor));
+
+        if ($existe) {
+            $this->addError('novoCargo', 'Este cargo já foi adicionado.');
+            return;
+        }
+
+        $this->cargos[] = $valor;
+        $this->novoCargo = '';
+        $this->resetErrorBag('novoCargo');
+    }
+
+    public function removeCargo(int $index)
+    {
+        if (!array_key_exists($index, $this->cargos)) {
+            return;
+        }
+        unset($this->cargos[$index]);
+        $this->cargos = array_values($this->cargos);
     }
     
     public function limparFiltros()
@@ -223,9 +273,13 @@ class Promotores extends Component
             'filtros' => $filtros,
             'data' => [
                 'promotores' => $promotores->map(function ($promotor) {
+                    $cargosString = 'N/A';
+                    if (is_array($promotor->cargos) && !empty($promotor->cargos)) {
+                        $cargosString = implode(', ', $promotor->cargos);
+                    }
                     return [
                         'nome' => $promotor->nome,
-                        'cargo' => $promotor->cargo ?? 'N/A',
+                        'cargo' => $cargosString,
                         'tipo' => ucfirst($promotor->tipo),
                         'zona_eleitoral' => $promotor->zona_eleitoral ? 'Sim' : 'Não',
                         'numero_zona' => $promotor->numero_da_zona_eleitoral ?? 'N/A',
