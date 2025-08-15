@@ -25,15 +25,11 @@ class ActivityLog extends Model
         'model_type',
         'model_id',
         'periodo_id',
-        'old_values',
-        'new_values',
         'session_id',
     ];
 
     protected $casts = [
         'context' => 'array',
-        'old_values' => 'array',
-        'new_values' => 'array',
         'created_at' => 'datetime',
     ];
 
@@ -123,8 +119,6 @@ class ActivityLog extends Model
             'model_id' => $model?->id,
             'periodo_id' => $periodoId,
             'session_id' => session()->getId(),
-            'old_values' => $context['old_values'] ?? null,
-            'new_values' => $context['new_values'] ?? null,
         ]);
     }
 } 

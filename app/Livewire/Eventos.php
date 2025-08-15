@@ -76,8 +76,10 @@ class Eventos extends Component
 	
 	public function atualizarPromotoriasListado()
 	{
-		$this->promotoriasListado = \App\Models\GrupoPromotoria::with([
+		// Buscar todos os grupos de promotorias com suas promotorias
+		$gruposComPromotorias = \App\Models\GrupoPromotoria::with([
 			'promotorias.promotorTitular',
+			'municipio',
 			'promotorias.eventos' => function ($q) {
 				$q->with(['designacoes.promotor'])
 				  ->when($this->periodoSelecionado, function ($query) {
@@ -108,6 +110,44 @@ class Eventos extends Component
 		})
 		->orderBy('nome')
 		->get();
+
+		// Buscar promotorias que não estão em nenhum grupo
+		$promotoriasSemGrupo = \App\Models\Promotoria::with([
+			'promotorTitular',
+			'eventos' => function ($q) {
+				$q->with(['designacoes.promotor'])
+				  ->when($this->periodoSelecionado, function ($query) {
+					  $query->where(function ($subQuery) {
+						  $subQuery->where(function ($dateQuery) {
+							  $dateQuery->whereNull('periodo_inicio')
+										->orWhereNull('periodo_fim');
+						  })->orWhere(function ($dateQuery) {
+							  $dateQuery->whereNotNull('periodo_inicio')
+										->whereNotNull('periodo_fim')
+										->where('periodo_inicio', '<=', $this->periodoSelecionado->periodo_fim)
+										->where('periodo_fim', '>=', $this->periodoSelecionado->periodo_inicio);
+						  });
+					  });
+				  })
+				  ->orderBy('periodo_inicio');
+			}
+		])
+		->whereNull('grupo_promotoria_id')
+		->when($this->termoBusca, function ($q) {
+			$q->where('nome', 'like', '%' . $this->termoBusca . '%');
+		})
+		->orderBy('nome')
+		->get();
+
+		// Se houver promotorias sem grupo, criar um grupo virtual para elas
+		if ($promotoriasSemGrupo->isNotEmpty()) {
+			$grupoVirtual = new \App\Models\GrupoPromotoria();
+			$grupoVirtual->nome = 'Promotorias Avulsas';
+			$grupoVirtual->promotorias = $promotoriasSemGrupo;
+			$gruposComPromotorias->push($grupoVirtual);
+		}
+
+		$this->promotoriasListado = $gruposComPromotorias;
 	}
 	
 	public function atualizarDados()

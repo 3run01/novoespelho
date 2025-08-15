@@ -34,9 +34,6 @@ return new class extends Migration
             
             $table->unsignedBigInteger('periodo_id')->nullable()->index();
             
-            $table->json('old_values')->nullable();
-            $table->json('new_values')->nullable();
-            
             $table->string('session_id')->nullable();
             $table->timestamp('created_at')->useCurrent();
             

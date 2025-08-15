@@ -52,15 +52,7 @@ class DatabaseLogHandler extends AbstractProcessingHandler
                 unset($context['model_id']);
             }
 
-            if (isset($context['old_values'])) {
-                $logData['old_values'] = $context['old_values'];
-                unset($context['old_values']);
-            }
 
-            if (isset($context['new_values'])) {
-                $logData['new_values'] = $context['new_values'];
-                unset($context['new_values']);
-            }
 
             if (function_exists('request') && request()) {
                 $logData['ip_address'] = $logData['ip_address'] ?? request()->ip();
