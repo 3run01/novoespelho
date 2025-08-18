@@ -11,20 +11,49 @@ use Livewire\Component;
 
 class Espelho extends Component
 {
-    public $periodos = [];
-    public $plantoes = [];
-    public $promotorias = [];
-    public $promotoriasPorMunicipio = [];
+    public $periodos;
+    public $plantoes;
+    public $promotorias;
+    public $promotoriasPorMunicipio;
+    public $plantoesPorMunicipio;
 
     public function mount()
     {
+        // Inicializar as coleções
+        $this->periodos = collect();
+        $this->plantoes = collect();
+        $this->promotorias = collect();
+        $this->promotoriasPorMunicipio = collect();
+        $this->plantoesPorMunicipio = collect();
+        
         $this->carregarDados();
     }
 
     public function carregarDados()
     {
-        // Carregar períodos
-        $this->periodos = Periodo::orderBy('periodo_inicio', 'desc')->get();
+        // Carregar o período mais relevante seguindo a prioridade:
+        // 1º: Período publicado (mais recente se houver múltiplos)
+        // 2º: Período em processo de publicação (mais recente se não houver publicado)
+        // 3º: Período arquivado (apenas se não houver outros)
+        $periodoPublicado = Periodo::where('status', 'publicado')
+            ->orderBy('periodo_inicio', 'desc')
+            ->first();
+        
+        if ($periodoPublicado) {
+            $this->periodos = collect([$periodoPublicado]);
+        } else {
+            $periodoEmProcesso = Periodo::where('status', 'em_processo_publicacao')
+                ->orderBy('periodo_inicio', 'desc')
+                ->first();
+            
+            if ($periodoEmProcesso) {
+                $this->periodos = collect([$periodoEmProcesso]);
+            } else {
+                // Se não houver período publicado nem em processo, pega o mais recente (mesmo que arquivado)
+                $periodoMaisRecente = Periodo::orderBy('periodo_inicio', 'desc')->first();
+                $this->periodos = $periodoMaisRecente ? collect([$periodoMaisRecente]) : collect();
+            }
+        }
         
         // Carregar plantões de urgência
         $this->plantoes = PlantaoAtendimento::with([
@@ -43,13 +72,15 @@ class Espelho extends Component
             }
         ])->orderBy('nome')->get();
 
-        $this->organizarPromotoriasPorMunicipio();
+        $this->organizarDadosPorMunicipio();
     }
 
-    private function organizarPromotoriasPorMunicipio()
+    private function organizarDadosPorMunicipio()
     {
         $promotoriasPorMunicipio = [];
+        $plantoesPorMunicipio = [];
 
+        // Organizar promotorias por município
         $promotorias = Promotoria::with([
             'grupoPromotoria.municipio',
             'promotorTitular',
@@ -71,9 +102,22 @@ class Espelho extends Component
             $promotoriasPorMunicipio[$nomeMunicipio]->push($promotoria);
         }
 
+        // Organizar plantões por município
+        foreach ($this->plantoes as $plantao) {
+            $nomeMunicipio = $plantao->municipio ? $plantao->municipio->nome : 'Sem município';
+            
+            if (!isset($plantoesPorMunicipio[$nomeMunicipio])) {
+                $plantoesPorMunicipio[$nomeMunicipio] = collect();
+            }
+            
+            $plantoesPorMunicipio[$nomeMunicipio]->push($plantao);
+        }
+
         ksort($promotoriasPorMunicipio);
+        ksort($plantoesPorMunicipio);
         
-        $this->promotoriasPorMunicipio = $promotoriasPorMunicipio;
+        $this->promotoriasPorMunicipio = collect($promotoriasPorMunicipio);
+        $this->plantoesPorMunicipio = collect($plantoesPorMunicipio);
     }
 
     public function render()

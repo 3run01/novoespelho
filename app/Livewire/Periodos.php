@@ -32,9 +32,21 @@ class Periodos extends Component
     #[Computed]
     public function periodos()
     {
-        return Periodo::query()
+        $periodosEmProcesso = Periodo::where('status', 'em_processo_publicacao')
             ->orderBy('periodo_inicio', 'desc')
-            ->paginate(10);
+            ->get();
+        
+        if ($periodosEmProcesso->isNotEmpty()) {
+            return $periodosEmProcesso;
+        }
+        
+        $periodoPublicado = Periodo::where('status', 'publicado')->first();
+        
+        if ($periodoPublicado) {
+            return collect([$periodoPublicado]);
+        }
+        
+        return collect([]);
     }
     
     public function abrirModalCriar()
@@ -78,6 +90,13 @@ class Periodos extends Component
         }
         
         $this->fecharModal();
+        $this->dispatch('periodoSalvo');
+    }
+    
+    public function publicar(Periodo $periodo)
+    {
+        $periodo->publicar();
+        session()->flash('mensagem', 'Período publicado com sucesso!');
         $this->dispatch('periodoSalvo');
     }
     

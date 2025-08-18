@@ -109,7 +109,14 @@
                                 </div>
                                 <div class="ml-4">
                                     <div class="text-sm font-medium text-gray-900">{{ $municipio->nome }}</div>
-                                    <div class="text-sm text-gray-500">ID: {{ $municipio->id }}</div>
+                                    <div class="text-sm text-gray-500">
+                                        ID: {{ $municipio->id }} •
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+                                            {{ $municipio->entrancia === 'final' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' }}">
+                                            {{ $municipio->entrancia === 'final' ? 'Entrância Final' : 'Entrância Inicial' }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-2">
@@ -306,6 +313,21 @@
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('nome') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
                                         placeholder="Digite o nome do município">
                                     @error('nome')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <!-- Entrância -->
+                                <div>
+                                    <label for="entrancia" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Entrância <span class="text-red-500">*</span>
+                                    </label>
+                                    <select wire:model="entrancia" id="entrancia"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('entrancia') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                                        <option value="">Selecione a entrância</option>
+                                        <option value="inicial">Entrância Inicial</option>
+                                        <option value="final">Entrância Final</option>
+                                    </select>
+                                    @error('entrancia')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>

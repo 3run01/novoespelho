@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('municipios', function (Blueprint $table) {
             $table->id();
             $table->string('nome');
+            $table->enum('entrancia', ['final', 'inicial'])->default('inicial');
             $table->timestamps();
         });
     }

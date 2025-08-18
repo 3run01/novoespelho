@@ -121,24 +121,28 @@
                                     <div class="flex flex-col justify-center">
                                         <h4 class="text-sm font-medium text-gray-900 mb-2">Status</h4>
                                         @php
-                                            $hoje = now();
-                                            $status = 'futuro';
-                                            $statusClass = 'bg-blue-100 text-blue-800';
-                                            $statusText = 'Futuro';
+                                            $statusConfig = [
+                                                'em_processo_publicacao' => [
+                                                    'class' => 'bg-yellow-100 text-yellow-800',
+                                                    'text' => 'Em Processo de Publicação',
+                                                ],
+                                                'publicado' => [
+                                                    'class' => 'bg-green-100 text-green-800',
+                                                    'text' => 'Publicado',
+                                                ],
+                                                'arquivado' => [
+                                                    'class' => 'bg-gray-100 text-gray-800',
+                                                    'text' => 'Arquivado',
+                                                ],
+                                            ];
 
-                                            if ($hoje->between($periodo->periodo_inicio, $periodo->periodo_fim)) {
-                                                $status = 'ativo';
-                                                $statusClass = 'bg-green-100 text-green-800';
-                                                $statusText = 'Ativo';
-                                            } elseif ($hoje->gt($periodo->periodo_fim)) {
-                                                $status = 'finalizado';
-                                                $statusClass = 'bg-gray-100 text-gray-800';
-                                                $statusText = 'Finalizado';
-                                            }
+                                            $config =
+                                                $statusConfig[$periodo->status] ??
+                                                $statusConfig['em_processo_publicacao'];
                                         @endphp
                                         <span
-                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $statusClass }} w-fit">
-                                            {{ $statusText }}
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $config['class'] }} w-fit">
+                                            {{ $config['text'] }}
                                         </span>
                                     </div>
                                 </div>
@@ -166,6 +170,18 @@
                                     </svg>
                                     Deletar
                                 </button>
+                                @if ($periodo->status === 'em_processo_publicacao')
+                                    <button wire:click="publicar({{ $periodo->id }})"
+                                        wire:confirm="Tem certeza que deseja publicar este período? O período atual publicado será arquivado."
+                                        class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
+                                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Publicar
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -196,14 +212,7 @@
         @endif
     </div>
 
-    <!-- Paginação -->
-    @if ($this->periodos->hasPages())
-        <div class="mt-6">
-            {{ $this->periodos->links() }}
-        </div>
-    @endif
 
-    <!-- Modal de criação/edição -->
     @if ($mostrarModal)
         <div class="fixed inset-0 overflow-y-auto" style="z-index: 9998 !important;" x-data="{ show: true }"
             x-show="show" x-transition>

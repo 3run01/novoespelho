@@ -41,6 +41,21 @@ class PlantaoUrgencia extends Component
 
     public function mount()
     {
+        // Definir automaticamente o período mais recente
+        $periodoMaisRecente = Periodo::where('status', 'em_processo_publicacao')
+            ->orderBy('periodo_inicio', 'desc')
+            ->first();
+        
+        if (!$periodoMaisRecente) {
+            $periodoMaisRecente = Periodo::where('status', 'publicado')
+                ->orderBy('periodo_inicio', 'desc')
+                ->first();
+        }
+        
+        if ($periodoMaisRecente) {
+            $this->filtroPeriodo = (string) $periodoMaisRecente->id;
+        }
+        
         $this->resetarFormulario();
     }
 
@@ -256,7 +271,18 @@ class PlantaoUrgencia extends Component
 
     public function getPeriodosProperty()
     {
-        return Periodo::orderBy('periodo_inicio', 'desc')->get();
+        // Priorizar períodos em processo de publicação, depois publicados
+        $periodosEmProcesso = Periodo::where('status', 'em_processo_publicacao')
+            ->orderBy('periodo_inicio', 'desc')
+            ->get();
+        
+        if ($periodosEmProcesso->isNotEmpty()) {
+            return $periodosEmProcesso;
+        }
+        
+        return Periodo::where('status', 'publicado')
+            ->orderBy('periodo_inicio', 'desc')
+            ->get();
     }
 
     public function getPromotoresProperty()

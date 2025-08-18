@@ -3,3 +3,65 @@
 @tailwind utilities;
 @tailwind variants;
 
+/* Estilos customizados para o layout responsivo */
+@media (max-width: 1023px) {
+    .sidebar-mobile-hidden {
+        transform: translateX(-100%);
+    }
+}
+
+/* Garantir que o conteúdo principal use todo o espaço disponível */
+@media (min-width: 1024px) {
+    .main-content-desktop {
+        margin-left: 16rem;
+        /* 256px = w-64 */
+    }
+
+    /* Ajustar o container para usar mais espaço */
+    .content-container {
+        max-width: calc(100vw - 17rem);
+        /* Deixar 1rem de margem */
+    }
+}
+
+/* Melhorar o scroll em dispositivos móveis */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.75rem;
+    }
+
+    .table-responsive th,
+    .table-responsive td {
+        padding: 0.5rem;
+    }
+
+    /* Reduzir padding em mobile */
+    .mobile-padding {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* Garantir que modais funcionem bem em mobile */
+@media (max-width: 640px) {
+    .modal-mobile {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+        top: 1rem;
+    }
+}
+
+/* Otimizar o uso do espaço horizontal */
+.content-optimized {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 1024px) {
+    .content-optimized {
+        max-width: none;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}

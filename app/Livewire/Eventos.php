@@ -57,8 +57,21 @@ class Eventos extends Component
 	public function mount()
 	{
 		$this->carregarDados();
-		$this->periodoSelecionado = Periodo::orderBy('created_at', 'desc')->first();
+		
+		$periodoMaisRecente = Periodo::where('status', 'em_processo_publicacao')
+			->orderBy('periodo_inicio', 'desc')
+			->first();
+		
+		if (!$periodoMaisRecente) {
+			$periodoMaisRecente = Periodo::where('status', 'publicado')
+				->orderBy('periodo_inicio', 'desc')
+				->first();
+		}
+		
+		$this->periodoSelecionado = $periodoMaisRecente;
 		$this->periodoSelecionadoId = $this->periodoSelecionado?->id;
+		
+		// Garantir que os dados são carregados após definir o período
 		$this->atualizarPromotoriasListado();
 		$this->resetarFormulario();
 	}
@@ -71,7 +84,18 @@ class Eventos extends Component
 	
 	public function getPeriodosProperty()
 	{
-		return Periodo::orderBy('periodo_inicio', 'desc')->get();
+		// Priorizar períodos em processo de publicação, depois publicados
+		$periodosEmProcesso = Periodo::where('status', 'em_processo_publicacao')
+			->orderBy('periodo_inicio', 'desc')
+			->get();
+		
+		if ($periodosEmProcesso->isNotEmpty()) {
+			return $periodosEmProcesso;
+		}
+		
+		return Periodo::where('status', 'publicado')
+			->orderBy('periodo_inicio', 'desc')
+			->get();
 	}
 	
 	public function atualizarPromotoriasListado()
@@ -81,26 +105,11 @@ class Eventos extends Component
 			'promotorias.promotorTitular',
 			'municipio',
 			'promotorias.eventos' => function ($q) {
-				$q->with(['designacoes.promotor'])
-				  ->when($this->periodoSelecionado, function ($query) {
-					  // Incluir eventos que:
-					  // 1. Não têm datas específicas (período_inicio OU período_fim são NULL)
-					  // 2. Ou têm datas que se sobrepõem com o período selecionado
-					  $query->where(function ($subQuery) {
-						  $subQuery->where(function ($dateQuery) {
-							  // Eventos sem datas específicas (pelo menos uma data é NULL)
-							  $dateQuery->whereNull('periodo_inicio')
-										->orWhereNull('periodo_fim');
-						  })->orWhere(function ($dateQuery) {
-							  // Eventos com ambas as datas preenchidas que se sobrepõem com o período selecionado
-							  $dateQuery->whereNotNull('periodo_inicio')
-										->whereNotNull('periodo_fim')
-										->where('periodo_inicio', '<=', $this->periodoSelecionado->periodo_fim)
-										->where('periodo_fim', '>=', $this->periodoSelecionado->periodo_inicio);
-						  });
-					  });
-				  })
-				  ->orderBy('periodo_inicio');
+				$q->with(['designacoes.promotor']);
+				
+				
+				
+				$q->orderBy('periodo_inicio');
 			}
 		])
 		->when($this->termoBusca, function ($q) {
@@ -111,25 +120,14 @@ class Eventos extends Component
 		->orderBy('nome')
 		->get();
 
-		// Buscar promotorias que não estão em nenhum grupo
 		$promotoriasSemGrupo = \App\Models\Promotoria::with([
 			'promotorTitular',
 			'eventos' => function ($q) {
-				$q->with(['designacoes.promotor'])
-				  ->when($this->periodoSelecionado, function ($query) {
-					  $query->where(function ($subQuery) {
-						  $subQuery->where(function ($dateQuery) {
-							  $dateQuery->whereNull('periodo_inicio')
-										->orWhereNull('periodo_fim');
-						  })->orWhere(function ($dateQuery) {
-							  $dateQuery->whereNotNull('periodo_inicio')
-										->whereNotNull('periodo_fim')
-										->where('periodo_inicio', '<=', $this->periodoSelecionado->periodo_fim)
-										->where('periodo_fim', '>=', $this->periodoSelecionado->periodo_inicio);
-						  });
-					  });
-				  })
-				  ->orderBy('periodo_inicio');
+				$q->with(['designacoes.promotor']);
+				
+				
+				
+				$q->orderBy('periodo_inicio');
 			}
 		])
 		->whereNull('grupo_promotoria_id')
@@ -139,7 +137,6 @@ class Eventos extends Component
 		->orderBy('nome')
 		->get();
 
-		// Se houver promotorias sem grupo, criar um grupo virtual para elas
 		if ($promotoriasSemGrupo->isNotEmpty()) {
 			$grupoVirtual = new \App\Models\GrupoPromotoria();
 			$grupoVirtual->nome = 'Promotorias Avulsas';
@@ -176,32 +173,22 @@ class Eventos extends Component
 
 	public function abrirModalCriar()
 	{
-		$this->modoEdicao = false;
 		$this->resetarFormulario();
-		
-		$ultimoPeriodo = Periodo::orderBy('created_at', 'desc')->first();
-		if ($ultimoPeriodo) {
-			$this->periodo_id = (string) $ultimoPeriodo->id;
-			$this->periodo_inicio = $ultimoPeriodo->periodo_inicio->format('Y-m-d');
-			$this->periodo_fim = $ultimoPeriodo->periodo_fim->format('Y-m-d');
-		}
-		
-		$this->promotoresDesignacoes = [[
-			'uid' => (string) Str::uuid(),
-			'promotor_id' => '',
-			'tipo' => 'titular',
-			'data_inicio_designacao' => $this->periodo_inicio ?: '',
-			'data_fim_designacao' => $this->periodo_fim ?: '',
-			'observacoes' => ''
-		]];
-
+		$this->modoEdicao = false;
+		$this->eventoEditando = null;
 		$this->mostrarModal = true;
+		
+		// Atualizar dados quando abre o modal
+		$this->atualizarPromotoriasListado();
 	}
 
 	public function abrirModalCriarParaPromotoria(int $promotoriaId): void
 	{
 		$this->abrirModalCriar();
 		$this->promotoria_id = (string) $promotoriaId;
+		
+		// Não é necessário atualizar aqui, pois o problema é no carregamento inicial
+		// $this->atualizarPromotoriasListado();
 	}
 
 	public function abrirModalEditar($eventoId)
@@ -255,6 +242,9 @@ class Eventos extends Component
 	{
 		$this->mostrarModal = false;
 		$this->resetarFormulario();
+		
+		// Atualizar dados quando fecha o modal
+		$this->atualizarPromotoriasListado();
 	}
 
 	public function salvar()
@@ -526,6 +516,11 @@ class Eventos extends Component
 
 	public function render()
 	{
+		// Forçar atualização se não há dados
+		if (empty($this->promotoriasListado)) {
+			$this->atualizarPromotoriasListado();
+		}
+		
 		return view('livewire.espelho.eventos');
 	}
 }

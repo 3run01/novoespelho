@@ -9,7 +9,7 @@ class Municipio extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nome'];
+    protected $fillable = ['nome', 'entrancia'];
 
     public function grupoPromotorias()
     {

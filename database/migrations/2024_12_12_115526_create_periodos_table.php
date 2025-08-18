@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id(); 
             $table->date('periodo_inicio');
             $table->date('periodo_fim');
+            $table->enum('status', ['em_processo_publicacao', 'publicado', 'arquivado'])->default('em_processo_publicacao');
             $table->timestamps();
         });
     }

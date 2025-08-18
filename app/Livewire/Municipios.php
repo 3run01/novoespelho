@@ -15,6 +15,9 @@ class Municipios extends Component
     #[Rule('required|min:2|max:100|unique:municipios,nome')]
     public string $nome = '';
 
+    #[Rule('required|in:final,inicial')]
+    public string $entrancia = 'inicial';
+
     public ?Municipio $municipioEditando = null;
     public bool $mostrarModal = false;
     public bool $modoEdicao = false;
@@ -34,7 +37,8 @@ class Municipios extends Component
             ->when($this->termoBusca, function ($query) {
                 $query->where('nome', 'like', '%' . $this->termoBusca . '%');
             })
-            ->orderBy('id', 'asc') 
+            ->orderBy('entrancia', 'desc') // Entrância final primeiro
+            ->orderBy('nome', 'asc')
             ->paginate(10);
     }
 
@@ -50,6 +54,7 @@ class Municipios extends Component
         $this->modoEdicao = true;
         $this->municipioEditando = $municipio;
         $this->nome = $municipio->nome;
+        $this->entrancia = $municipio->entrancia;
         $this->mostrarModal = true;
     }
 
@@ -64,10 +69,16 @@ class Municipios extends Component
         $this->validate();
 
         if ($this->modoEdicao && $this->municipioEditando) {
-            $this->municipioEditando->update(['nome' => $this->nome]);
+            $this->municipioEditando->update([
+                'nome' => $this->nome,
+                'entrancia' => $this->entrancia
+            ]);
             session()->flash('mensagem', 'Município atualizado com sucesso!');
         } else {
-            Municipio::create(['nome' => $this->nome]);
+            Municipio::create([
+                'nome' => $this->nome,
+                'entrancia' => $this->entrancia
+            ]);
             session()->flash('mensagem', 'Município criado com sucesso!');
         }
 
@@ -91,6 +102,7 @@ class Municipios extends Component
     public function resetarFormulario()
     {
         $this->nome = '';
+        $this->entrancia = 'inicial';
         $this->municipioEditando = null;
         $this->resetValidation();
     }
