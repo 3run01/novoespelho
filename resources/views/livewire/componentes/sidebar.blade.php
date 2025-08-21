@@ -106,7 +106,6 @@
                         </svg>
                     </button>
 
-                    <!-- Dropdown Links -->
                     <div x-show="open && !sidebarCollapsed" x-cloak
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 transform -translate-y-2"
@@ -115,10 +114,8 @@
                         x-transition:leave-start="opacity-100 transform translate-y-0"
                         x-transition:leave-end="opacity-0 transform -translate-y-2" class="space-y-1 ml-6">
 
-                        <!-- Municípios -->
                         <a href="{{ route('municipios') }}" @click="sidebarOpen = false"
                             class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg transition-all duration-200 group {{ request()->routeIs('municipios') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : 'hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1' }}">
-                            <!-- Ícone melhorado: Mapa/Localização -->
                             <svg class="w-4 h-4 mr-3 transition-transform group-hover:scale-110" fill="none"
                                 stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path d="M12 21s-6-5.686-6-10A6 6 0 0 1 18 11c0 4.314-6 10-6 10z" />
