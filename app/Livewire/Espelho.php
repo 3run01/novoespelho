@@ -80,7 +80,6 @@ class Espelho extends Component
         $promotoriasPorMunicipio = [];
         $plantoesPorMunicipio = [];
 
-        // Organizar promotorias por município
         $promotorias = Promotoria::with([
             'grupoPromotoria.municipio',
             'promotorTitular',
@@ -102,7 +101,7 @@ class Espelho extends Component
             $promotoriasPorMunicipio[$nomeMunicipio]->push($promotoria);
         }
 
-        // Organizar plantões por município
+
         foreach ($this->plantoes as $plantao) {
             $nomeMunicipio = $plantao->municipio ? $plantao->municipio->nome : 'Sem município';
             

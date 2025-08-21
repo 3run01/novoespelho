@@ -19,14 +19,13 @@
 </head>
 
 <body class="bg-gray-50">
-    <div class="min-h-screen">
-        <!-- Sidebar Component -->
+    <div class="min-h-screen" x-data="{ sidebarCollapsed: false }"
+        @sidebar-collapsed.window="sidebarCollapsed = $event.detail.collapsed">
         @livewire('sidebar')
 
-        <!-- Main Content -->
-        <main class="pt-20 pl-[40px] lg:pl-64 transition-all duration-300">
-            <div class="px-[50px] sm:px-[70px] py-6 max-w-7xl">
-                    {{ $slot }}
+        <main class="pt-10 transition-all duration-300" :class="sidebarCollapsed ? 'pl-[10px]' : 'pl-20'">
+            <div class="px-4 sm:px-6 lg:px-8 py-8 max-w-none">
+                {{ $slot }}
             </div>
         </main>
     </div>

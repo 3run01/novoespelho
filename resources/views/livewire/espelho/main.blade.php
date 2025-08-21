@@ -1,5 +1,5 @@
 <x-layouts.app>
-    <div x-data="{ modoVisualizacao: 'gestao' }">
+    <div x-data="{ modoVisualizacao: 'gestao' }" class="max-w-full mx-auto">
         <div class="mb-6 sm:mb-8">
             <div class="flex justify-center">
                 <div class="bg-gray-100 p-1 rounded-lg inline-flex w-full sm:w-auto">

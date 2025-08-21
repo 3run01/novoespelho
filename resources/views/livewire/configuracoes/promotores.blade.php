@@ -1,9 +1,11 @@
-<div class="ml-44 mt-24 w-full max-w-7xl p-4 sm:p-6 bg-white rounded-lg shadow-sm" x-data="{
+<div class="flex mt-[35px]" x-data="{
     mostrarModal: @entangle('mostrarModal'),
     modoEdicao: @entangle('modoEdicao'),
     zonaEleitoral: @entangle('zona_eleitoral').live
 }">
-    <!-- Header com título e botão de criar -->
+    <div :class="sidebarCollapsed ? 'w-[56px]' : 'w-[200px]'" class="flex-shrink-0"></div>
+    <div class="flex-1">
+        <!-- Header com título e botão de criar -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
             <h2 class="text-2xl font-bold text-gray-900">Promotores</h2>

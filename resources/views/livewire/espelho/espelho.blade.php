@@ -1,4 +1,4 @@
-<div class="w-full">
+<div class="w-full pl-[46px] flex justify-end">
     <div class="space-y-6 sm:space-y-8">
         <div class="text-center">
             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 tracking-tight">
