@@ -363,7 +363,7 @@
                                                                                             class="text-xs sm:text-sm font-medium text-gray-900 block truncate">{{ $designacao->promotor->nome ?? '—' }}</span>
                                                                                         <span
                                                                                             class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ ($designacao->tipo ?? 'titular') === 'titular' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' }}">
-                                                                                            {{ ucfirst($designacao->tipo ?? 'titular') }}
+                                                                                            {{ ($designacao->tipo ?? null) === 'substituto' ? 'Substituindo' : ucfirst($designacao->tipo ?? 'Titular') }}
                                                                                         </span>
                                                                                     </div>
                                                                                 </div>

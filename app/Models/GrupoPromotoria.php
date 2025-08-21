@@ -34,3 +34,5 @@ class GrupoPromotoria extends Model
         return $this->hasManyThrough(Promotor::class, Promotoria::class);
     }
 }
+
+

@@ -218,12 +218,59 @@
                                                                 <td rowspan="{{ $eventosCount }}"
                                                                     class="px-4 sm:px-6 py-4 align-top border-r border-gray-200">
                                                                     @if ($promotoria->promotorTitular)
+                                                                        @php
+                                                                            $promotorTitular =
+                                                                                $promotoria->promotorTitular;
+                                                                            $cargosLista = [];
+
+                                                                            if (
+                                                                                $promotorTitular &&
+                                                                                $promotorTitular->cargos
+                                                                            ) {
+                                                                                if (
+                                                                                    is_array($promotorTitular->cargos)
+                                                                                ) {
+                                                                                    $cargosLista =
+                                                                                        $promotorTitular->cargos;
+                                                                                } elseif (
+                                                                                    is_string($promotorTitular->cargos)
+                                                                                ) {
+                                                                                    $cargosLista =
+                                                                                        json_decode(
+                                                                                            $promotorTitular->cargos,
+                                                                                            true,
+                                                                                        ) ?? [];
+                                                                                }
+                                                                            }
+
+                                                                            $cargosLista = array_filter(
+                                                                                $cargosLista,
+                                                                                function ($cargo) {
+                                                                                    return !empty(trim($cargo));
+                                                                                },
+                                                                            );
+                                                                        @endphp
                                                                         <div class="text-xs sm:text-sm">
-                                                                            <span
-                                                                                class="font-medium text-red-600">{{ $promotoria->promotorTitular->nome }}</span>
-                                                                            <span
-                                                                                class="text-xs text-gray-500 block">Promotor
-                                                                                Titular</span>
+                                                                            <div class="mb-1">
+                                                                                <span
+                                                                                    class="font-medium text-red-600">{{ $promotorTitular->nome }}</span>
+                                                                                <span
+                                                                                    class="text-xs text-gray-500">Titular</span>
+                                                                            </div>
+                                                                            @if (!empty($cargosLista))
+                                                                                <div class="space-y-1">
+                                                                                    @foreach ($cargosLista as $cargo)
+                                                                                        <div class="text-gray-900">
+                                                                                            {{ $cargo }}</div>
+                                                                                    @endforeach
+                                                                                </div>
+                                                                            @endif
+                                                                            @if ($promotorTitular && $promotorTitular->zona_eleitoral)
+                                                                                <div class="text-gray-700">Zona
+                                                                                    Eleitoral:
+                                                                                    {{ $promotorTitular->numero_da_zona_eleitoral ?? 'Sim' }}
+                                                                                </div>
+                                                                            @endif
                                                                         </div>
                                                                     @else
                                                                         <div class="text-xs sm:text-sm text-gray-500">
@@ -239,67 +286,51 @@
                                                             @endif
 
                                                             <td class="px-4 sm:px-6 py-4">
+                                                                <h5
+                                                                    class="text-sm sm:text-base font-bold text-blue-700 mb-1">
+                                                                    {{ $evento->titulo ?: ucfirst($evento->tipo ?: 'Evento') }}
+                                                                </h5>
                                                                 @php
-                                                                    $designacoes = method_exists($evento, 'designacoes')
-                                                                        ? $evento->designacoes
-                                                                        : collect();
                                                                     $promotores = $evento->promotores ?? collect();
-                                                                    $allDesignacoes =
-                                                                        $designacoes->count() > 0
-                                                                            ? $designacoes
-                                                                            : $promotores;
                                                                 @endphp
-
-                                                                @if ($allDesignacoes->count() > 0)
-                                                                    <div class="flex flex-wrap gap-2 sm:gap-3">
-                                                                        @foreach ($allDesignacoes as $designacao)
+                                                                @if ($promotores->count() > 0)
+                                                                    <div class="flex flex-wrap items-center gap-2">
+                                                                        @foreach ($promotores as $promotor)
                                                                             @php
-                                                                                $promotor =
-                                                                                    $designacao->promotor ??
-                                                                                    $designacao;
                                                                                 $dataInicio =
-                                                                                    $designacao->data_inicio_designacao ??
-                                                                                    ($designacao->pivot
+                                                                                    $promotor->pivot
                                                                                         ->data_inicio_designacao ??
-                                                                                        null);
+                                                                                    null;
                                                                                 $dataFim =
-                                                                                    $designacao->data_fim_designacao ??
-                                                                                    ($designacao->pivot
-                                                                                        ->data_fim_designacao ??
-                                                                                        null);
-                                                                                $tipo =
-                                                                                    $designacao->tipo ??
-                                                                                    ($designacao->pivot->tipo ??
-                                                                                        'titular');
+                                                                                    $promotor->pivot
+                                                                                        ->data_fim_designacao ?? null;
                                                                             @endphp
-                                                                            <div
-                                                                                class="inline-flex items-center gap-2 bg-gray-50 px-2 sm:px-3 py-2 rounded-md">
-                                                                                <div>
-                                                                                    <span
-                                                                                        class="text-xs sm:text-sm font-medium text-red-600">{{ $promotor->nome }}</span>
-                                                                                    <div
-                                                                                        class="flex items-center gap-1 sm:gap-2 text-xs text-gray-500">
-                                                                                        <span
-                                                                                            class="uppercase">{{ $tipo }}</span>
-                                                                                        @if ($dataInicio || $dataFim)
-                                                                                            <span>•</span>
-                                                                                            @if ($dataInicio)
-                                                                                                {{ \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') }}
-                                                                                            @endif
-                                                                                            @if ($dataFim)
-                                                                                                até
-                                                                                                {{ \Carbon\Carbon::parse($dataFim)->format('d/m/Y') }}
-                                                                                            @endif
+                                                                            <span
+                                                                                class="text-[11px] sm:text-xs text-gray-800">
+                                                                                <span
+                                                                                    class="font-medium">{{ $promotor->nome }}</span>
+                                                                                @if ($promotor->pivot->tipo)
+                                                                                    @php $t = $promotor->pivot->tipo; @endphp
+                                                                                    <span class="text-gray-500">
+                                                                                        ({{ $t === 'substituto' ? 'Substituindo' : ucfirst($t) }})
+                                                                                    </span>
+                                                                                @endif
+                                                                                @if ($dataInicio || $dataFim)
+                                                                                    <span class="text-gray-500"> (
+                                                                                        {{ $dataInicio ? \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') : '' }}
+                                                                                        @if ($dataInicio && $dataFim)
+                                                                                            —
                                                                                         @endif
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
+                                                                                        {{ $dataFim ? \Carbon\Carbon::parse($dataFim)->format('d/m/Y') : '' }}
+                                                                                        )
+                                                                                    </span>
+                                                                                @endif
+                                                                            </span>
                                                                         @endforeach
                                                                     </div>
                                                                 @else
-                                                                    <div class="text-xs sm:text-sm text-gray-500">
-                                                                        Nenhum promotor designado
-                                                                    </div>
+                                                                    <div class="text-[11px] sm:text-xs text-gray-500">
+                                                                        Nenhum promotor designado</div>
                                                                 @endif
                                                             </td>
                                                         </tr>
@@ -314,11 +345,48 @@
                                                         </td>
                                                         <td class="px-4 sm:px-6 py-4 border-r border-gray-200">
                                                             @if ($promotoria->promotorTitular)
+                                                                @php
+                                                                    $promotorTitular = $promotoria->promotorTitular;
+                                                                    $cargosLista = [];
+
+                                                                    if ($promotorTitular && $promotorTitular->cargos) {
+                                                                        if (is_array($promotorTitular->cargos)) {
+                                                                            $cargosLista = $promotorTitular->cargos;
+                                                                        } elseif (is_string($promotorTitular->cargos)) {
+                                                                            $cargosLista =
+                                                                                json_decode(
+                                                                                    $promotorTitular->cargos,
+                                                                                    true,
+                                                                                ) ?? [];
+                                                                        }
+                                                                    }
+
+                                                                    $cargosLista = array_filter($cargosLista, function (
+                                                                        $cargo,
+                                                                    ) {
+                                                                        return !empty(trim($cargo));
+                                                                    });
+                                                                @endphp
                                                                 <div class="text-xs sm:text-sm">
-                                                                    <span
-                                                                        class="font-medium text-red-600">{{ $promotoria->promotorTitular->nome }}</span>
-                                                                    <span class="text-xs text-gray-500 block">Promotor
-                                                                        Titular</span>
+                                                                    <div class="mb-1">
+                                                                        <span
+                                                                            class="font-medium text-red-600">{{ $promotorTitular->nome }}</span>
+                                                                        <span
+                                                                            class="text-xs text-gray-500">Titular</span>
+                                                                    </div>
+                                                                    @if (!empty($cargosLista))
+                                                                        <div class="space-y-1">
+                                                                            @foreach ($cargosLista as $cargo)
+                                                                                <div class="text-gray-900">
+                                                                                    {{ $cargo }}</div>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    @endif
+                                                                    @if ($promotorTitular && $promotorTitular->zona_eleitoral)
+                                                                        <div class="text-gray-700">Zona Eleitoral:
+                                                                            {{ $promotorTitular->numero_da_zona_eleitoral ?? 'Sim' }}
+                                                                        </div>
+                                                                    @endif
                                                                 </div>
                                                             @else
                                                                 <div class="text-xs sm:text-sm text-gray-500">

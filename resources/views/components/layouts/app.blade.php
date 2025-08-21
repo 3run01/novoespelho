@@ -24,9 +24,9 @@
         @livewire('sidebar')
 
         <!-- Main Content -->
-        <main class="pt-20 pl-0 lg:pl-64 transition-all duration-300">
-            <div class="content-optimized px-4 sm:px-6 py-6">
-                {{ $slot }}
+        <main class="pt-20 pl-[40px] lg:pl-64 transition-all duration-300">
+            <div class="px-[50px] sm:px-[70px] py-6 max-w-7xl">
+                    {{ $slot }}
             </div>
         </main>
     </div>
