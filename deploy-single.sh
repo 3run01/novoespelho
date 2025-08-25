@@ -1,21 +1,28 @@
 #!/bin/bash
-# deploy-single.sh
+# deploy-single-preservando.sh
 
 COMMIT_HASH=$1
 FEATURE_NAME=$2
 
-echo "🎯 Deploying single commit: $COMMIT_HASH"
+echo "🎯 Deploying single commit preserving existing code: $COMMIT_HASH"
 
-# Cria branch com apenas o commit específico
+# Cria branch a partir da main (preserva código existente)
 git checkout main
-git checkout -b "single-$FEATURE_NAME" $COMMIT_HASH^
-git cherry-pick $COMMIT_HASH
+git checkout -b "single-$FEATURE_NAME"
 
-# Deploy para dev
-git checkout main  
-git push -u "$FEATURE_NAME"
+# Aplica APENAS as mudanças do commit específico
+git cherry-pick $COMMIT_HASH --no-commit
 
-git checkout $FEATURE_NAME
-echo "✅ Single commit deployed to DEV"
-echo "🧪 Test and run: ./promote-single.sh $FEATURE_NAME"
+# Se der conflito, resolve automaticamente
+if [ $? -ne 0 ]; then
+    echo "⚠️  Resolvendo conflitos automaticamente..."
+    git add .
+fi
 
+# Commita apenas as mudanças do commit específico
+git commit -m "$(git log --format=%s -1 $COMMIT_HASH)"
+
+# Push
+git push -u origin "single-$FEATURE_NAME"
+
+echo "✅ Single commit aplicado preservando código existente"
