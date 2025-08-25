@@ -5,7 +5,7 @@
 }">
     <div :class="sidebarCollapsed ? 'w-[56px]' : 'w-[200px]'" class="flex-shrink-0"></div>
     <div class="flex-1">
-        <!-- Header com título e botão de criar -->
+    <!-- Header com título e botão de criar -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
             <h2 class="text-2xl font-bold text-gray-900">Promotores</h2>
@@ -233,7 +233,69 @@
     <!-- Paginação -->
     @if ($this->promotores->hasPages())
         <div class="mt-6">
-            {{ $this->promotores->links() }}
+            <nav role="navigation" aria-label="Navegação de Páginas" class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500">
+                        Mostrando <span class="font-medium text-gray-700">{{ $this->promotores->firstItem() }}</span>
+                        até
+                        <span class="font-medium text-gray-700">{{ $this->promotores->lastItem() }}</span> de <span
+                            class="font-medium text-gray-700">{{ $this->promotores->total() }}</span> resultados
+                    </p>
+                </div>
+                <div>
+                    <span class="relative z-0 inline-flex rounded-lg">
+                        @if ($this->promotores->onFirstPage())
+                            <span
+                                class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 cursor-default rounded-l-lg">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </span>
+                        @else
+                            <a href="{{ $this->promotores->previousPageUrl() }}"
+                                class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-50 hover:text-gray-400">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        @endif
+
+                        @foreach ($this->promotores->getUrlRange(1, $this->promotores->lastPage()) as $page => $url)
+                            @if ($page == $this->promotores->currentPage())
+                                <span
+                                    class="relative inline-flex items-center px-4 py-2 -ml-px text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 cursor-default">{{ $page }}</span>
+                            @else
+                                <a href="{{ $url }}"
+                                    class="relative inline-flex items-center px-4 py-2 -ml-px text-sm font-medium text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 hover:text-gray-400">{{ $page }}</a>
+                            @endif
+                        @endforeach
+
+                        @if ($this->promotores->hasMorePages())
+                            <a href="{{ $this->promotores->nextPageUrl() }}"
+                                class="relative inline-flex items-center px-2 py-2 -ml-px text-sm font-medium text-gray-500 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-50 hover:text-gray-400">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        @else
+                            <span
+                                class="relative inline-flex items-center px-2 py-2 -ml-px text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 cursor-default rounded-r-lg">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </span>
+                        @endif
+                    </span>
+                </div>
+            </nav>
         </div>
     @endif
 

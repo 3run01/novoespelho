@@ -67,7 +67,7 @@ class PromotoriaSeeder extends Seeder
             $anderson = $promotores->where('nome', 'Dr. Anderson Batista de Souza')->first();
             
             // Cíveis
-            $promotorias[] = ['nome' => '1ª PJ Cível', 'promotor_id' => $magno?->id, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => '1ª,2ª,3ª Cíveis e de Fazenda Pública'];
+            $promotorias[] = ['nome' => '1ª PJ Cível', 'promotor_id' => null, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => '1ª,2ª,3ª Cíveis e de Fazenda Pública', 'vacancia_data_inicio' => '2025-07-02'];
             $promotorias[] = ['nome' => '2ª PJ Cível', 'promotor_id' => $eliana?->id, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => '4ª,5ª,6ª Cíveis e de Fazenda Pública'];
             
             // Família
@@ -80,17 +80,17 @@ class PromotoriaSeeder extends Seeder
             $promotorias[] = ['nome' => '1ª PJ Criminal', 'promotor_id' => $jander?->id, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => 'Atribuições na 1ª Vara Criminal e Defesa da Ordem Tributária'];
             $promotorias[] = ['nome' => '2ª PJ Criminal', 'promotor_id' => $ubirajara?->id, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => 'Atribuições na 2ª Vara Criminal'];
             $promotorias[] = ['nome' => '3ª PJ Criminal', 'promotor_id' => $tiago?->id, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => 'Atribuições na 3ª Vara Criminal e Auditoria Militar'];
-            $promotorias[] = ['nome' => '4ª PJ Criminal', 'promotor_id' => null, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => 'Atribuições no segundo gabinete da Central de Violência Doméstica da Comarca de Macapá', 'vacancia_data_inicio' => '2024-01-01'];
+            $promotorias[] = ['nome' => '4ª PJ Criminal', 'promotor_id' => null, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => 'Atribuições no segundo gabinete da Central de Violência Doméstica da Comarca de Macapá'];
             $promotorias[] = ['nome' => '5ª PJ Criminal', 'promotor_id' => $ricardo?->id, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => 'Atribuições na 5ª Vara Criminal, trânsito'];
             $promotorias[] = ['nome' => '6ª PJ Criminal', 'promotor_id' => $vinicius?->id, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => 'Atribuições na 5ª Vara Criminal, trânsito'];
             $promotorias[] = ['nome' => '7ª PJ Criminal', 'promotor_id' => $christie?->id, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => 'Atribuições na 2ª Vara Criminal'];
             $promotorias[] = ['nome' => '8ª PJ Criminal', 'promotor_id' => $alexandre?->id, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => 'Atribuições na 3ª Vara Criminal e Auditoria Militar'];
-            $promotorias[] = ['nome' => '9ª PJ Criminal', 'promotor_id' => null, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => 'Atribuições no segundo gabinete da Central de Violência Doméstica da Comarca de Macapá', 'vacancia_data_inicio' => '2024-01-01'];
+            $promotorias[] = ['nome' => '9ª PJ Criminal', 'promotor_id' => null, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => 'Atribuições no segundo gabinete da Central de Violência Doméstica da Comarca de Macapá'];
             $promotorias[] = ['nome' => '10ª PJ Criminal', 'promotor_id' => $joao?->id, 'grupo_promotoria_id' => $grupoPromotorias->id, 'competencia' => 'Atribuições na 1ª Vara Criminal e Defesa da Ordem Tributária'];
             
             // Tribunal do Júri
             $promotorias[] = ['nome' => '1ª PJ Tribunal do Júri', 'promotor_id' => $helio?->id, 'grupo_promotoria_id' => $grupoPromotorias->id];
-            $promotorias[] = ['nome' => '2ª PJ Tribunal do Júri', 'promotor_id' => null, 'grupo_promotoria_id' => $grupoPromotorias->id, 'vacancia_data_inicio' => '2024-01-01'];
+            $promotorias[] = ['nome' => '2ª PJ Tribunal do Júri', 'promotor_id' => null, 'grupo_promotoria_id' => $grupoPromotorias->id, 'vacancia_data_inicio' => '2025-05-23'];
             
             // Execução Penal e Medidas Alternativas
             $promotorias[] = ['nome' => '1ª PJ Execução Penal', 'promotor_id' => $rodrigoCesar?->id, 'grupo_promotoria_id' => $grupoPromotorias->id];
@@ -194,7 +194,7 @@ class PromotoriaSeeder extends Seeder
             $promotorias[] = ['nome' => 'Promotoria de Calçoene', 'promotor_id' => $welder?->id, 'grupo_promotoria_id' => $grupo2Nucleo->id];
             
             // Amapá (vaga)
-            $promotorias[] = ['nome' => 'Promotoria de Amapá', 'promotor_id' => null, 'grupo_promotoria_id' => $grupo2Nucleo->id, 'vacancia_data_inicio' => '2024-01-01'];
+            $promotorias[] = ['nome' => 'Promotoria de Amapá', 'promotor_id' => null, 'grupo_promotoria_id' => $grupo2Nucleo->id, 'vacancia_data_inicio' => '2025-06-13'];
         }
 
         // ENTRÂNCIA INICIAL - 3º Núcleo
@@ -211,7 +211,7 @@ class PromotoriaSeeder extends Seeder
             $promotorias[] = ['nome' => 'Promotoria de Ferreira Gomes', 'promotor_id' => $roberta?->id, 'grupo_promotoria_id' => $grupo3Nucleo->id];
             
             // Porto Grande (vaga)
-            $promotorias[] = ['nome' => 'Promotoria de Porto Grande', 'promotor_id' => null, 'grupo_promotoria_id' => $grupo3Nucleo->id, 'vacancia_data_inicio' => '2024-01-01'];
+            $promotorias[] = ['nome' => 'Promotoria de Porto Grande', 'promotor_id' => null, 'grupo_promotoria_id' => $grupo3Nucleo->id, 'vacancia_data_inicio' => '2025-06-13'];
             
             // Pedra Branca do Amapari
             $promotorias[] = ['nome' => 'Promotoria de Pedra Branca do Amapari', 'promotor_id' => $carolina?->id, 'grupo_promotoria_id' => $grupo3Nucleo->id];

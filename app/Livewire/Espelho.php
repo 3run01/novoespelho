@@ -119,6 +119,15 @@ class Espelho extends Component
         $this->plantoesPorMunicipio = collect($plantoesPorMunicipio);
     }
 
+    /**
+     * Obtém o ID do município pelo nome
+     */
+    public function getMunicipioId($nomeMunicipio)
+    {
+        $municipio = Municipio::where('nome', $nomeMunicipio)->first();
+        return $municipio ? $municipio->id : 1; // Retorna 1 como fallback
+    }
+
     public function render()
     {
         return view('livewire.espelho.espelho');

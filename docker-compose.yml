@@ -17,10 +17,10 @@ services:
         depends_on:
             - db
     db:
-        container_name: espelho-db  # Nome único
+        container_name: espelho-db  
         image: postgres:17
         ports:
-            - 5432:5432
+            - 5433:5432
         environment:
             - POSTGRES_USER=postgres
             - POSTGRES_PASSWORD=123@senha

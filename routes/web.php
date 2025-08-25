@@ -15,6 +15,7 @@ use App\Livewire\Promotores;
 use App\Livewire\GrupoPromotores;
 use App\Livewire\Promotorias;
 use App\Http\Controllers\PdfController;
+use App\Http\Controllers\EspelhoPdfController;
 
 
 
@@ -37,6 +38,13 @@ Route::prefix('pdf')->group(function () {
     Route::get('/stream/{viewName}', [PdfController::class, 'streamPdf'])->name('pdf.stream');
     Route::get('/report/{reportType}', [PdfController::class, 'generateReport'])->name('pdf.report');
     Route::post('/save/{viewName}', [PdfController::class, 'savePdf'])->name('pdf.save');
+});
+
+// Rotas para PDFs do Espelho
+Route::prefix('espelho')->group(function () {
+    Route::get('/pdf/completo', [EspelhoPdfController::class, 'gerarEspelhoCompleto'])->name('espelho.pdf.completo');
+    Route::get('/pdf/municipio/{municipioId}', [EspelhoPdfController::class, 'gerarEspelhoPorMunicipio'])->name('espelho.pdf.municipio');
+    Route::get('/pdf/visualizar', [EspelhoPdfController::class, 'visualizarEspelho'])->name('espelho.pdf.visualizar');
 });
 
 

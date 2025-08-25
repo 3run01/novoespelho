@@ -8,9 +8,7 @@ use Illuminate\Support\Facades\View;
 
 class PdfController
 {
-    /**
-     * Gera um PDF a partir de uma view
-     */
+    
     public function generateFromView(Request $request, $viewName)
     {
         try {

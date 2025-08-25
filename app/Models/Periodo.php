@@ -41,4 +41,32 @@ class Periodo extends Model
             $this->update(['status' => 'publicado']);
         });
     }
+    
+    /**
+     * Obtém o texto legível do status
+     */
+    public function getStatusTextoAttribute()
+    {
+        $statusMap = [
+            'em_processo_publicacao' => 'Em Processo',
+            'publicado' => 'Publicado',
+            'arquivado' => 'Arquivado'
+        ];
+        
+        return $statusMap[$this->status] ?? $this->status;
+    }
+    
+    /**
+     * Obtém a classe CSS para o status
+     */
+    public function getStatusClasseAttribute()
+    {
+        $statusClasses = [
+            'em_processo_publicacao' => 'bg-yellow-100 text-yellow-800',
+            'publicado' => 'bg-green-100 text-green-800',
+            'arquivado' => 'bg-gray-100 text-gray-800'
+        ];
+        
+        return $statusClasses[$this->status] ?? 'bg-gray-100 text-gray-800';
+    }
 }

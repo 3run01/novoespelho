@@ -58,22 +58,45 @@ class Eventos extends Component
 	{
 		$this->carregarDados();
 		
-		$periodoMaisRecente = Periodo::where('status', 'em_processo_publicacao')
-			->orderBy('periodo_inicio', 'desc')
-			->first();
-		
-		if (!$periodoMaisRecente) {
-			$periodoMaisRecente = Periodo::where('status', 'publicado')
-				->orderBy('periodo_inicio', 'desc')
-				->first();
-		}
+		// Sempre selecionar o período mais recente
+		$periodoMaisRecente = $this->obterPeriodoMaisRecente();
 		
 		$this->periodoSelecionado = $periodoMaisRecente;
 		$this->periodoSelecionadoId = $this->periodoSelecionado?->id;
 		
 		// Garantir que os dados são carregados após definir o período
 		$this->atualizarPromotoriasListado();
+		
+		// Resetar formulário mas manter o período mais recente
 		$this->resetarFormulario();
+		
+		// Garantir que o período mais recente está sempre selecionado
+		$this->periodo_id = $this->periodoSelecionado?->id;
+	}
+	
+	/**
+	 * Obtém o período mais recente, priorizando os em processo de publicação
+	 */
+	private function obterPeriodoMaisRecente()
+	{
+		// Primeiro tenta encontrar períodos em processo de publicação
+		$periodoMaisRecente = Periodo::where('status', 'em_processo_publicacao')
+			->orderBy('periodo_inicio', 'desc')
+			->first();
+		
+		// Se não encontrar, busca períodos publicados
+		if (!$periodoMaisRecente) {
+			$periodoMaisRecente = Periodo::where('status', 'publicado')
+				->orderBy('periodo_inicio', 'desc')
+				->first();
+		}
+		
+		// Se ainda não encontrar, busca qualquer período mais recente
+		if (!$periodoMaisRecente) {
+			$periodoMaisRecente = Periodo::orderBy('periodo_inicio', 'desc')->first();
+		}
+		
+		return $periodoMaisRecente;
 	}
 	
 	public function carregarDados()
@@ -84,7 +107,7 @@ class Eventos extends Component
 	
 	public function getPeriodosProperty()
 	{
-		// Priorizar períodos em processo de publicação, depois publicados
+		// Priorizar períodos em processo de publicação, depois publicados, depois arquivados
 		$periodosEmProcesso = Periodo::where('status', 'em_processo_publicacao')
 			->orderBy('periodo_inicio', 'desc')
 			->get();
@@ -93,9 +116,16 @@ class Eventos extends Component
 			return $periodosEmProcesso;
 		}
 		
-		return Periodo::where('status', 'publicado')
+		$periodosPublicados = Periodo::where('status', 'publicado')
 			->orderBy('periodo_inicio', 'desc')
 			->get();
+			
+		if ($periodosPublicados->isNotEmpty()) {
+			return $periodosPublicados;
+		}
+		
+		// Se não houver períodos em processo ou publicados, retorna todos ordenados por data
+		return Periodo::orderBy('periodo_inicio', 'desc')->get();
 	}
 	
 	public function atualizarPromotoriasListado()
@@ -178,6 +208,10 @@ class Eventos extends Component
 		$this->eventoEditando = null;
 		$this->mostrarModal = true;
 		
+		// Sempre garantir que o período mais recente está selecionado ao criar novo evento
+		$periodoMaisRecente = $this->obterPeriodoMaisRecente();
+		$this->periodo_id = $periodoMaisRecente?->id;
+		
 		// Atualizar dados quando abre o modal
 		$this->atualizarPromotoriasListado();
 	}
@@ -208,9 +242,12 @@ class Eventos extends Component
 		$this->periodo_fim = $evento->periodo_fim ? $evento->periodo_fim->format('Y-m-d') : '';
 		$this->promotoria_id = $evento->promotoria_id;
 		
-		$ultimoPeriodo = Periodo::orderBy('created_at', 'desc')->first();
-		if ($ultimoPeriodo) {
-			$this->periodo_id = (string) $ultimoPeriodo->id;
+		// Se não houver período específico, usar o período mais recente
+		if (!$evento->periodo_id) {
+			$periodoMaisRecente = $this->obterPeriodoMaisRecente();
+			$this->periodo_id = $periodoMaisRecente?->id;
+		} else {
+			$this->periodo_id = (string) $evento->periodo_id;
 		}
 		
 		$this->promotoresDesignacoes = $evento->designacoes->map(function ($designacao) {
@@ -488,7 +525,13 @@ class Eventos extends Component
 		$this->periodo_inicio = '';
 		$this->periodo_fim = '';
 		$this->promotoria_id = '';
-		$this->periodo_id = '';
+		
+		// Manter o período atual se já estiver definido, senão usar o mais recente
+		if (empty($this->periodo_id)) {
+			$periodoMaisRecente = $this->obterPeriodoMaisRecente();
+			$this->periodo_id = $periodoMaisRecente?->id;
+		}
+		
 		$this->eventoEditando = null;
 		$this->resetValidation();
 	}
