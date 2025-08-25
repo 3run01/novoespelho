@@ -13,7 +13,9 @@ git cherry-pick $COMMIT_HASH
 
 # Deploy para dev
 git checkout main  
-git merge "single-$FEATURE_NAME"
+git push -u "$FEATURE_NAME"
 
+git checkout $FEATURE_NAME
 echo "✅ Single commit deployed to DEV"
 echo "🧪 Test and run: ./promote-single.sh $FEATURE_NAME"
+
