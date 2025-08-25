@@ -19,6 +19,7 @@ class Promotoria extends Model
         'grupo_promotoria_id',
         'competencia',
         'titularidade_promotor_data_inicio',
+        'titularidade_promotor_data_final',
         'vacancia_data_inicio'
     ];
 

@@ -63,8 +63,8 @@
         </div>
     </div>
 
-   
-   
+
+
     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div class="overflow-x-auto">
             @php
@@ -79,13 +79,17 @@
                     $nome = optional(optional($p->grupoPromotoria)->municipio)->nome ?? 'Sem município';
                     return trim($nome);
                 });
-                
+
                 // Ordenar os municípios para que Macapá apareça primeiro
                 $municipiosOrdenados = $promotoriasPorMunicipio->keys()->sort(function ($a, $b) {
                     // Macapá sempre primeiro
-                    if ($a === 'Macapá') return -1;
-                    if ($b === 'Macapá') return 1;
-                    
+                    if ($a === 'Macapá') {
+                        return -1;
+                    }
+                    if ($b === 'Macapá') {
+                        return 1;
+                    }
+
                     // Demais municípios em ordem alfabética
                     return strcasecmp($a, $b);
                 });
@@ -105,7 +109,7 @@
                     $promotoriasPorGrupo = $promotoriasMunicipio->groupBy(function ($p) {
                         return optional($p->grupoPromotoria)->nome ?? 'Sem grupo';
                     });
-                    
+
                     // Ordenar as promotorias dentro de cada grupo para manter a ordem fixa
                     foreach ($promotoriasPorGrupo as $nomeGrupo => $promotoriasDoGrupo) {
                         $promotoriasPorGrupo[$nomeGrupo] = $promotoriasDoGrupo->sort(function ($a, $b) {
@@ -149,18 +153,22 @@
                                 'Urbanismo e Mobilidade Urbana' => 36,
                                 '1ª PJ Defesa do Patrimônio Público e Fundações' => 37,
                                 '2ª PJ Defesa do Patrimônio Público e Fundações' => 38,
-                                '3ª PJ Defesa do Patrimônio Público e Fundações' => 39
+                                '3ª PJ Defesa do Patrimônio Público e Fundações' => 39,
                             ];
-                            
+
                             // Se ambas as promotorias estão na lista de ordem fixa
                             if (isset($ordemMacapa[$a->nome]) && isset($ordemMacapa[$b->nome])) {
                                 return $ordemMacapa[$a->nome] - $ordemMacapa[$b->nome];
                             }
-                            
+
                             // Se apenas uma está na lista, ela vem primeiro
-                            if (isset($ordemMacapa[$a->nome])) return -1;
-                            if (isset($ordemMacapa[$b->nome])) return 1;
-                            
+                            if (isset($ordemMacapa[$a->nome])) {
+                                return -1;
+                            }
+                            if (isset($ordemMacapa[$b->nome])) {
+                                return 1;
+                            }
+
                             // Para outras promotorias, manter ordem alfabética
                             return strcasecmp($a->nome, $b->nome);
                         });
@@ -240,7 +248,7 @@
                                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                                         stroke-width="2" d="M12 4v16m8-8H4"></path>
                                                                 </svg>
-                                                                Adicionar Evento
+                                                                Adicionar Movimento
                                                             </button>
                                                         </div>
                                                     </div>
@@ -274,11 +282,16 @@
                                                             <!-- Informações Adicionais -->
                                                             <div class="space-y-2 text-sm text-gray-600">
                                                                 @php
-                                                                    $cargosLista = is_array($promotoria->promotorTitular->cargos ?? null) ? $promotoria->promotorTitular->cargos : [];
+                                                                    $cargosLista = is_array(
+                                                                        $promotoria->promotorTitular->cargos ?? null,
+                                                                    )
+                                                                        ? $promotoria->promotorTitular->cargos
+                                                                        : [];
                                                                 @endphp
                                                                 @if (!empty($cargosLista))
                                                                     <div>
-                                                                        <span class="font-medium text-gray-900">Cargo(s):</span>
+                                                                        <span
+                                                                            class="font-medium text-gray-900">Cargo(s):</span>
                                                                         {{ implode(', ', $cargosLista) }}
                                                                     </div>
                                                                 @endif
@@ -362,7 +375,7 @@
                                                                                     class="text-sm font-medium text-gray-900">{{ $designacao->promotor->nome ?? '—' }}</span>
                                                                                 <span
                                                                                     class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ ($designacao->tipo ?? 'titular') === 'titular' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' }}">
-                                                                                    @if(($designacao->tipo ?? 'titular') === 'substituto')
+                                                                                    @if (($designacao->tipo ?? 'titular') === 'substituto')
                                                                                         Substituindo
                                                                                     @else
                                                                                         {{ ucfirst($designacao->tipo ?? 'titular') }}
@@ -425,7 +438,6 @@
                                         </tr>
                                     @endforeach
                                 @else
-                                    <!-- Linha para promotoria sem eventos -->
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="px-6 py-6 align-top border-r">
                                             <div class="flex-1">
@@ -449,7 +461,7 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                                 stroke-width="2" d="M12 4v16m8-8H4"></path>
                                                         </svg>
-                                                        Adicionar Evento
+                                                        Adicionar Movimento
                                                     </button>
                                                 </div>
                                             </div>
@@ -507,14 +519,12 @@
         </div>
     </div>
 
-    <!-- Modal de Evento -->
     @if ($this->mostrarModal)
         <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
             wire:click="fecharModal">
             <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white"
                 wire:click.stop>
                 <div class="mt-3">
-                    <!-- Header do Modal -->
                     <div class="flex justify-between items-center pb-4 border-b">
                         <h3 class="text-lg font-medium text-gray-900">
                             {{ $this->modoEdicao ? 'Editar Evento' : 'Novo Evento' }}
@@ -524,10 +534,8 @@
                         </button>
                     </div>
 
-                    <!-- Formulário -->
                     <form wire:submit.prevent="salvar" class="mt-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Título -->
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Título
@@ -540,7 +548,6 @@
                                 @enderror
                             </div>
 
-                            <!-- Período -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Período <span class="text-red-500">*</span>
@@ -641,8 +648,8 @@
                                     <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
                                         wire:key="promotor-linha-{{ $linha['uid'] ?? $i }}">
                                         <div>
-                                            <label
-                                                class="block text-sm font-medium text-gray-700 mb-1">Membros Designados</label>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Membros
+                                                Designados</label>
                                             <select
                                                 wire:model.defer="promotoresDesignacoes.{{ $i }}.promotor_id"
                                                 class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
@@ -660,7 +667,7 @@
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
                                             <select wire:model.defer="promotoresDesignacoes.{{ $i }}.tipo"
                                                 class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                
+
                                                 <option value="substituto">Substituindo</option>
                                                 <option value="respondendo">Respondendo</option>
                                                 <option value="auxiliando">Auxiliando</option>

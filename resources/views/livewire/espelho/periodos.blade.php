@@ -93,7 +93,7 @@
                                     </h3>
                                     <span
                                         class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                                        {{ $periodo->periodo_inicio->diffInDays($periodo->periodo_fim) + 1 }} dias
+                                        {{ $periodo->periodo_inicio->diffInDays($periodo->periodo_fim)}} dias
                                     </span>
                                 </div>
 
@@ -112,7 +112,7 @@
                                             <div class="text-sm text-gray-600">
                                                 <span class="font-medium text-gray-900">Duração:</span>
                                                 <div class="mt-1">
-                                                    {{ $periodo->periodo_inicio->diffInDays($periodo->periodo_fim) + 1 }}
+                                                    {{ $periodo->periodo_inicio->diffInDays($periodo->periodo_fim)}}
                                                     dias</div>
                                             </div>
                                         </div>
@@ -173,7 +173,7 @@
                                     </button>
                                 @else
                                     <div class="text-sm text-gray-500 italic px-3 py-2">
-                                        Período publicado - não pode ser editado
+                                        Período publicado
                                     </div>
                                 @endif
                                 

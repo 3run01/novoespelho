@@ -19,7 +19,7 @@ class Promotorias extends Component
     public string $nome = '';
     
     #[Rule('nullable')]
-    public ?string $promotor_id = null; // Mudei para string para aceitar 'sem_titular'
+    public ?string $promotor_id = null; 
     
     #[Rule('required|exists:grupo_promotorias,id')]
     public ?int $grupo_promotoria_id = null;
@@ -29,11 +29,13 @@ class Promotorias extends Component
     
     #[Rule('nullable|date')]
     public ?string $titularidade_promotor_data_inicio = null;
+
+    #[Rule('nullable|date')]
+    public ?string $titularidade_promotor_data_final = null;
     
     #[Rule('nullable|date')]
     public ?string $vacancia_data_inicio = null;
     
-    // Removida a propriedade tipo_titular
     
     // Estado do componente
     public ?Promotoria $promotoriaEditando = null;
@@ -106,9 +108,10 @@ class Promotorias extends Component
         $this->grupo_promotoria_id = $promotoria->grupo_promotoria_id;
         $this->competencia = $promotoria->competencia;
         $this->titularidade_promotor_data_inicio = $promotoria->titularidade_promotor_data_inicio;
+        $this->titularidade_promotor_data_final = $promotoria->titularidade_promotor_data_final;
         $this->vacancia_data_inicio = $promotoria->vacancia_data_inicio;
         
-        // Define o promotor_id baseado nos dados existentes
+        
         if ($promotoria->promotor_id) {
             $this->promotor_id = (string) $promotoria->promotor_id;
         } elseif ($promotoria->vacancia_data_inicio) {
@@ -136,19 +139,21 @@ class Promotorias extends Component
             'competencia' => $this->competencia,
         ];
         
-        // Define os campos baseado no promotor_id
+        
         if ($this->promotor_id === 'sem_titular') {
             $dados['promotor_id'] = null;
             $dados['titularidade_promotor_data_inicio'] = null;
+            $dados['titularidade_promotor_data_final'] = null;
             $dados['vacancia_data_inicio'] = $this->vacancia_data_inicio;
         } elseif ($this->promotor_id && $this->promotor_id !== 'sem_titular') {
             $dados['promotor_id'] = (int) $this->promotor_id;
             $dados['titularidade_promotor_data_inicio'] = $this->titularidade_promotor_data_inicio;
+            $dados['titularidade_promotor_data_final'] = $this->titularidade_promotor_data_final;
             $dados['vacancia_data_inicio'] = null;
         } else {
-            // Selecione uma opção - limpa tudo
             $dados['promotor_id'] = null;
             $dados['titularidade_promotor_data_inicio'] = null;
+            $dados['titularidade_promotor_data_final'] = null;
             $dados['vacancia_data_inicio'] = null;
         }
         
@@ -182,6 +187,7 @@ class Promotorias extends Component
         $this->grupo_promotoria_id = null;
         $this->competencia = null;
         $this->titularidade_promotor_data_inicio = null;
+        $this->titularidade_promotor_data_final = null;
         $this->vacancia_data_inicio = null;
         $this->promotoriaEditando = null;
         $this->resetValidation();

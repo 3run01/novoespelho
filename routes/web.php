@@ -20,6 +20,11 @@ use App\Http\Controllers\EspelhoPdfController;
 
 
 
+Route::get('/', function (){
+    return redirect('/gestao-espelho');
+});
+
+
 
 Route::get('/gestao-espelho', Main::class)->name('gestao-espelho');
 
@@ -31,16 +36,9 @@ Route::get('/grupo-promotores', GrupoPromotores::class)->name('grupo-promotores'
 
 Route::get('/promotorias', Promotorias::class)->name('promotorias');
 
-// Rotas para PDFs
-Route::prefix('pdf')->group(function () {
-    Route::get('/generate/{viewName}', [PdfController::class, 'generateFromView'])->name('pdf.generate');
-    Route::post('/generate-html', [PdfController::class, 'generateFromHtml'])->name('pdf.generate-html');
-    Route::get('/stream/{viewName}', [PdfController::class, 'streamPdf'])->name('pdf.stream');
-    Route::get('/report/{reportType}', [PdfController::class, 'generateReport'])->name('pdf.report');
-    Route::post('/save/{viewName}', [PdfController::class, 'savePdf'])->name('pdf.save');
-});
 
-// Rotas para PDFs do Espelho
+
+
 Route::prefix('espelho')->group(function () {
     Route::get('/pdf/completo', [EspelhoPdfController::class, 'gerarEspelhoCompleto'])->name('espelho.pdf.completo');
     Route::get('/pdf/municipio/{municipioId}', [EspelhoPdfController::class, 'gerarEspelhoPorMunicipio'])->name('espelho.pdf.municipio');
@@ -48,3 +46,8 @@ Route::prefix('espelho')->group(function () {
 });
 
 
+
+
+Route::fallback( function (){
+    return redirect('/gestao-espelho');
+});

@@ -4,7 +4,7 @@
             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 tracking-tight">
                 Prévia do Espelho do Período
             </h1>
-            
+
             <!-- Componente de Geração de PDF -->
             <livewire:pdf-generator />
             @if ($this->periodos->count() > 0)
@@ -63,9 +63,13 @@
                         ->unique()
                         ->sort(function ($a, $b) {
                             // Macapá sempre primeiro
-                            if ($a === 'Macapá') return -1;
-                            if ($b === 'Macapá') return 1;
-                            
+                            if ($a === 'Macapá') {
+                                return -1;
+                            }
+                            if ($b === 'Macapá') {
+                                return 1;
+                            }
+
                             // Demais municípios em ordem alfabética
                             return strcasecmp($a, $b);
                         });
@@ -73,25 +77,27 @@
 
                 @foreach ($todosMunicipios as $nomeMunicipio)
                     <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm bg-white">
-                    
-                    <!-- Cabeçalho do Município com Botão PDF -->
-                    <div class="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-lg sm:text-xl font-bold text-gray-800 uppercase tracking-wide">
-                                Município: {{ $nomeMunicipio }}
-                            </h3>
-                            <a href="{{ route('espelho.pdf.municipio', ['municipioId' => $this->getMunicipioId($nomeMunicipio)]) }}" 
-                               class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                PDF Município
-                            </a>
-                        </div>
-                    </div>
 
-                    <!-- Plantões de Urgência do Município (se houver) -->
-                    @if ($this->plantoesPorMunicipio->has($nomeMunicipio) && $this->plantoesPorMunicipio[$nomeMunicipio]->count() > 0)
+                        <!-- Cabeçalho do Município com Botão PDF -->
+                        <div class="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg sm:text-xl font-bold text-gray-800 uppercase tracking-wide">
+                                    Município: {{ $nomeMunicipio }}
+                                </h3>
+                                <a href="{{ route('espelho.pdf.municipio', ['municipioId' => $this->getMunicipioId($nomeMunicipio)]) }}"
+                                    class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                        </path>
+                                    </svg>
+                                    PDF Município
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Plantões de Urgência do Município (se houver) -->
+                        @if ($this->plantoesPorMunicipio->has($nomeMunicipio) && $this->plantoesPorMunicipio[$nomeMunicipio]->count() > 0)
                             <div class="bg-orange-50 border-b border-orange-200 px-4 sm:px-6 py-3 sm:py-4">
                                 <div class="flex items-center gap-2 sm:gap-3 mb-3">
                                     <svg class="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" fill="currentColor"
@@ -183,10 +189,12 @@
                                 $this->promotoriasPorMunicipio[$nomeMunicipio]->count() > 0)
                             @php
                                 $promotoriasMunicipio = $this->promotoriasPorMunicipio[$nomeMunicipio];
-                                $promotoriasPorGrupo = $promotoriasMunicipio->groupBy(function ($p) {
-                                    return optional($p->grupoPromotoria)->nome ?? 'Sem grupo';
-                                })->sortKeys();
-                                
+                                $promotoriasPorGrupo = $promotoriasMunicipio
+                                    ->groupBy(function ($p) {
+                                        return optional($p->grupoPromotoria)->nome ?? 'Sem grupo';
+                                    })
+                                    ->sortKeys();
+
                                 // Ordenar as promotorias dentro de cada grupo para manter a ordem fixa
                                 foreach ($promotoriasPorGrupo as $nomeGrupo => $promotoriasDoGrupo) {
                                     $promotoriasPorGrupo[$nomeGrupo] = $promotoriasDoGrupo->sort(function ($a, $b) {
@@ -230,18 +238,22 @@
                                             'Urbanismo e Mobilidade Urbana' => 36,
                                             '1ª PJ Defesa do Patrimônio Público e Fundações' => 37,
                                             '2ª PJ Defesa do Patrimônio Público e Fundações' => 38,
-                                            '3ª PJ Defesa do Patrimônio Público e Fundações' => 39
+                                            '3ª PJ Defesa do Patrimônio Público e Fundações' => 39,
                                         ];
-                                        
+
                                         // Se ambas as promotorias estão na lista de ordem fixa
                                         if (isset($ordemMacapa[$a->nome]) && isset($ordemMacapa[$b->nome])) {
                                             return $ordemMacapa[$a->nome] - $ordemMacapa[$b->nome];
                                         }
-                                        
+
                                         // Se apenas uma está na lista, ela vem primeiro
-                                        if (isset($ordemMacapa[$a->nome])) return -1;
-                                        if (isset($ordemMacapa[$b->nome])) return 1;
-                                        
+                                        if (isset($ordemMacapa[$a->nome])) {
+                                            return -1;
+                                        }
+                                        if (isset($ordemMacapa[$b->nome])) {
+                                            return 1;
+                                        }
+
                                         // Para outras promotorias, manter ordem alfabética
                                         return strcasecmp($a->nome, $b->nome);
                                     });
@@ -354,7 +366,8 @@
                                                                             @endif
                                                                         </div>
                                                                     @else
-                                                                        <div class="text-xs text-bold sm:text-sm text-red-500 font-semibold">
+                                                                        <div
+                                                                            class="text-xs text-bold sm:text-sm text-red-500 font-semibold">
                                                                             @if ($promotoria->vacancia_data_inicio)
                                                                                 Vacante a partir de
                                                                                 {{ \Carbon\Carbon::parse($promotoria->vacancia_data_inicio)->format('d/m/Y') }}
@@ -409,8 +422,17 @@
                                                                             </span>
                                                                         @endforeach
                                                                     </div>
-                                                                
+                                                                @endif
+                                                                @if ($evento->periodo_inicio || $evento->periodo_fim)
+                                                                    <div
+                                                                        class="text-[11px] sm:text-xs text-gray-600 mt-1">
                                                                     
+                                                                        {{ $evento->periodo_inicio ? \Carbon\Carbon::parse($evento->periodo_inicio)->format('d/m/Y') : '' }}
+                                                                        @if ($evento->periodo_inicio && $evento->periodo_fim)
+                                                                            —
+                                                                        @endif
+                                                                        {{ $evento->periodo_fim ? \Carbon\Carbon::parse($evento->periodo_fim)->format('d/m/Y') : '' }}
+                                                                    </div>
                                                                 @endif
                                                             </td>
                                                         </tr>
@@ -469,7 +491,8 @@
                                                                     @endif
                                                                 </div>
                                                             @else
-                                                                <div class="text-xs font-semibold  sm:text-sm text-red-500">
+                                                                <div
+                                                                    class="text-xs font-semibold  sm:text-sm text-red-500">
                                                                     @if ($promotoria->vacancia_data_inicio)
                                                                         Vacante a partir de
                                                                         {{ \Carbon\Carbon::parse($promotoria->vacancia_data_inicio)->format('d/m/Y') }}
@@ -502,7 +525,8 @@
                 $this->plantoesPorMunicipio->count() === 0 &&
                 $this->periodos->count() === 0)
             <div class="text-center py-12">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                     </path>

@@ -82,11 +82,33 @@ class Periodos extends Component
             ]);
             session()->flash('mensagem', 'Período atualizado com sucesso!');
         } else {
-            Periodo::create([
+            // Criar novo período
+            $novoPeriodo = Periodo::create([
                 'periodo_inicio' => $this->periodoInicio,
-                'periodo_fim' => $this->periodoFim
+                'periodo_fim' => $this->periodoFim,
+                'status' => 'em_processo_publicacao' // Definir status padrão
             ]);
-            session()->flash('mensagem', 'Período criado com sucesso!');
+            
+            // Buscar o componente de Eventos para duplicar eventos
+            $eventosComponent = app(\App\Livewire\Eventos::class);
+            
+            try {
+                // Chamar método de duplicação de eventos passando o período já criado
+                $eventosComponent->duplicarEventosParaNovoPeriodo($novoPeriodo);
+                
+                session()->flash('mensagem', 'Período criado com sucesso e eventos duplicados!');
+            } catch (\Exception $e) {
+                // Se falhar na duplicação, remover o período criado
+                $novoPeriodo->delete();
+                
+                session()->flash('erro', 'Erro ao criar período: ' . $e->getMessage());
+                
+                \Illuminate\Support\Facades\Log::error('Erro ao duplicar eventos para novo período', [
+                    'error_message' => $e->getMessage(),
+                    'periodo_inicio' => $this->periodoInicio,
+                    'periodo_fim' => $this->periodoFim
+                ]);
+            }
         }
         
         $this->fecharModal();

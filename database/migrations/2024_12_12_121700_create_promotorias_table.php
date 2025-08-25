@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('competencia')->nullable();
             $table->foreignId('promotor_id')->nullable()->references('id')->on('promotores');
             $table->date('titularidade_promotor_data_inicio')->nullable();
+            $table->date('titularidade_promotor_data_final')->nullable();
             $table->date('vacancia_data_inicio')->nullable();
             $table->foreignId('grupo_promotoria_id')->references('id')->on('grupo_promotorias');                       
             $table->timestamps();

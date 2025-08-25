@@ -11,8 +11,8 @@ class PeriodoSeeder extends Seeder
     {
         DB::table('periodos')->insert([
             [
-                'periodo_inicio' => '2025-09-01',
-                'periodo_fim' => '2025-09-30',
+                'periodo_inicio' => '2025-08-05',
+                'periodo_fim' => '2025-08-12',
                 'status' => 'em_processo_publicacao'
             ]
         ]);
