@@ -1,38 +1,46 @@
 #!/bin/bash
-# deploy-single-debug.sh
+# deploy-single-mr.sh
+# Uso: ./deploy-single-mr.sh <commit-hash> <feature-name>
+
+set -euo pipefail
 
 COMMIT_HASH=$1
 FEATURE_NAME=$2
+BRANCH_NAME="deploy/$FEATURE_NAME"
 
-echo "🎯 Deploying commit: $COMMIT_HASH"
+echo "🎯 Deploying commit: $COMMIT_HASH → branch $BRANCH_NAME (base: producao)"
 
 # Verifica se commit existe
-if ! git rev-parse --verify $COMMIT_HASH >/dev/null 2>&1; then
+if ! git cat-file -e "$COMMIT_HASH"^{commit} 2>/dev/null; then
     echo "❌ ERRO: Commit $COMMIT_HASH não encontrado!"
     exit 1
 fi
 
-# Verifica se commit já está na main
-if git branch --contains $COMMIT_HASH | grep -q "main"; then
-    echo "⚠️  AVISO: Commit já existe na main!"
-    echo "🔄 Aplicando mesmo assim..."
+# Atualiza producao
+git fetch origin producao
+git checkout producao
+git reset --hard origin/producao
+
+# Cria branch baseada em producao
+if git rev-parse --verify "$BRANCH_NAME" >/dev/null 2>&1; then
+    echo "⚠️ Branch $BRANCH_NAME já existe, removendo..."
+    git branch -D "$BRANCH_NAME"
 fi
+git checkout -b "$BRANCH_NAME"
 
-# Cria branch
-git checkout main
-git checkout -b "single-$FEATURE_NAME"
-
-# Cherry-pick com debug
+# Cherry-pick do commit escolhido
 echo "🍒 Fazendo cherry-pick..."
-if git cherry-pick $COMMIT_HASH --no-commit; then
-    echo "✅ Cherry-pick bem-sucedido"
-    git status
-    git commit -m "$(git log --format=%s -1 $COMMIT_HASH)"
+if git cherry-pick "$COMMIT_HASH"; then
+    echo "✅ Cherry-pick aplicado com sucesso"
 else
     echo "❌ Cherry-pick falhou"
-    git status
+    git cherry-pick --abort || true
+    git checkout producao
+    git branch -D "$BRANCH_NAME"
     exit 1
 fi
 
-echo "🚀 Finalizando..."
-git push -u origin "single-$FEATURE_NAME"
+# Push para o remoto
+git push -u origin "$BRANCH_NAME" --force
+echo "🚀 Branch publicada: origin/$BRANCH_NAME"
+echo "✅ Agora abra um Merge Request no GitLab para a branch producao."
