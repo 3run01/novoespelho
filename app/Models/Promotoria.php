@@ -20,7 +20,8 @@ class Promotoria extends Model
         'competencia',
         'titularidade_promotor_data_inicio',
         'titularidade_promotor_data_final',
-        'vacancia_data_inicio'
+        'vacancia_data_inicio',
+        'data_pga'
     ];
 
     public function grupoPromotoria(): BelongsTo

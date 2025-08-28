@@ -26,7 +26,7 @@ class PromotoriaSeeder extends Seeder
         $promotorias = [];
 
         // MACAPÁ - Todas as promotorias no grupo "Promotorias"
-        $grupoPromotorias = $grupos->where('nome', 'Promotorias')->first();
+        $grupoPromotorias = $grupos->where('nome', 'Promotorias de Justiça')->first();
         if ($grupoPromotorias) {
             // Buscar promotores
             $magno = $promotores->where('nome', 'Dr. Magno Fernando Carbonaro Souza')->first();

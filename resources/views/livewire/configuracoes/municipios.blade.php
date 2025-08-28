@@ -3,15 +3,15 @@
     <div class="flex-1">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-            <h2 class="text-2xl font-bold text-gray-900">Municípios</h2>
-            <p class="mt-1 text-sm text-gray-600">Gerencie os municípios do sistema</p>
+            <h2 class="text-2xl font-bold text-gray-900">Comarcas</h2>
+            <p class="mt-1 text-sm text-gray-600">Gerencie as comarcas do sistema</p>
         </div>
         <button wire:click="abrirModalCriar"
             class="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
-            Novo Município
+            Nova Comarca
         </button>
     </div>
 
@@ -155,12 +155,12 @@
                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
                     </path>
                 </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhum município encontrado</h3>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhuma comarca encontrada</h3>
                 <p class="mt-1 text-sm text-gray-500">
                     @if ($termoBusca)
-                        Nenhum município encontrado para "{{ $termoBusca }}".
+                        Nenhuma comarca encontrada para "{{ $termoBusca }}".
                     @else
-                        Comece criando um novo município.
+                        Comece criando uma nova comarca.
                     @endif
                 </p>
                 @if (!$termoBusca)
@@ -171,7 +171,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 4v16m8-8H4"></path>
                             </svg>
-                            Novo Município
+                            Nova Comarca
                         </button>
                     </div>
                 @endif
@@ -248,7 +248,6 @@
         </div>
     @endif
 
-    <!-- Modal de criação/edição -->
     @if ($mostrarModal)
         <div class="fixed inset-0 z-50 overflow-y-auto" x-data="{ show: true }" x-show="show" x-transition>
             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">

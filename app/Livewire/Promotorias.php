@@ -35,6 +35,9 @@ class Promotorias extends Component
     
     #[Rule('nullable|date')]
     public ?string $vacancia_data_inicio = null;
+
+    #[Ruçe('nullable|string')]
+    public ?string $data_pga = null;
     
     
     // Estado do componente
@@ -110,7 +113,7 @@ class Promotorias extends Component
         $this->titularidade_promotor_data_inicio = $promotoria->titularidade_promotor_data_inicio;
         $this->titularidade_promotor_data_final = $promotoria->titularidade_promotor_data_final;
         $this->vacancia_data_inicio = $promotoria->vacancia_data_inicio;
-        
+        $this->data_pga = $promotoria->data_pga;
         
         if ($promotoria->promotor_id) {
             $this->promotor_id = (string) $promotoria->promotor_id;
@@ -144,17 +147,20 @@ class Promotorias extends Component
             $dados['promotor_id'] = null;
             $dados['titularidade_promotor_data_inicio'] = null;
             $dados['titularidade_promotor_data_final'] = null;
+            $dados['data_pga'] = null;
             $dados['vacancia_data_inicio'] = $this->vacancia_data_inicio;
         } elseif ($this->promotor_id && $this->promotor_id !== 'sem_titular') {
             $dados['promotor_id'] = (int) $this->promotor_id;
             $dados['titularidade_promotor_data_inicio'] = $this->titularidade_promotor_data_inicio;
             $dados['titularidade_promotor_data_final'] = $this->titularidade_promotor_data_final;
+            $dados['data_pga'] = $this->data_pga;
             $dados['vacancia_data_inicio'] = null;
         } else {
             $dados['promotor_id'] = null;
             $dados['titularidade_promotor_data_inicio'] = null;
             $dados['titularidade_promotor_data_final'] = null;
             $dados['vacancia_data_inicio'] = null;
+            $dados['data_pga'] = null;
         }
         
         if ($this->modoEdicao && $this->promotoriaEditando) {

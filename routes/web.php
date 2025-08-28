@@ -28,9 +28,9 @@ Route::get('/', function (){
 
 Route::get('/gestao-espelho', Main::class)->name('gestao-espelho');
 
-Route::get('/municipios', Municipios::class)->name('municipios');
+Route::get('/comarca', Municipios::class)->name('comarca');
 
-Route::get('/promotores', Promotores::class)->name('promotores');
+Route::get('/membros', Promotores::class)->name('membros');
 
 Route::get('/grupo-promotores', GrupoPromotores::class)->name('grupo-promotores');
 

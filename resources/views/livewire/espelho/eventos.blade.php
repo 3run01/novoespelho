@@ -527,7 +527,7 @@
                 <div class="mt-3">
                     <div class="flex justify-between items-center pb-4 border-b">
                         <h3 class="text-lg font-medium text-gray-900">
-                            {{ $this->modoEdicao ? 'Editar Evento' : 'Novo Evento' }}
+                            {{ $this->modoEdicao ? 'Editar Movimento' : 'Novo Movimento' }}
                         </h3>
                         <button wire:click="fecharModal" class="text-gray-400 hover:text-gray-600">
                             <i class="fas fa-times text-xl"></i>
@@ -542,7 +542,7 @@
                                 </label>
                                 <input type="text" wire:model.defer="titulo"
                                     class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Digite o título do evento">
+                                    placeholder="Digite o título do movimento">
                                 @error('titulo')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
@@ -648,8 +648,8 @@
                                     <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
                                         wire:key="promotor-linha-{{ $linha['uid'] ?? $i }}">
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Membros
-                                                Designados</label>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Membro
+                                                Designado</label>
                                             <select
                                                 wire:model.defer="promotoresDesignacoes.{{ $i }}.promotor_id"
                                                 class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">

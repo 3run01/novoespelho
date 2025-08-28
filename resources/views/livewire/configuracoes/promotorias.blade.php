@@ -361,108 +361,121 @@
                                 </div>
 
                                 <!-- Grid para Promotor e Grupo -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <!-- Promotor Titular -->
-                                    <div x-data="{
-                                        promotorSelecionado: @entangle('promotor_id').live,
-                                        init() {
-                                            console.log('Promotor Selecionado:', this.promotorSelecionado);
-                                        }
-                                    }">
-                                        <label for="promotor_id" class="block text-sm font-medium text-gray-700 mb-1">
-                                            Promotor Titular
-                                        </label>
-                                        <select wire:model.live="promotor_id" x-model="promotorSelecionado"
-                                            id="promotor_id"
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('promotor_id') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
-                                            <option value="">Selecione uma opção</option>
-                                            <option value="sem_titular">Não tem titularidade</option>
-                                            @foreach ($promotores as $promotor)
-                                                <option value="{{ $promotor->id }}">{{ $promotor->nome }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('promotor_id')
-                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                        @enderror
-
-                                        <!-- Data de Início da Vacância -->
-                                        <div x-show="promotorSelecionado === 'sem_titular'"
-                                            x-transition:enter="transition ease-out duration-300"
-                                            x-transition:enter-start="opacity-0 transform translate-y-2"
-                                            x-transition:enter-end="opacity-100 transform translate-y-0"
-                                            x-transition:leave="transition ease-in duration-200"
-                                            x-transition:leave-start="opacity-100 transform translate-y-0"
-                                            x-transition:leave-end="opacity-0 transform translate-y-2" class="mt-3">
-                                            <label for="vacancia_data_inicio"
+                                <div x-data="{
+                                    promotorSelecionado: @entangle('promotor_id').live,
+                                    init() {
+                                        console.log('Promotor Selecionado:', this.promotorSelecionado);
+                                    }
+                                }">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label for="promotor_id"
                                                 class="block text-sm font-medium text-gray-700 mb-1">
-                                                Data de Início da Vacância <span
-                                                    class="text-gray-400 font-normal">(opcional)</span>
+                                                Membro Titular
                                             </label>
-                                            <input wire:model="vacancia_data_inicio" type="date"
-                                                id="vacancia_data_inicio"
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('vacancia_data_inicio') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
-                                            @error('vacancia_data_inicio')
+                                            <select wire:model.live="promotor_id" x-model="promotorSelecionado"
+                                                id="promotor_id"
+                                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('promotor_id') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                                                <option value="">Selecione uma opção</option>
+                                                <option value="sem_titular">Não tem titularidade</option>
+                                                @foreach ($promotores as $promotor)
+                                                    <option value="{{ $promotor->id }}">{{ $promotor->nome }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('promotor_id')
                                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                             @enderror
                                         </div>
 
-                                        <!-- Data de Início da Titularidade -->
-                                        <div x-show="promotorSelecionado && promotorSelecionado !== 'sem_titular' && promotorSelecionado !== ''"
-                                            x-transition:enter="transition ease-out duration-300"
-                                            x-transition:enter-start="opacity-0 transform translate-y-2"
-                                            x-transition:enter-end="opacity-100 transform translate-y-0"
-                                            x-transition:leave="transition ease-in duration-200"
-                                            x-transition:leave-start="opacity-100 transform translate-y-0"
-                                            x-transition:leave-end="opacity-0 transform translate-y-2" class="mt-3">
-                                            <label for="titularidade_promotor_data_inicio"
+                                        <div>
+                                            <label for="grupo_promotoria_id"
                                                 class="block text-sm font-medium text-gray-700 mb-1">
-                                                Data de Início da Titularidade <span
-                                                    class="text-gray-400 font-normal">(opcional)</span>
+                                                Grupo de Promotoria <span class="text-red-500">*</span>
                                             </label>
-                                            <input wire:model="titularidade_promotor_data_inicio" type="date"
-                                                id="titularidade_promotor_data_inicio"
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('titularidade_promotor_data_inicio') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
-                                            @error('titularidade_promotor_data_inicio')
-                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                            @enderror
-                                        </div>
-
-                                        <!-- Data de Fim da Titularidade -->
-                                        <div x-show="promotorSelecionado && promotorSelecionado !== 'sem_titular' && promotorSelecionado !== ''"
-                                            x-transition:enter="transition ease-out duration-300"
-                                            x-transition:enter-start="opacity-0 transform translate-y-2"
-                                            x-transition:enter-end="opacity-100 transform translate-y-0"
-                                            x-transition:leave="transition ease-in duration-200"
-                                            x-transition:leave-start="opacity-100 transform translate-y-0"
-                                            x-transition:leave-end="opacity-0 transform translate-y-2" class="mt-3">
-                                            <label for="titularidade_promotor_data_fim"
-                                                class="block text-sm font-medium text-gray-700 mb-1">
-                                                Data Fim da Titularidade <span
-                                                    class="text-gray-400 font-normal">(opcional)</span>
-                                            </label>
-                                            <input wire:model="titularidade_promotor_data_final" type="date"
-                                                id="titularidade_promotor_data_fim"
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('titularidade_promotor_data_fim') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
-                                            @error('titularidade_promotor_data_fim')
+                                            <select wire:model="grupo_promotoria_id" id="grupo_promotoria_id"
+                                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('grupo_promotoria_id') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                                                <option value="">Selecione um grupo</option>
+                                                @foreach ($grupos as $grupo)
+                                                    <option value="{{ $grupo->id }}">{{ $grupo->nome }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('grupo_promotoria_id')
                                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                             @enderror
                                         </div>
                                     </div>
 
-                                    <!-- Grupo de Promotoria -->
-                                    <div>
-                                        <label for="grupo_promotoria_id"
+                                    <!-- Campos de Titularidade -->
+                                    <div x-show="promotorSelecionado && promotorSelecionado !== 'sem_titular' && promotorSelecionado !== ''"
+                                        x-transition:enter="transition ease-out duration-300"
+                                        x-transition:enter-start="opacity-0 transform translate-y-2"
+                                        x-transition:enter-end="opacity-100 transform translate-y-0"
+                                        x-transition:leave="transition ease-in duration-200"
+                                        x-transition:leave-start="opacity-100 transform translate-y-0"
+                                        x-transition:leave-end="opacity-0 transform translate-y-2" class="mt-4">
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label for="titularidade_promotor_data_inicio"
+                                                    class="block text-sm font-medium text-gray-700 mb-1">
+                                                    Data de Início da Titularidade <span
+                                                        class="text-gray-400 font-normal">(opcional)</span>
+                                                </label>
+                                                <input wire:model="titularidade_promotor_data_inicio" type="date"
+                                                    id="titularidade_promotor_data_inicio"
+                                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('titularidade_promotor_data_inicio') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                                                @error('titularidade_promotor_data_inicio')
+                                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+
+                                            <div>
+                                                <label for="titularidade_promotor_data_fim"
+                                                    class="block text-sm font-medium text-gray-700 mb-1">
+                                                    Data Fim da Titularidade <span
+                                                        class="text-gray-400 font-normal">(opcional)</span>
+                                                </label>
+                                                <input wire:model="titularidade_promotor_data_final" type="date"
+                                                    id="titularidade_promotor_data_fim"
+                                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('titularidade_promotor_data_fim') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                                                @error('titularidade_promotor_data_fim')
+                                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+
+                                            <div>
+                                                <label for="data_pga"
+                                                    class="block text-sm font-medium text-gray-700 mb-1">
+                                                    N da Portaria <span
+                                                        class="text-gray-400 font-normal">(opcional)</span>
+                                                </label>
+                                                <input wire:model="data_pga" type="text" id="data_pga"
+                                                    placeholder="Número do PGA"
+                                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('data_pga') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                                                @error('data_pga')
+                                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Vacância -->
+                                    <div x-show="promotorSelecionado === 'sem_titular'"
+                                        x-transition:enter="transition ease-out duration-300"
+                                        x-transition:enter-start="opacity-0 transform translate-y-2"
+                                        x-transition:enter-end="opacity-100 transform translate-y-0"
+                                        x-transition:leave="transition ease-in duration-200"
+                                        x-transition:leave-start="opacity-100 transform translate-y-0"
+                                        x-transition:leave-end="opacity-0 transform translate-y-2" class="mt-3">
+                                        <label for="vacancia_data_inicio"
                                             class="block text-sm font-medium text-gray-700 mb-1">
-                                            Grupo de Promotoria <span class="text-red-500">*</span>
+                                            Data de Início da Vacância <span
+                                                class="text-gray-400 font-normal">(opcional)</span>
                                         </label>
-                                        <select wire:model="grupo_promotoria_id" id="grupo_promotoria_id"
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('grupo_promotoria_id') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
-                                            <option value="">Selecione um grupo</option>
-                                            @foreach ($grupos as $grupo)
-                                                <option value="{{ $grupo->id }}">{{ $grupo->nome }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('grupo_promotoria_id')
+                                        <input wire:model="vacancia_data_inicio" type="date"
+                                            id="vacancia_data_inicio"
+                                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('vacancia_data_inicio') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                                        @error('vacancia_data_inicio')
                                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
                                     </div>

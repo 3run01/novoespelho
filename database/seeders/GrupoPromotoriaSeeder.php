@@ -26,7 +26,7 @@ class GrupoPromotoriaSeeder extends Seeder
         // ENTRÂNCIA FINAL - MACAPÁ
         $macapa = $municipios->where('nome', 'Macapá')->where('entrancia', 'final')->first();
         if ($macapa) {
-            $grupos[] = ['nome' => 'Promotorias', 'municipios_id' => $macapa->id];
+            $grupos[] = ['nome' => 'Promotorias de Justiça', 'municipios_id' => $macapa->id];
         }
 
         // ENTRÂNCIA FINAL - SANTANA  

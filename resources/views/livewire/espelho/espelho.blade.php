@@ -82,7 +82,7 @@
                         <div class="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-lg sm:text-xl font-bold text-gray-800 uppercase tracking-wide">
-                                    Município: {{ $nomeMunicipio }}
+                                     {{ $nomeMunicipio }}
                                 </h3>
                                 <a href="{{ route('espelho.pdf.municipio', ['municipioId' => $this->getMunicipioId($nomeMunicipio)]) }}"
                                     class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
@@ -265,7 +265,7 @@
                                 <div class="bg-gray-50 px-4 sm:px-6 py-2 sm:py-3 border-b border-gray-200">
                                     <h4
                                         class="text-sm sm:text-base font-semibold text-gray-700 uppercase tracking-wide">
-                                        Grupo de Promotorias: {{ $nomeGrupo }}
+                                        {{ $nomeGrupo }}
                                     </h4>
                                 </div>
 

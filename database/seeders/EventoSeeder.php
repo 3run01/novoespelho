@@ -29,7 +29,7 @@ class EventoSeeder extends Seeder
 
         $promotoriaCivel = Promotoria::where('nome', '1ª PJ Cível')->first();
         if (!$promotoriaCivel) {
-            $this->command->warn('Promotoria "1ª PJ Cível" não encontrada. Execute o PromotoriaSeeder primeiro.');
+            $this->command->warn('Promotorias de Justiça "1ª PJ Cível" não encontrada. Execute o PromotoriaSeeder primeiro.');
             return;
         }
 
