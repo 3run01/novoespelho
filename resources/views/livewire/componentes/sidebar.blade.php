@@ -151,8 +151,8 @@
                             </span>
                         </a>
 
-                        <a href="{{ route('membros') }}" @click="sidebarOpen = false"
-                            class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg transition-all duration-200 group {{ request()->routeIs('membros') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : 'hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1' }}">
+                        <a href="{{ route('promotores') }}" @click="sidebarOpen = false"
+                            class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg transition-all duration-200 group {{ request()->routeIs('promotores') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : 'hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1' }}">
                             <svg class="w-4 h-4 mr-3 transition-transform group-hover:scale-110" fill="none"
                                 stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <circle cx="12" cy="8" r="4" />
@@ -160,7 +160,7 @@
                             </svg>
                             <span class="transition-opacity group-hover:opacity-80"
                                 :class="{ 'lg:hidden': sidebarCollapsed }">
-                                Membros
+                                Promotores
                             </span>
                         </a>
                     </div>

@@ -414,7 +414,7 @@
                                         x-transition:leave="transition ease-in duration-200"
                                         x-transition:leave-start="opacity-100 transform translate-y-0"
                                         x-transition:leave-end="opacity-0 transform translate-y-2" class="mt-4">
-                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <label for="titularidade_promotor_data_inicio"
                                                     class="block text-sm font-medium text-gray-700 mb-1">
@@ -442,20 +442,20 @@
                                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                                 @enderror
                                             </div>
+                                        </div>
 
-                                            <div>
-                                                <label for="data_pga"
-                                                    class="block text-sm font-medium text-gray-700 mb-1">
-                                                    N da Portaria <span
-                                                        class="text-gray-400 font-normal">(opcional)</span>
-                                                </label>
-                                                <input wire:model="data_pga" type="text" id="data_pga"
-                                                    placeholder="Número do PGA"
-                                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('data_pga') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
-                                                @error('data_pga')
-                                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                                @enderror
-                                            </div>
+                                        <!-- N da Portaria em linha separada -->
+                                        <div class="mt-4">
+                                            <label for="data_pga"
+                                                class="block text-sm font-medium text-gray-700 mb-1">
+                                                N da Portaria <span class="text-gray-400 font-normal">(opcional)</span>
+                                            </label>
+                                            <input wire:model="data_pga" type="text" id="data_pga"
+                                                placeholder="Número do PGA"
+                                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('data_pga') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                                            @error('data_pga')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
 

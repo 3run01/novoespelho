@@ -5,18 +5,17 @@
 }">
     <div :class="sidebarCollapsed ? 'w-[56px]' : 'w-[200px]'" class="flex-shrink-0"></div>
     <div class="flex-1">
-    <!-- Header com título e botão de criar -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-            <h2 class="text-2xl font-bold text-gray-900">Membros</h2>
-            <p class="mt-1 text-sm text-gray-600">Gerencie os membros do sistema</p>
+            <h2 class="text-2xl font-bold text-gray-900">Promotores</h2>
+            <p class="mt-1 text-sm text-gray-600">Gerencie os promotores do sistema</p>
         </div>
         <button wire:click="abrirModalCriar"
             class="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
-            Novo Membro
+            Novo promotor
         </button>
     </div>
 
@@ -33,7 +32,7 @@
                 </div>
                 <input wire:model.live.debounce.300ms="termoBusca" type="text"
                     class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    placeholder="Buscar membros...">
+                    placeholder="Buscar promotores...">
             </div>
 
             <!-- Filtro por tipo -->
@@ -354,7 +353,7 @@
                             <!-- Nome -->
                             <div>
                                 <label for="nome" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Nome do Membro <span class="text-red-500">*</span>
+                                    Nome do promotor <span class="text-red-500">*</span>
                                 </label>
                                 <input wire:model="nome" type="text" id="nome"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('nome') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
@@ -431,7 +430,7 @@
                                 <label class="flex items-center">
                                     <input wire:model="zona_eleitoral" type="checkbox"
                                         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                                    <span class="ml-2 text-sm text-gray-700">Este membro possui zona eleitoral</span>
+                                    <span class="ml-2 text-sm text-gray-700">Este promotor possui zona eleitoral</span>
                                 </label>
                                 @error('zona_eleitoral')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

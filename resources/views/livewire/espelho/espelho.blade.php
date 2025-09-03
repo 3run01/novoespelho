@@ -78,24 +78,6 @@
                 @foreach ($todosMunicipios as $nomeMunicipio)
                     <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm bg-white">
 
-                        <!-- Cabeçalho do Município com Botão PDF -->
-                        <div class="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-lg sm:text-xl font-bold text-gray-800 uppercase tracking-wide">
-                                     {{ $nomeMunicipio }}
-                                </h3>
-                                <a href="{{ route('espelho.pdf.municipio', ['municipioId' => $this->getMunicipioId($nomeMunicipio)]) }}"
-                                    class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                        </path>
-                                    </svg>
-                                    PDF Município
-                                </a>
-                            </div>
-                        </div>
-
                         <!-- Plantões de Urgência do Município (se houver) -->
                         @if ($this->plantoesPorMunicipio->has($nomeMunicipio) && $this->plantoesPorMunicipio[$nomeMunicipio]->count() > 0)
                             <div class="bg-orange-50 border-b border-orange-200 px-4 sm:px-6 py-3 sm:py-4">
@@ -182,8 +164,6 @@
                             </div>
                         @endif
 
-
-
                         <!-- Promotorias do Município (se houver) -->
                         @if (isset($this->promotoriasPorMunicipio[$nomeMunicipio]) &&
                                 $this->promotoriasPorMunicipio[$nomeMunicipio]->count() > 0)
@@ -263,10 +243,26 @@
                             @foreach ($promotoriasPorGrupo as $nomeGrupo => $promotoriasDoGrupo)
                                 <!-- Cabeçalho do Grupo de Promotorias -->
                                 <div class="bg-gray-50 px-4 sm:px-6 py-2 sm:py-3 border-b border-gray-200">
-                                    <h4
-                                        class="text-sm sm:text-base font-semibold text-gray-700 uppercase tracking-wide">
-                                        {{ $nomeGrupo }}
-                                    </h4>
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4
+                                                class="text-sm sm:text-base font-semibold text-gray-700 uppercase tracking-wide">
+                                                {{ $nomeGrupo }}
+                                            </h4>
+                                            <p class="text-base text-gray-700 mt-1 font-semibold">{{ $nomeMunicipio }}
+                                            </p>
+                                        </div>
+                                        <a href="{{ route('espelho.pdf.municipio', ['municipioId' => $this->getMunicipioId($nomeMunicipio)]) }}"
+                                            class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                </path>
+                                            </svg>
+                                            PDF Município
+                                        </a>
+                                    </div>
                                 </div>
 
                                 <div class="overflow-x-auto">
@@ -382,7 +378,7 @@
                                                             <td class="px-4 sm:px-6 py-4">
                                                                 <h5
                                                                     class="text-sm sm:text-base font-bold text-blue-700 mb-1">
-                                                                    {{ $evento->titulo ?: ucfirst($evento->tipo ?: 'Evento') }}
+                                                                    {{ $evento->titulo ?: ucfirst($evento->tipo ?: '') }}
                                                                 </h5>
                                                                 @php
                                                                     $promotores = $evento->promotores ?? collect();
@@ -426,7 +422,7 @@
                                                                 @if ($evento->periodo_inicio || $evento->periodo_fim)
                                                                     <div
                                                                         class="text-[11px] sm:text-xs text-gray-600 mt-1">
-                                                                    
+
                                                                         {{ $evento->periodo_inicio ? \Carbon\Carbon::parse($evento->periodo_inicio)->format('d/m/Y') : '' }}
                                                                         @if ($evento->periodo_inicio && $evento->periodo_fim)
                                                                             —

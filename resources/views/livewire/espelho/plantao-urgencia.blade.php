@@ -38,7 +38,8 @@
         <div>
             <select wire:model.live="filtroMunicipio"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                <option value="">Todos os municípios</option>
+                <option value="">Todos as comarcas
+                </option>
                 @foreach ($this->municipios as $municipio)
                     <option value="{{ $municipio->id }}">{{ $municipio->nome }}</option>
                 @endforeach
@@ -141,7 +142,7 @@
                                     <!-- Informações básicas -->
                                     <div class="space-y-2">
                                         <div class="text-sm text-gray-600">
-                                            <span class="font-medium text-gray-900">Município:</span>
+                                            <span class="font-medium text-gray-900">Comarca:</span>
                                             {{ $plantao->municipio->nome }}
                                         </div>
                                         <div class="text-sm text-gray-600">
@@ -160,7 +161,7 @@
 
                                     <!-- Promotores designados -->
                                     <div>
-                                        <h4 class="text-sm font-medium text-gray-900 mb-2">Promotores Designados</h4>
+                                        <h4 class="text-sm font-medium text-gray-900 mb-2">Membros Designados</h4>
                                         @if ($plantao->promotores->count() > 0)
                                             <div class="space-y-2">
                                                 @foreach ($plantao->promotores as $promotor)
@@ -189,7 +190,7 @@
                                                 @endforeach
                                             </div>
                                         @else
-                                            <p class="text-sm text-gray-500 italic">Nenhum promotor designado</p>
+                                            <p class="text-sm text-gray-500 italic">Nenhum membro designado</p>
                                         @endif
                                     </div>
                                 </div>
@@ -356,11 +357,11 @@
                                             <div>
                                                 <label for="municipio_id"
                                                     class="block text-sm font-medium text-gray-700 mb-1">
-                                                    Município <span class="text-red-500">*</span>
+                                                    Comarca <span class="text-red-500">*</span>
                                                 </label>
                                                 <select wire:model="municipio_id" id="municipio_id"
                                                     class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('municipio_id') border-red-300 @enderror">
-                                                    <option value="">Selecione um município</option>
+                                                    <option value="">Selecione uma comarca</option>
                                                     @foreach ($this->municipios as $municipio)
                                                         <option value="{{ $municipio->id }}">{{ $municipio->nome }}
                                                         </option>
@@ -447,7 +448,6 @@
                                                     </div>
 
                                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                                                        <!-- Promotor -->
                                                         <div class="lg:col-span-2">
                                                             <label
                                                                 class="block text-xs font-medium text-gray-700 mb-1">

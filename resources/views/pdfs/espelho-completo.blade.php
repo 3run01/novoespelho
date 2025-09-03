@@ -221,6 +221,12 @@
             font-size: 10px;
             color: #9ca3af;
         }
+
+        .municipio-subtitulo {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
     </style>
 </head>
 
@@ -244,200 +250,195 @@
     </div>
 
     @forelse ($promotoriasPorMunicipio as $nomeMunicipio => $promotoriasPorGrupo)
-        <div class="municipio-section">
-            <div class="municipio-header">
-                <h2>Município: {{ $nomeMunicipio }}</h2>
-            </div>
+        @foreach ($promotoriasPorGrupo as $nomeGrupo => $promotoriasDoGrupo)
+            <div class="grupo-section">
+                <div class="grupo-header">
+                    <h3>{{ $nomeGrupo }}</h3>
+                    <p class="municipio-subtitulo">Município: {{ $nomeMunicipio }}</p>
+                </div>
 
-            @foreach ($promotoriasPorGrupo as $nomeGrupo => $promotoriasDoGrupo)
-                <div class="grupo-section">
-                    <div class="grupo-header">
-                        <h3>Grupo de Promotorias: {{ $nomeGrupo }}</h3>
-                    </div>
+                <table class="promotoria-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 35%;">Promotorias</th>
+                            <th style="width: 30%;">Promotores</th>
+                            <th style="width: 35%;">Período de Designação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($promotoriasDoGrupo as $promotoria)
+                            @php
+                                $eventosCount = $promotoria->eventos->count();
+                            @endphp
 
-                    <table class="promotoria-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 35%;">Promotorias</th>
-                                <th style="width: 30%;">Promotores</th>
-                                <th style="width: 35%;">Período de Designação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($promotoriasDoGrupo as $promotoria)
-                                @php
-                                    $eventosCount = $promotoria->eventos->count();
-                                @endphp
-
-                                @if ($eventosCount > 0)
-                                    @foreach ($promotoria->eventos as $indexEvento => $evento)
-                                        <tr>
-                                            @if ($indexEvento === 0)
-                                                <td rowspan="{{ $eventosCount }}">
-                                                    <div class="promotoria-nome">{{ $promotoria->nome }}</div>
-                                                    @if ($promotoria->competencia)
-                                                        <div class="promotoria-competencia">
-                                                            {{ $promotoria->competencia }}</div>
-                                                    @endif
-                                                </td>
-                                            @endif
-
-                                            @if ($indexEvento === 0)
-                                                <td rowspan="{{ $eventosCount }}">
-                                                    @if ($promotoria->promotorTitular)
-                                                        <div class="promotor-nome">
-                                                            {{ $promotoria->promotorTitular->nome }}</div>
-                                                        <div class="promotor-cargo">Titular</div>
-                                                        @php
-                                                            $cargosLista = [];
-                                                            if ($promotoria->promotorTitular->cargos) {
-                                                                if (is_array($promotoria->promotorTitular->cargos)) {
-                                                                    $cargosLista = $promotoria->promotorTitular->cargos;
-                                                                } elseif (
-                                                                    is_string($promotoria->promotorTitular->cargos)
-                                                                ) {
-                                                                    $cargosLista =
-                                                                        json_decode(
-                                                                            $promotoria->promotorTitular->cargos,
-                                                                            true,
-                                                                        ) ?? [];
-                                                                }
-                                                            }
-                                                            $cargosLista = array_filter($cargosLista, function (
-                                                                $cargo,
-                                                            ) {
-                                                                return !empty(trim($cargo));
-                                                            });
-                                                        @endphp
-                                                        @if (!empty($cargosLista))
-                                                            <div style="margin-top: 3px;">
-                                                                @foreach ($cargosLista as $cargo)
-                                                                    <div class="promotor-cargos">{{ $cargo }}
-                                                                    </div>
-                                                                @endforeach
-                                                            </div>
-                                                        @endif
-                                                    @else
-                                                        <div class="vacante">
-                                                            @if ($promotoria->vacancia_data_inicio)
-                                                                Vacante a partir de <span
-                                                                    class="data-info">{{ \Carbon\Carbon::parse($promotoria->vacancia_data_inicio)->format('d/m/Y') }}</span>
-                                                            @else
-                                                                Promotoria Vacante
-                                                            @endif
-                                                        </div>
-                                                    @endif
-                                                </td>
-                                            @endif
-
-                                            <td>
-                                                @php
-                                                    $eventoTitulo =
-                                                        $evento->titulo ?: ucfirst($evento->tipo ?: 'Evento');
-                                                    $isEventoGenerico = $eventoTitulo === 'Evento';
-                                                @endphp
-
-                                                @if (!$isEventoGenerico)
-                                                    <div class="evento-titulo">{{ $eventoTitulo }}</div>
-                                                @endif
-
-                                                @if ($evento->periodo_inicio || $evento->periodo_fim)
-                                                    <div class="evento-info data-info">
-                                                        {{ $evento->periodo_inicio ? \Carbon\Carbon::parse($evento->periodo_inicio)->format('d/m/Y') : '' }}
-                                                        @if ($evento->periodo_inicio && $evento->periodo_fim)
-                                                            —
-                                                        @endif
-                                                        {{ $evento->periodo_fim ? \Carbon\Carbon::parse($evento->periodo_fim)->format('d/m/Y') : '' }}
-                                                    </div>
-                                                @endif
-
-                                                @if ($evento->designacoes->count() > 0)
-                                                    @foreach ($evento->designacoes as $designacao)
-                                                        <div class="evento-info">
-                                                            {{ $designacao->promotor->nome ?? '—' }}
-                                                            @if ($designacao->tipo && $designacao->tipo !== 'titular')
-                                                                ({{ $designacao->tipo === 'substituto' ? 'Respondendo' : ucfirst($designacao->tipo) }})
-                                                            @endif
-                                                            @if ($designacao->data_inicio_designacao || $designacao->data_fim_designacao)
-                                                                <span class="data-info">(
-                                                                    @if ($designacao->data_inicio_designacao)
-                                                                        {{ optional($designacao->data_inicio_designacao)->format('d/m/Y') }}
-                                                                    @endif
-                                                                    @if ($designacao->data_inicio_designacao && $designacao->data_fim_designacao)
-                                                                        —
-                                                                    @endif
-                                                                    @if ($designacao->data_fim_designacao)
-                                                                        {{ optional($designacao->data_fim_designacao)->format('d/m/Y') }}
-                                                                    @endif
-                                                                    )
-                                                                </span>
-                                                            @endif
-                                                        </div>
-                                                    @endforeach
+                            @if ($eventosCount > 0)
+                                @foreach ($promotoria->eventos as $indexEvento => $evento)
+                                    <tr>
+                                        @if ($indexEvento === 0)
+                                            <td rowspan="{{ $eventosCount }}">
+                                                <div class="promotoria-nome">{{ $promotoria->nome }}</div>
+                                                @if ($promotoria->competencia)
+                                                    <div class="promotoria-competencia">
+                                                        {{ $promotoria->competencia }}</div>
                                                 @endif
                                             </td>
-                                        </tr>
-                                    @endforeach
-                                @else
-                                    <tr>
-                                        <td>
-                                            <div class="promotoria-nome">{{ $promotoria->nome }}</div>
-                                            @if ($promotoria->competencia)
-                                                <div class="promotoria-competencia">{{ $promotoria->competencia }}
-                                                </div>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if ($promotoria->promotorTitular)
-                                                <div class="promotor-nome">{{ $promotoria->promotorTitular->nome }}
-                                                </div>
-                                                <div class="promotor-cargo">Titular</div>
-                                                @php
-                                                    $cargosLista = [];
-                                                    if ($promotoria->promotorTitular->cargos) {
-                                                        if (is_array($promotoria->promotorTitular->cargos)) {
-                                                            $cargosLista = $promotoria->promotorTitular->cargos;
-                                                        } elseif (is_string($promotoria->promotorTitular->cargos)) {
-                                                            $cargosLista =
-                                                                json_decode(
-                                                                    $promotoria->promotorTitular->cargos,
-                                                                    true,
-                                                                ) ?? [];
+                                        @endif
+
+                                        @if ($indexEvento === 0)
+                                            <td rowspan="{{ $eventosCount }}">
+                                                @if ($promotoria->promotorTitular)
+                                                    <div class="promotor-nome">
+                                                        {{ $promotoria->promotorTitular->nome }}</div>
+                                                    <div class="promotor-cargo">Titular</div>
+                                                    @php
+                                                        $cargosLista = [];
+                                                        if ($promotoria->promotorTitular->cargos) {
+                                                            if (is_array($promotoria->promotorTitular->cargos)) {
+                                                                $cargosLista = $promotoria->promotorTitular->cargos;
+                                                            } elseif (is_string($promotoria->promotorTitular->cargos)) {
+                                                                $cargosLista =
+                                                                    json_decode(
+                                                                        $promotoria->promotorTitular->cargos,
+                                                                        true,
+                                                                    ) ?? [];
+                                                            }
                                                         }
-                                                    }
-                                                    $cargosLista = array_filter($cargosLista, function ($cargo) {
-                                                        return !empty(trim($cargo));
-                                                    });
-                                                @endphp
-                                                @if (!empty($cargosLista))
-                                                    <div style="margin-top: 3px;">
-                                                        @foreach ($cargosLista as $cargo)
-                                                            <div class="promotor-cargos">{{ $cargo }}</div>
-                                                        @endforeach
+                                                        $cargosLista = array_filter($cargosLista, function ($cargo) {
+                                                            return !empty(trim($cargo));
+                                                        });
+                                                    @endphp
+                                                    @if (!empty($cargosLista))
+                                                        <div style="margin-top: 3px;">
+                                                            @foreach ($cargosLista as $cargo)
+                                                                <div class="promotor-cargos">{{ $cargo }}
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                @else
+                                                    <div class="vacante">
+                                                        @if ($promotoria->vacancia_data_inicio)
+                                                            Vacante a partir de <span
+                                                                class="data-info">{{ \Carbon\Carbon::parse($promotoria->vacancia_data_inicio)->format('d/m/Y') }}</span>
+                                                        @else
+                                                            Promotoria Vacante
+                                                        @endif
                                                     </div>
                                                 @endif
-                                            @else
-                                                <div class="vacante">
-                                                    @if ($promotoria->vacancia_data_inicio)
-                                                        Vacante a partir de <span
-                                                            class="data-info">{{ \Carbon\Carbon::parse($promotoria->vacancia_data_inicio)->format('d/m/Y') }}</span>
-                                                    @else
-                                                        Promotoria Vacante
-                                                    @endif
+                                            </td>
+                                        @endif
+
+                                        <td>
+                                            @php
+                                                $eventoTitulo = $evento->titulo ?: ucfirst($evento->tipo ?: 'Evento');
+                                                $isEventoGenerico = $eventoTitulo === 'Evento';
+                                            @endphp
+
+                                            @if (!$isEventoGenerico)
+                                                <div class="evento-titulo">{{ $eventoTitulo }}</div>
+                                            @endif
+
+                                            @if ($evento->data)
+                                                <div class="evento-info data-info">
+                                                    Data:
+                                                    {{ \Carbon\Carbon::parse($evento->data)->format('d/m/Y') }}
                                                 </div>
                                             @endif
-                                        </td>
-                                        <td class="sem-eventos">
-                                            Nenhum período cadastrado
+
+                                            @if ($evento->periodo_inicio || $evento->periodo_fim)
+                                                <div class="evento-info data-info">
+                                                    {{ $evento->periodo_inicio ? \Carbon\Carbon::parse($evento->periodo_inicio)->format('d/m/Y') : '' }}
+                                                    @if ($evento->periodo_inicio && $evento->periodo_fim)
+                                                        —
+                                                    @endif
+                                                    {{ $evento->periodo_fim ? \Carbon\Carbon::parse($evento->periodo_fim)->format('d/m/Y') : '' }}
+                                                </div>
+                                            @endif
+
+                                            @if ($evento->designacoes->count() > 0)
+                                                @foreach ($evento->designacoes as $designacao)
+                                                    <div class="evento-info">
+                                                        {{ $designacao->promotor->nome ?? '—' }}
+                                                        @if ($designacao->tipo && $designacao->tipo !== 'titular')
+                                                            ({{ $designacao->tipo === 'substituto' ? 'Respondendo' : ucfirst($designacao->tipo) }})
+                                                        @endif
+                                                        @if ($designacao->data_inicio_designacao || $designacao->data_fim_designacao)
+                                                            <span class="data-info">(
+                                                                @if ($designacao->data_inicio_designacao)
+                                                                    {{ optional($designacao->data_inicio_designacao)->format('d/m/Y') }}
+                                                                @endif
+                                                                @if ($designacao->data_inicio_designacao && $designacao->data_fim_designacao)
+                                                                    —
+                                                                @endif
+                                                                @if ($designacao->data_fim_designacao)
+                                                                    {{ optional($designacao->data_fim_designacao)->format('d/m/Y') }}
+                                                                @endif
+                                                                )
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            @endif
                                         </td>
                                     </tr>
-                                @endif
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endforeach
-        </div>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td>
+                                        <div class="promotoria-nome">{{ $promotoria->nome }}</div>
+                                        @if ($promotoria->competencia)
+                                            <div class="promotoria-competencia">{{ $promotoria->competencia }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($promotoria->promotorTitular)
+                                            <div class="promotor-nome">{{ $promotoria->promotorTitular->nome }}
+                                            </div>
+                                            <div class="promotor-cargo">Titular</div>
+                                            @php
+                                                $cargosLista = [];
+                                                if ($promotoria->promotorTitular->cargos) {
+                                                    if (is_array($promotoria->promotorTitular->cargos)) {
+                                                        $cargosLista = $promotoria->promotorTitular->cargos;
+                                                    } elseif (is_string($promotoria->promotorTitular->cargos)) {
+                                                        $cargosLista =
+                                                            json_decode($promotoria->promotorTitular->cargos, true) ??
+                                                            [];
+                                                    }
+                                                }
+                                                $cargosLista = array_filter($cargosLista, function ($cargo) {
+                                                    return !empty(trim($cargo));
+                                                });
+                                            @endphp
+                                            @if (!empty($cargosLista))
+                                                <div style="margin-top: 3px;">
+                                                    @foreach ($cargosLista as $cargo)
+                                                        <div class="promotor-cargos">{{ $cargo }}</div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        @else
+                                            <div class="vacante">
+                                                @if ($promotoria->vacancia_data_inicio)
+                                                    Vacante a partir de <span
+                                                        class="data-info">{{ \Carbon\Carbon::parse($promotoria->vacancia_data_inicio)->format('d/m/Y') }}</span>
+                                                @else
+                                                    Promotoria Vacante
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="sem-eventos">
+                                        Nenhum período cadastrado
+                                    </td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endforeach
     @empty
         <div class="sem-eventos">
             <h3>Nenhum grupo de promotorias encontrado</h3>

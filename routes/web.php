@@ -30,7 +30,7 @@ Route::get('/gestao-espelho', Main::class)->name('gestao-espelho');
 
 Route::get('/comarca', Municipios::class)->name('comarca');
 
-Route::get('/membros', Promotores::class)->name('membros');
+Route::get('/promotores', Promotores::class)->name('promotores');
 
 Route::get('/grupo-promotores', GrupoPromotores::class)->name('grupo-promotores');
 

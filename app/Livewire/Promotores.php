@@ -15,7 +15,6 @@ class Promotores extends Component
     #[Rule('required|min:2|max:100')]
     public string $nome = '';
     
-    // Campo para adicionar um cargo por vez e lista agregada de cargos
     #[Rule('nullable|string|max:100')]
     public string $novoCargo = '';
     public array $cargos = [];

@@ -235,7 +235,7 @@
                                                         <span
                                                             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
                                                             {{ $eventosCount }}
-                                                            {{ $eventosCount == 1 ? 'evento' : 'eventos' }}
+                                                            {{ $eventosCount == 1 ? '' : '' }}
                                                         </span>
 
                                                         <!-- Botão Adicionar -->
@@ -315,7 +315,7 @@
                                                         </div>
                                                     @else
                                                         <div class="text-center text-gray-500 italic py-8">
-                                                            <p>Nenhum promotor titular designado</p>
+                                                            <p>Nenhum promotores titular designado</p>
                                                             @if ($promotoria->vacancia_data_inicio)
                                                                 <p class="mt-1 text-red-600">Vacância desde
                                                                     {{ \Carbon\Carbon::parse($promotoria->vacancia_data_inicio)->format('d/m/Y') }}
@@ -333,7 +333,7 @@
                                                     <div class="border-l-4 border-blue-500 pl-4">
                                                         <div class="flex items-center gap-3 mb-2">
                                                             <h4 class="text-lg font-semibold text-gray-900">
-                                                                {{ $evento->titulo ?: ucfirst($evento->tipo ?: 'Evento') }}
+                                                                {{ $evento->titulo ?: ucfirst($evento->tipo ?: '') }}
                                                             </h4>
                                                         </div>
 
@@ -357,7 +357,7 @@
                                                     @if ($evento->designacoes->count() > 0)
                                                         <div>
                                                             <h5 class="text-sm font-medium text-gray-900 mb-2">
-                                                                Membros Designados:
+                                                                Promotores Designados:
                                                             </h5>
                                                             <div class="space-y-2">
                                                                 @foreach ($evento->designacoes as $designacao)
@@ -403,7 +403,7 @@
                                                     @else
                                                         <p class="text-sm text-gray-500 italic">Nenhum promotor
                                                             designado
-                                                            para este evento</p>
+                                                            para este movimento</p>
                                                     @endif
 
                                                     <!-- Ações -->
@@ -496,7 +496,7 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-6 text-center text-gray-500">
-                                            Nenhum evento cadastrado
+                                            Nenhum movimento cadastrado
                                         </td>
                                     </tr>
                                 @endif
@@ -636,10 +636,10 @@
                         <!-- Designações de Promotores -->
                         <div class="mt-8">
                             <div class="flex items-center justify-between mb-2">
-                                <h4 class="font-semibold text-gray-900">Membros designados</h4>
+                                <h4 class="font-semibold text-gray-900">Promotor designados</h4>
                                 <button type="button" wire:click="adicionarLinhaPromotor"
                                     class="text-blue-600 hover:text-blue-800 text-sm">
-                                    + Adicionar membro
+                                    + Adicionar promotor
                                 </button>
                             </div>
 
@@ -648,7 +648,7 @@
                                     <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
                                         wire:key="promotor-linha-{{ $linha['uid'] ?? $i }}">
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Membro
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Promotores
                                                 Designado</label>
                                             <select
                                                 wire:model.defer="promotoresDesignacoes.{{ $i }}.promotor_id"
