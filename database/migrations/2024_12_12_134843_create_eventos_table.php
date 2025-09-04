@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -12,11 +13,11 @@ return new class extends Migration {
     {
         Schema::create('eventos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('promotoria_id')->constrained();
+            $table->foreignId('promotoria_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('periodo_id')->constrained('periodos');
             $table->string('titulo')->nullable();
             $table->string('tipo')->nullable();
-            $table->foreignId('promotor_id')->nullable()->constrained('promotores');            
+            $table->foreignId('promotor_id')->nullable()->constrained('promotores');
             $table->boolean('evento_do_substituto')->nullable();
             $table->date('periodo_inicio')->nullable();
             $table->date('periodo_fim')->nullable();
@@ -33,8 +34,7 @@ return new class extends Migration {
         Schema::table('eventos', function (Blueprint $table) {
             $table->dropForeign(['promotoria_id']);
         });
-        
+
         Schema::dropIfExists('eventos');
     }
 };
-

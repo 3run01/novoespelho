@@ -228,14 +228,13 @@
             margin-top: 5px;
         }
 
-        /* Estilos para seção de promotores substitutos */
         .substitutos-section {
             margin-top: 40px;
             page-break-before: always;
         }
 
         .substitutos-header {
-            background-color: #1f2937;
+            background-color: #aaaaaa;
             color: white;
             padding: 15px 20px;
             border-radius: 5px;
@@ -336,7 +335,6 @@
             font-style: italic;
             padding: 20px;
         }
-
     </style>
 </head>
 
@@ -361,7 +359,7 @@
 
     @forelse ($promotoriasPorMunicipio as $nomeMunicipio => $promotoriasPorGrupo)
         <!-- Plantões de Urgência do Município (se houver) -->
-        @if(isset($plantoesPorMunicipio[$nomeMunicipio]) && $plantoesPorMunicipio[$nomeMunicipio]->count() > 0)
+        @if (isset($plantoesPorMunicipio[$nomeMunicipio]) && $plantoesPorMunicipio[$nomeMunicipio]->count() > 0)
             <div class="municipio-section">
                 <div class="municipio-header">
                     <h2>Plantões de Urgência - {{ $nomeMunicipio }}</h2>
@@ -376,21 +374,23 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($plantoesPorMunicipio[$nomeMunicipio] as $plantao)
+                        @foreach ($plantoesPorMunicipio[$nomeMunicipio] as $plantao)
                             <tr>
                                 <td>
                                     <div class="promotoria-nome">{{ $plantao->nome ?? 'Plantão de Urgência' }}</div>
                                 </td>
                                 <td>
-                                    @if($plantao->promotores->count() > 0)
-                                        @foreach($plantao->promotores as $promotor)
+                                    @if ($plantao->promotores->count() > 0)
+                                        @foreach ($plantao->promotores as $promotor)
                                             <div class="evento-info" style="margin-bottom: 5px;">
                                                 <div class="promotor-nome">{{ $promotor->nome }}</div>
                                                 <div class="evento-info">
                                                     ({{ ucfirst($promotor->pivot->tipo_designacao) }})
-                                                    @if($promotor->pivot->data_inicio_designacao && $promotor->pivot->data_fim_designacao)
-                                                        - {{ \Carbon\Carbon::parse($promotor->pivot->data_inicio_designacao)->format('d/m/Y') }}
-                                                        até {{ \Carbon\Carbon::parse($promotor->pivot->data_fim_designacao)->format('d/m/Y') }}
+                                                    @if ($promotor->pivot->data_inicio_designacao && $promotor->pivot->data_fim_designacao)
+                                                        -
+                                                        {{ \Carbon\Carbon::parse($promotor->pivot->data_inicio_designacao)->format('d/m/Y') }}
+                                                        até
+                                                        {{ \Carbon\Carbon::parse($promotor->pivot->data_fim_designacao)->format('d/m/Y') }}
                                                     @endif
                                                 </div>
                                             </div>
@@ -400,14 +400,14 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if($plantao->periodo)
+                                    @if ($plantao->periodo)
                                         <div class="evento-info data-info">
                                             <strong>Período:</strong>
                                             {{ $plantao->periodo->periodo_inicio->format('d/m/Y') }}
                                             - {{ $plantao->periodo->periodo_fim->format('d/m/Y') }}
                                         </div>
                                     @endif
-                                    @if($plantao->observacoes)
+                                    @if ($plantao->observacoes)
                                         <div class="evento-info">
                                             <strong>Obs:</strong> {{ $plantao->observacoes }}
                                         </div>
@@ -617,12 +617,13 @@
     @endforelse
 
     <!-- Seção de Promotores Substitutos -->
-    @if(isset($promotoresSubstitutos) && $promotoresSubstitutos->isNotEmpty())
+    @if (isset($promotoresSubstitutos) && $promotoresSubstitutos->isNotEmpty())
         <div class="substitutos-section">
             <div class="substitutos-header">
                 <h2>Promotores Substitutos</h2>
                 <div class="substitutos-subtitulo">
-                    Designações para o período: {{ $periodo->periodo_inicio->format('d/m/Y') }} a {{ $periodo->periodo_fim->format('d/m/Y') }}
+                    Designações para o período: {{ $periodo->periodo_inicio->format('d/m/Y') }} a
+                    {{ $periodo->periodo_fim->format('d/m/Y') }}
                 </div>
             </div>
 
@@ -634,66 +635,70 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($promotoresSubstitutos as $promotor)
+                    @foreach ($promotoresSubstitutos as $promotor)
                         <tr>
                             <td>
                                 <div class="substituto-nome">{{ $promotor['promotor_nome'] }}</div>
-                                @if($promotor['promotor_cargos'] !== 'N/A')
+                                @if ($promotor['promotor_cargos'] !== 'N/A')
                                     <div class="substituto-cargos">{{ $promotor['promotor_cargos'] }}</div>
                                 @endif
                                 <div class="substituto-tipo">{{ ucfirst($promotor['promotor_tipo']) }}</div>
                             </td>
                             <td>
-                                @if($promotor['total_eventos'] > 0)
-                                    @foreach($promotor['eventos'] as $evento)
-                                        <div class="evento-substituto-info {{ $evento['is_manual'] ? 'evento-manual' : 'evento-automatico' }}">
-                                            @if($evento['evento_titulo'])
-                                                <div class="evento-substituto-titulo">{{ $evento['evento_titulo'] }}</div>
+                                @if ($promotor['total_eventos'] > 0)
+                                    @foreach ($promotor['eventos'] as $evento)
+                                        <div
+                                            class="evento-substituto-info {{ $evento['is_manual'] ? 'evento-manual' : 'evento-automatico' }}">
+                                            @if ($evento['evento_titulo'])
+                                                <div class="evento-substituto-titulo">{{ $evento['evento_titulo'] }}
+                                                </div>
                                             @endif
-                                            
+
                                             <div class="evento-substituto-promotoria">
                                                 <strong>Promotoria:</strong> {{ $evento['promotoria_nome'] }}
                                             </div>
-                                            
-                                            @if($evento['tipo_designacao'] && $evento['tipo_designacao'] !== 'substituto')
+
+                                            @if ($evento['tipo_designacao'] && $evento['tipo_designacao'] !== 'substituto')
                                                 <div class="evento-substituto-info">
                                                     <strong>Tipo:</strong> {{ ucfirst($evento['tipo_designacao']) }}
                                                 </div>
                                             @endif
-                                            
-                                            @if($evento['data_inicio'] || $evento['data_fim'])
+
+                                            @if ($evento['data_inicio'] || $evento['data_fim'])
                                                 <div class="evento-substituto-datas">
                                                     <strong>Período:</strong>
-                                                    @if($evento['data_inicio'])
+                                                    @if ($evento['data_inicio'])
                                                         {{ $evento['data_inicio'] }}
                                                     @endif
-                                                    @if($evento['data_inicio'] && $evento['data_fim'])
+                                                    @if ($evento['data_inicio'] && $evento['data_fim'])
                                                         —
                                                     @endif
-                                                    @if($evento['data_fim'])
+                                                    @if ($evento['data_fim'])
                                                         {{ $evento['data_fim'] }}
                                                     @endif
                                                 </div>
                                             @endif
-                                            
-                                            @if($evento['observacoes'])
+
+                                            @if ($evento['observacoes'])
                                                 <div class="evento-substituto-info">
                                                     <strong>Observações:</strong> {{ $evento['observacoes'] }}
                                                 </div>
                                             @endif
-                                            
-                                            @if($evento['is_urgente'])
-                                                <div class="evento-substituto-info" style="color: #dc2626; font-weight: bold;">
+
+                                            @if ($evento['is_urgente'])
+                                                <div class="evento-substituto-info"
+                                                    style="color: #dc2626; font-weight: bold;">
                                                     ⚠️ URGENTE
                                                 </div>
                                             @endif
-                                            
-                                            <div class="evento-substituto-info" style="font-size: 9px; color: #6b7280; margin-top: 3px;">
+
+                                            <div class="evento-substituto-info"
+                                                style="font-size: 9px; color: #6b7280; margin-top: 3px;">
                                                 {{ $evento['is_manual'] ? 'Designação Manual' : 'Designação Automática' }}
                                             </div>
                                         </div>
-                                        
-                                        @if(!$loop->last)
+
+                                        @if (!$loop->last)
                                             <hr style="margin: 8px 0; border: none; border-top: 1px solid #e5e7eb;">
                                         @endif
                                     @endforeach

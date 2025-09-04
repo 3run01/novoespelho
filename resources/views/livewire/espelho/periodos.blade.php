@@ -1,4 +1,4 @@
-<div class="w-full max-w-none px-4 sm:px-6 lg:px-8" x-data="periodosData()">
+<div class="w-full max-w-none px-4 sm:px-6 lg:px-8" x-data="{}">
     <div class="mb-6 sm:mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="min-w-0 flex-1">
@@ -93,7 +93,7 @@
                                     </h3>
                                     <span
                                         class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                                        {{ $periodo->periodo_inicio->diffInDays($periodo->periodo_fim)}} dias
+                                        {{ $periodo->periodo_inicio->diffInDays($periodo->periodo_fim) }} dias
                                     </span>
                                 </div>
 
@@ -112,7 +112,7 @@
                                             <div class="text-sm text-gray-600">
                                                 <span class="font-medium text-gray-900">Duração:</span>
                                                 <div class="mt-1">
-                                                    {{ $periodo->periodo_inicio->diffInDays($periodo->periodo_fim)}}
+                                                    {{ $periodo->periodo_inicio->diffInDays($periodo->periodo_fim) }}
                                                     dias</div>
                                             </div>
                                         </div>
@@ -160,8 +160,9 @@
                                         </svg>
                                         Editar
                                     </button>
-                                    <button wire:click="deletar({{ $periodo->id }})"
-                                        wire:confirm="Tem certeza que deseja deletar este período?"
+                                    <button
+                                        onclick="if(!confirm('Tem certeza que deseja deletar este período?')) { event.preventDefault(); return false; }"
+                                        wire:click="deletar({{ $periodo->id }})"
                                         class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
                                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -176,10 +177,11 @@
                                         Período publicado
                                     </div>
                                 @endif
-                                
+
                                 @if ($periodo->status === 'em_processo_publicacao')
-                                    <button wire:click="publicar({{ $periodo->id }})"
-                                        wire:confirm="Tem certeza que deseja publicar este período? O período atual publicado será arquivado."
+                                    <button
+                                        onclick="if(!confirm('Tem certeza que deseja publicar este período? O período atual publicado será arquivado.')) { event.preventDefault(); return false; }"
+                                        wire:click="publicar({{ $periodo->id }})"
                                         class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
                                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -220,7 +222,7 @@
     </div>
 
 
-    @if ($mostrarModal)
+    @if ($this->mostrarModal)
         <div class="fixed inset-0 overflow-y-auto" style="z-index: 9998 !important;" x-data="{ show: true }"
             x-show="show" x-transition>
             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -298,17 +300,5 @@
         </div>
     @endif
 
-    <script>
-        function periodosData() {
-            return {
-                init() {
-                    this.$watch('show', value => {
-                        if (!value) {
-                            this.$wire.fecharModal();
-                        }
-                    });
-                }
-            }
-        }
-    </script>
+
 </div>

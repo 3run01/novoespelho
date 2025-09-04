@@ -19,18 +19,9 @@
             </svg>
             Visualizar PDF
         </button>
-        
-        <!-- Botão PDF por Município -->
-        <button wire:click="abrirModal" 
-                class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-            </svg>
-            PDF por Município
-        </button>
+    
     </div>
 
-    <!-- Informações do Período -->
     @if ($periodoAtual)
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <div class="flex items-center">

@@ -1,8 +1,8 @@
-<div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
+<div class="w-full max-w-none px-4 sm:px-6 lg:px-8 mt-10">
     <div class="mb-6 sm:mb-8">
         <div class="min-w-0 flex-1">
-            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Gestão de Promotores Substitutos</h1>
-            <p class="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">Gerencie os eventos e designações dos promotores substitutos</p>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Gestão de Promotores de Justiça Substitutos</h1>
+            <p class="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">Gerencie os eventos e designações dos promotores de justiça substitutos</p>
         </div>
     </div>
 
@@ -21,7 +21,6 @@
     <div class="bg-white shadow rounded-lg mb-6">
         <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Seleção de Período -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Período</label>
                     <select wire:model.live="periodoSelecionadoId"
@@ -73,7 +72,7 @@
                     <div class="flex justify-between items-start">
                         <div>
                             <h3 class="text-lg font-bold text-gray-800 uppercase tracking-wide">
-                                Promotores Substitutos - Designações por Período
+                                Promotores de Justiça Substitutos - Designações por Período
                             </h3>
                             @if ($this->periodoSelecionado)
                                 <p class="text-sm text-gray-600 mt-1">
@@ -107,7 +106,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">
-                                Promotores Substitutos
+                                Promotores de Justiça Substitutos
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">
                                 Informações
@@ -184,7 +183,7 @@
                                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                                             </svg>
-                                                            Adicionar Evento
+                                                            Adicionar Movimento
                                                         </button>
                                                     </div>
                                                 </div>
@@ -385,7 +384,7 @@
                                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                                     </svg>
-                                                    Adicionar Evento
+                                                    Adicionar Movimento
                                                 </button>
                                             </div>
                                         </div>
@@ -416,7 +415,7 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-6 text-center text-gray-500">
-                                        Nenhum evento cadastrado
+                                        Nenhum movimento cadastrado
                                     </td>
                                 </tr>
                             @endif
@@ -428,8 +427,8 @@
                     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                     </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhum promotor substituto encontrado</h3>
-                    <p class="mt-1 text-sm text-gray-500">Verifique se há promotores substitutos cadastrados no sistema</p>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhum promotor de justiça substituto encontrado</h3>
+                    <p class="mt-1 text-sm text-gray-500">Verifique se há promotores de justiça substitutos cadastrados no sistema</p>
                 </div>
             @endif
         </div>

@@ -1,4 +1,4 @@
-<div class="w-full max-w-none px-4 sm:px-6 lg:px-8" x-data="plantaoUrgenciaData()">
+<div class="w-full max-w-none px-4 sm:px-6 lg:px-8" x-data="{}">
     <!-- Header -->
     <div class="mb-6 sm:mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -53,7 +53,8 @@
                     <option value="">Todos os núcleos</option>
                     <option value="1">1º Núcleo (Laranjal do Jari, Vitória do Jari, Mazagão)</option>
                     <option value="2">2º Núcleo (Oiapoque, Calçoene, Amapá)</option>
-                    <option value="3">3º Núcleo (Tartarugalzinho, Ferreira Gomes, Porto Grande, Pedra Branca do Amapari)</option>
+                    <option value="3">3º Núcleo (Tartarugalzinho, Ferreira Gomes, Porto Grande, Pedra Branca do
+                        Amapari)</option>
                 </select>
             </div>
         @endif
@@ -224,8 +225,9 @@
                                     </svg>
                                     Editar
                                 </button>
-                                <button wire:click="deletar({{ $plantao->id }})"
-                                    wire:confirm="Tem certeza que deseja deletar este plantão de urgência?"
+                                <button
+                                    onclick="if(!confirm('Tem certeza que deseja deletar este plantão de urgência?')) { event.preventDefault(); return false; }"
+                                    wire:click="deletar({{ $plantao->id }})"
                                     class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
                                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -280,7 +282,7 @@
     @endif
 
     <!-- Modal de criação/edição -->
-    @if ($mostrarModal)
+    @if ($this->mostrarModal)
         <div class="fixed inset-0 overflow-y-auto" style="z-index: 9998 !important;" x-data="{ show: true }"
             x-show="show" x-transition>
             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -398,9 +400,12 @@
                                                     <select wire:model="nucleoSelecionado" id="nucleo_selecionado"
                                                         class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('nucleoSelecionado') border-red-300 @enderror">
                                                         <option value="">Selecione um núcleo</option>
-                                                        <option value="1">1º Núcleo (Laranjal do Jari, Vitória do Jari, Mazagão)</option>
-                                                        <option value="2">2º Núcleo (Oiapoque, Calçoene, Amapá)</option>
-                                                        <option value="3">3º Núcleo (Tartarugalzinho, Ferreira Gomes, Porto Grande, Pedra Branca do Amapari)</option>
+                                                        <option value="1">1º Núcleo (Laranjal do Jari, Vitória do
+                                                            Jari, Mazagão)</option>
+                                                        <option value="2">2º Núcleo (Oiapoque, Calçoene, Amapá)
+                                                        </option>
+                                                        <option value="3">3º Núcleo (Tartarugalzinho, Ferreira
+                                                            Gomes, Porto Grande, Pedra Branca do Amapari)</option>
                                                     </select>
                                                     @error('nucleoSelecionado')
                                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -597,17 +602,4 @@
         </div>
     @endif
 
-    <script>
-        function plantaoUrgenciaData() {
-            return {
-                init() {
-                    this.$watch('show', value => {
-                        if (!value) {
-                            this.$wire.fecharModal();
-                        }
-                    });
-                }
-            }
-        }
-    </script>
 </div>
