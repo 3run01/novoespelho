@@ -8,48 +8,47 @@
             <!-- Componente de Geração de PDF -->
             <livewire:pdf-generator />
             @if ($this->periodos->count() > 0)
+                @php
+                    $periodo = $this->periodos->first();
+                @endphp
                 <div class="flex flex-wrap justify-center gap-2 sm:gap-4 mb-2">
-                    @foreach ($this->periodos as $periodo)
-                        <div
-                            class="inline-flex items-center gap-1 sm:gap-2 border border-gray-300 rounded-lg px-3 sm:px-5 py-2 sm:py-3 shadow">
+                    <div
+                        class="inline-flex items-center gap-1 sm:gap-2 border border-gray-300 rounded-lg px-3 sm:px-5 py-2 sm:py-3 shadow">
+                        <span
+                            class="inline-block text-sm sm:text-base font-semibold text-gray-800 px-2 sm:px-3 py-1 rounded">
+                            {{ $periodo->periodo_inicio->format('d/m/Y') }}
+                        </span>
+                        <span class="text-gray-700 font-bold text-sm sm:text-base">até</span>
+                        <span
+                            class="inline-block text-sm sm:text-base font-semibold text-gray-800 px-2 sm:px-3 py-1 rounded">
+                            {{ $periodo->periodo_fim->format('d/m/Y') }}
+                        </span>
+                        <span
+                            class="ml-2 sm:ml-3 inline-flex items-center px-2 sm:px-3 py-1 rounded text-xs font-semibold bg-white border border-gray-300 text-gray-700 uppercase tracking-wider shadow-sm">
+                            Período
+                        </span>
+                        @if ($periodo->status === 'publicado')
                             <span
-                                class="inline-block text-sm sm:text-base font-semibold text-gray-800 px-2 sm:px-3 py-1 rounded">
-                                {{ $periodo->periodo_inicio->format('d/m/Y') }}
+                                class="ml-1 sm:ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                Publicado
                             </span>
-                            <span class="text-gray-700 font-bold text-sm sm:text-base">até</span>
+                        @elseif ($periodo->status === 'em_processo_publicacao')
                             <span
-                                class="inline-block text-sm sm:text-base font-semibold text-gray-800 px-2 sm:px-3 py-1 rounded">
-                                {{ $periodo->periodo_fim->format('d/m/Y') }}
+                                class="ml-1 sm:ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+                                Em Processo
                             </span>
+                        @elseif ($periodo->status === 'arquivado')
                             <span
-                                class="ml-2 sm:ml-3 inline-flex items-center px-2 sm:px-3 py-1 rounded text-xs font-semibold bg-white border border-gray-300 text-gray-700 uppercase tracking-wider shadow-sm">
-                                Período
+                                class="ml-1 sm:ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                Arquivado
                             </span>
-                            @if ($periodo->status === 'publicado')
-                                <span
-                                    class="ml-1 sm:ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                    Publicado
-                                </span>
-                            @elseif ($periodo->status === 'em_processo_publicacao')
-                                <span
-                                    class="ml-1 sm:ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
-                                    Em Processo
-                                </span>
-                            @elseif ($periodo->status === 'arquivado')
-                                <span
-                                    class="ml-1 sm:ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                    Arquivado
-                                </span>
-                            @endif
-                        </div>
-                    @endforeach
+                        @endif
+                    </div>
                 </div>
                 <div class="flex flex-wrap justify-center gap-2 sm:gap-4">
-                    @foreach ($this->periodos as $periodo)
-                        <p class="text-xs text-gray-700 font-medium">
-                            Duração: {{ $periodo->periodo_inicio->diffInDays($periodo->periodo_fim) + 1 }} dias
-                        </p>
-                    @endforeach
+                    <p class="text-xs text-gray-700 font-medium">
+                        Duração: {{ $periodo->periodo_inicio->diffInDays($periodo->periodo_fim) + 1 }} dias
+                    </p>
                 </div>
             @endif
         </div>
@@ -57,9 +56,28 @@
         @if ($this->promotoriasPorMunicipio->count() > 0 || $this->plantoesPorMunicipio->count() > 0)
             <div class="space-y-6 sm:space-y-8">
                 @php
-                    // Combinar todos os municípios (promotorias e plantões)
+                    // Agrupar plantões por município para exibição junto com as promotorias
+                    $plantoesPorMunicipio = [];
+                    foreach ($this->plantoes as $plantao) {
+                        $nomeMunicipio = 'Sem município';
+                        
+                        if ($plantao->municipio) {
+                            $nomeMunicipio = $plantao->municipio->nome;
+                        } elseif ($plantao->nucleo) {
+                            $nomeMunicipio = 'Entrância Inicial - ' . $plantao->nucleo . 'º Núcleo';
+                        }
+                        
+                        if (!isset($plantoesPorMunicipio[$nomeMunicipio])) {
+                            $plantoesPorMunicipio[$nomeMunicipio] = collect();
+                        }
+                        
+                        $plantoesPorMunicipio[$nomeMunicipio]->push($plantao);
+                    }
+                @endphp
+
+                @php
+                    // Combinar todos os municípios (apenas promotorias agora)
                     $todosMunicipios = collect($this->promotoriasPorMunicipio->keys())
-                        ->merge(collect($this->plantoesPorMunicipio->keys()))
                         ->unique()
                         ->sort(function ($a, $b) {
                             // Macapá sempre primeiro
@@ -79,88 +97,84 @@
                     <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm bg-white">
 
                         <!-- Plantões de Urgência do Município (se houver) -->
-                        @if ($this->plantoesPorMunicipio->has($nomeMunicipio) && $this->plantoesPorMunicipio[$nomeMunicipio]->count() > 0)
-                            <div class="bg-orange-50 border-b border-orange-200 px-4 sm:px-6 py-3 sm:py-4">
-                                <div class="flex items-center gap-2 sm:gap-3 mb-3">
-                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" fill="currentColor"
-                                        viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                                            clip-rule="evenodd"></path>
-                                    </svg>
-                                    <h4 class="text-sm sm:text-base font-bold text-orange-800 uppercase tracking-wide">
-                                        Plantões de Urgência
-                                    </h4>
+                        @if (isset($plantoesPorMunicipio[$nomeMunicipio]) && $plantoesPorMunicipio[$nomeMunicipio]->count() > 0)
+                            <div class="mt-4 bg-gray-50 px-4 sm:px-6 py-2 sm:py-3 border-b border-gray-200">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-sm sm:text-base font-semibold text-gray-700 uppercase tracking-wide">
+                                            Plantões de Urgência
+                                        </h4>
+                                        <p class="text-base text-gray-700 mt-1 font-semibold">{{ $nomeMunicipio }}</p>
+                                    </div>
                                 </div>
+                            </div>
 
-                                <div class="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4">
-                                    @foreach ($this->plantoesPorMunicipio[$nomeMunicipio] as $plantao)
-                                        <div class="bg-white border border-orange-200 rounded-lg p-3 sm:p-4">
-                                            <div class="flex items-start justify-between mb-2">
-                                                <div class="flex-1">
-                                                    <h5
-                                                        class="text-sm font-semibold text-gray-900 flex items-center gap-2 mb-2">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 table-responsive">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/4">
+                                                Plantão
+                                            </th>
+                                            <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/3">
+                                                Promotores Designados
+                                            </th>
+                                            <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                Período / Observações
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-100">
+                                        @foreach ($plantoesPorMunicipio[$nomeMunicipio] as $plantao)
+                                            <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                <td class="px-4 sm:px-6 py-4 border-r border-gray-200">
+                                                    <div class="text-xs sm:text-sm font-medium text-gray-900">
                                                         {{ $plantao->nome ?? 'Plantão de Urgência' }}
-                                                        <span
-                                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-                                                            Urgência
-                                                        </span>
-                                                    </h5>
-
-                                                    <div class="text-xs text-gray-600 space-y-1 mb-3">
-                                                        @if ($plantao->periodo)
-                                                            <p>
-                                                                <span class="font-medium">Período:</span>
-                                                                {{ $plantao->periodo->periodo_inicio->format('d/m/Y') }}
-                                                                - {{ $plantao->periodo->periodo_fim->format('d/m/Y') }}
-                                                            </p>
-                                                        @endif
-                                                        @if ($plantao->observacoes)
-                                                            <p>
-                                                                <span class="font-medium">Observações:</span>
-                                                                {{ $plantao->observacoes }}
-                                                            </p>
-                                                        @endif
                                                     </div>
-                                                </div>
-                                            </div>
-
-                                            @if ($plantao->promotores->count() > 0)
-                                                <div>
-                                                    <h6 class="text-xs font-medium text-gray-700 mb-2">Promotores
-                                                        Designados:</h6>
-                                                    <div class="flex flex-wrap gap-2">
-                                                        @foreach ($plantao->promotores as $promotor)
-                                                            <div
-                                                                class="inline-flex items-center gap-2 text-xs bg-orange-50 border border-orange-200 px-3 py-1 rounded-full">
-                                                                <div
-                                                                    class="h-4 w-4 rounded-full bg-orange-100 flex items-center justify-center">
-                                                                    <span class="text-xs font-medium text-orange-600">
-                                                                        {{ substr($promotor->nome, 0, 1) }}
-                                                                    </span>
-                                                                </div>
-                                                                <div class="flex flex-col">
-                                                                    <span
-                                                                        class="font-medium text-gray-900">{{ $promotor->nome }}</span>
-                                                                    <div
-                                                                        class="flex items-center gap-1 text-xs text-gray-500">
-                                                                        <span>({{ ucfirst($promotor->pivot->tipo_designacao) }})</span>
+                                                </td>
+                                                <td class="px-4 sm:px-6 py-4 border-r border-gray-200">
+                                                    @if ($plantao->promotores->count() > 0)
+                                                        <div class="space-y-2">
+                                                            @foreach ($plantao->promotores as $promotor)
+                                                                <div class="text-xs sm:text-sm">
+                                                                    <div class="font-medium text-gray-900">{{ $promotor->nome }}</div>
+                                                                    <div class="text-gray-500">
+                                                                        ({{ ucfirst($promotor->pivot->tipo_designacao) }})
                                                                         @if ($promotor->pivot->data_inicio_designacao && $promotor->pivot->data_fim_designacao)
-                                                                            <span>•</span>
-                                                                            <span>{{ \Carbon\Carbon::parse($promotor->pivot->data_inicio_designacao)->format('d/m/Y') }}
-                                                                                -
-                                                                                {{ \Carbon\Carbon::parse($promotor->pivot->data_fim_designacao)->format('d/m/Y') }}</span>
+                                                                            - {{ \Carbon\Carbon::parse($promotor->pivot->data_inicio_designacao)->format('d/m/Y') }}
+                                                                            até {{ \Carbon\Carbon::parse($promotor->pivot->data_fim_designacao)->format('d/m/Y') }}
                                                                         @endif
                                                                     </div>
                                                                 </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @else
+                                                        <div class="text-xs sm:text-sm text-gray-500">
+                                                            Nenhum promotor designado
+                                                        </div>
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 sm:px-6 py-4">
+                                                    <div class="text-xs sm:text-sm space-y-1">
+                                                        @if ($plantao->periodo)
+                                                            <div class="text-gray-600">
+                                                                <span class="font-medium">Período:</span>
+                                                                {{ $plantao->periodo->periodo_inicio->format('d/m/Y') }}
+                                                                - {{ $plantao->periodo->periodo_fim->format('d/m/Y') }}
                                                             </div>
-                                                        @endforeach
+                                                        @endif
+                                                        @if ($plantao->observacoes)
+                                                            <div class="text-gray-600">
+                                                                <span class="font-medium">Obs:</span>
+                                                                {{ $plantao->observacoes }}
+                                                            </div>
+                                                        @endif
                                                     </div>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    @endforeach
-                                </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         @endif
 
@@ -529,6 +543,148 @@
                 </svg>
                 <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhuma informação disponível</h3>
                 <p class="mt-1 text-sm text-gray-500">Configure os dados no modo Gestão Espelho primeiro.</p>
+            </div>
+        @endif
+
+        <!-- Seção de Preview dos Promotores Substitutos -->
+        @if ($this->promotoresSubstitutos->isNotEmpty())
+            <div class="space-y-6 sm:space-y-8 mt-8">
+                <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm bg-white">
+                    <div class="bg-gray-50 px-4 sm:px-6 py-2 sm:py-3 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="text-sm sm:text-base font-semibold text-gray-700 uppercase tracking-wide">
+                                    Promotores Substitutos
+                                </h4>
+                                @if ($this->periodos->count() > 0)
+                                    <p class="text-base text-gray-700 mt-1 font-semibold">
+                                        Período: {{ $this->periodos->first()->periodo_inicio->format('d/m/Y') }} - 
+                                        {{ $this->periodos->first()->periodo_fim->format('d/m/Y') }}
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 table-responsive">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/6">
+                                        Promotores
+                                    </th>
+                                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/4">
+                                        Cargos
+                                    </th>
+                                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Eventos/Designações
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                @foreach ($this->promotoresSubstitutos as $promotor)
+                                    @php
+                                        $eventosCount = $promotor->eventos->count();
+                                    @endphp
+
+                                    @if ($eventosCount > 0)
+                                        @foreach ($promotor->eventos as $indexEvento => $evento)
+                                            <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                @if ($indexEvento === 0)
+                                                    <td rowspan="{{ $eventosCount }}" class="px-4 sm:px-6 py-4 align-top border-r border-gray-200">
+                                                        <div class="text-xs sm:text-sm">
+                                                            <div class="mb-1">
+                                                                <span class="font-medium text-red-600">{{ $promotor->promotor_nome }}</span>
+                                                                <span class="text-xs text-gray-500">Substituto</span>
+                                                            </div>
+                                                            @if ($promotor->promotor_cargos !== 'N/A')
+                                                                <div class="space-y-1">
+                                                                    <div class="text-gray-900">{{ $promotor->promotor_cargos }}</div>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                @endif
+
+                                                @if ($indexEvento === 0)
+                                                    <td rowspan="{{ $eventosCount }}" class="px-4 sm:px-6 py-4 align-top border-r border-gray-200">
+                                                        <div class="text-xs sm:text-sm text-gray-500">
+                                                            {{ ucfirst($promotor->promotor_tipo) }}
+                                                        </div>
+                                                    </td>
+                                                @endif
+
+                                                <td class="px-4 sm:px-6 py-4">
+                                                    <h5 class="text-sm sm:text-base font-bold text-blue-700 mb-1">
+                                                        {{ $evento->evento_titulo ?: ($evento->evento_tipo ? 
+                                                            ($evento->evento_tipo === 'respondendo' ? 'Respondendo' : 
+                                                            ($evento->evento_tipo === 'auxiliando' ? 'Auxiliando' : 
+                                                            ($evento->evento_tipo === 'atuando' ? 'Atuando' : ucfirst($evento->evento_tipo)))) : 'Evento') }}
+                                                    </h5>
+                                                    
+                                                    @if ($evento->evento_tipo)
+                                                        <div class="text-[11px] sm:text-xs text-gray-600 mb-1">
+                                                            <span class="font-medium">Tipo:</span> 
+                                                            @if($evento->evento_tipo === 'respondendo')
+                                                                Respondendo
+                                                            @elseif($evento->evento_tipo === 'auxiliando')
+                                                                Auxiliando
+                                                            @elseif($evento->evento_tipo === 'atuando')
+                                                                Atuando
+                                                            @else
+                                                                {{ ucfirst($evento->evento_tipo) }}
+                                                            @endif
+                                                        </div>
+                                                    @endif
+                                                    
+                                                    @if ($evento->promotoria_nome && $evento->promotoria_nome !== 'N/A')
+                                                        <div class="text-[11px] sm:text-xs text-gray-600 mb-1">
+                                                            <span class="font-medium">Promotoria:</span> {{ $evento->promotoria_nome }}
+                                                        </div>
+                                                    @endif
+
+                                                    @if ($evento->data_inicio || $evento->data_fim)
+                                                        <div class="text-[11px] sm:text-xs text-gray-600">
+                                                            {{ $evento->data_inicio ? $evento->data_inicio : '' }}
+                                                            @if ($evento->data_inicio && $evento->data_fim)
+                                                                —
+                                                            @endif
+                                                            {{ $evento->data_fim ? $evento->data_fim : '' }}
+                                                        </div>
+                                                    @endif
+
+                                                    @if ($evento->observacoes)
+                                                        <div class="text-[11px] sm:text-xs text-gray-600 mt-1">
+                                                            <span class="font-medium">Obs:</span> {{ $evento->observacoes }}
+                                                        </div>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                            <td class="px-4 sm:px-6 py-4 border-r border-gray-200">
+                                                <div class="text-xs sm:text-sm font-medium text-gray-900 break-words">
+                                                    {{ $promotor->promotor_nome }}
+                                                </div>
+                                            </td>
+                                            <td class="px-4 sm:px-6 py-4 border-r border-gray-200">
+                                                <div class="text-xs sm:text-sm text-gray-500">
+                                                    {{ ucfirst($promotor->promotor_tipo) }}
+                                                </div>
+                                            </td>
+                                            <td class="px-4 sm:px-6 py-4">
+                                                <div class="text-xs sm:text-sm text-gray-500">
+                                                    Nenhum evento cadastrado
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endif
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         @endif
     </div>

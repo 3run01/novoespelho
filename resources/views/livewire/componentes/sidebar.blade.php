@@ -78,6 +78,25 @@
                     </span>
                 </a>
 
+                <a href="{{ route('espelho') }}"
+                    x-on:click.prevent="
+                       $wire.preventSidebarCollapse();
+                       window.location.href = '{{ route('espelho') }}'
+                   "
+                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('espelho') ? 'bg-blue-100 text-blue-800 border-r-2 border-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-900 hover:translate-x-1' }}">
+                    <svg class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110" fill="none"
+                        stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <span class="ml-3 transition-opacity group-hover:opacity-80"
+                        :class="{ 'lg:hidden': sidebarCollapsed }">
+                        Visualizar Espelho
+                    </span>
+                </a>
+
+
+
                 <div x-data="{
                     open: {{ request()->routeIs('municipios', 'grupo-promotores', 'promotorias', 'promotores') ? 'true' : 'false' }}
                 }" class="space-y-1">
@@ -165,6 +184,24 @@
                         </a>
                     </div>
                 </div>
+
+
+                <a href="{{ route('historico-do-espelho') }}"
+                    x-on:click.prevent="
+                       $wire.preventSidebarCollapse();
+                       window.location.href = '{{ route('historico-do-espelho') }}'
+                   "
+                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('historico-do-espelho') ? 'bg-blue-100 text-blue-800 border-r-2 border-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-900 hover:translate-x-1' }}">
+                    <svg class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110" fill="none"
+                        stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <rect x="3" y="5" width="18" height="14" rx="2" class="fill-blue-100/30" />
+                        <path d="M3 7h18M7 3v4M17 3v4" stroke-linecap="round" />
+                    </svg>
+                    <span class="ml-3 transition-opacity group-hover:opacity-80"
+                        :class="{ 'lg:hidden': sidebarCollapsed }">
+                        Histórico dos Períodos
+                    </span>
+                </a>
             </nav>
 
             <div class="px-4 py-4 border-t border-gray-200 mt-auto bg-blue-50">

@@ -133,14 +133,14 @@ class Periodos extends Component
         }
     }
     
-    public function resetarFormulario()
+        public function resetarFormulario()
     {
         $this->periodoInicio = '';
         $this->periodoFim = '';
         $this->periodoEditando = null;
         $this->resetValidation();
     }
-    
+
     public function render()
     {
         return view('livewire.espelho.periodos');

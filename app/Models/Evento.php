@@ -19,13 +19,15 @@ class Evento extends Model
 		'periodo_fim', 
 		'is_urgente',
 		'promotoria_id',
-		'periodo_id', 
+		'periodo_id',
+		'evento_do_substituto',
 	];
 
 	protected $casts = [
 		'periodo_inicio' => 'date',
 		'periodo_fim' => 'date',
-		'is_urgente' => 'boolean'
+		'is_urgente' => 'boolean',
+		'evento_do_substituto' => 'boolean'
 	];
 
 	/**

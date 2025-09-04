@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Periodo extends Model
 {
@@ -68,5 +69,21 @@ class Periodo extends Model
         ];
         
         return $statusClasses[$this->status] ?? 'bg-gray-100 text-gray-800';
+    }
+    
+    /**
+     * Relacionamento com eventos
+     */
+    public function eventos(): HasMany
+    {
+        return $this->hasMany(Evento::class);
+    }
+    
+    /**
+     * Relacionamento com espelhos
+     */
+    public function espelhos(): HasMany
+    {
+        return $this->hasMany(Espelho::class);
     }
 }

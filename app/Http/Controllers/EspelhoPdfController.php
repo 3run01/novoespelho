@@ -8,6 +8,10 @@ use App\Models\Periodo;
 use App\Models\Promotoria;
 use App\Models\GrupoPromotoria;
 use App\Models\Municipio;
+use App\Models\Promotor;
+use App\Models\EventoPromotor;
+use App\Models\Espelho;
+use App\Models\PlantaoAtendimento;
 use Illuminate\Support\Facades\View;
 use Carbon\Carbon;
 
@@ -17,14 +21,18 @@ class EspelhoPdfController
     public function gerarEspelhoCompleto(Request $request)
     {
         try {
-            $periodo = Periodo::where('status', 'publicado')
-                ->orderBy('periodo_inicio', 'desc')
-                ->first();
+            // Se um período específico foi solicitado via query parameter
+            if ($request->has('periodo_id')) {
+                $periodo = Periodo::findOrFail($request->get('periodo_id'));
+            } else {
+                // Fallback para o período mais recente (qualquer status)
+                $periodo = Periodo::orderBy('periodo_inicio', 'desc')->first();
+            }
 
             if (!$periodo) {
                 return response()->json([
                     'error' => true,
-                    'message' => 'Nenhum período publicado encontrado'
+                    'message' => 'Nenhum período encontrado'
                 ], 404);
             }
 
@@ -41,7 +49,7 @@ class EspelhoPdfController
                 'defaultMediaType' => 'print'
             ]);
 
-            $filename = "espelho_periodo_{$periodo->periodo_inicio->format('d-m-Y')}_a_{$periodo->periodo_fim->format('d-m-Y')}.pdf";
+            $filename = "espelho_periodo_{$periodo->periodo_inicio->format('d-m-Y')}_a_{$periodo->periodo_fim->format('d-m-Y')}_{$periodo->status}.pdf";
 
             return $pdf->download($filename);
 
@@ -61,14 +69,18 @@ class EspelhoPdfController
         try {
             $municipio = Municipio::findOrFail($municipioId);
             
-            $periodo = Periodo::where('status', 'publicado')
-                ->orderBy('periodo_inicio', 'desc')
-                ->first();
+            // Se um período específico foi solicitado via query parameter
+            if ($request->has('periodo_id')) {
+                $periodo = Periodo::findOrFail($request->get('periodo_id'));
+            } else {
+                // Fallback para o período mais recente (qualquer status)
+                $periodo = Periodo::orderBy('periodo_inicio', 'desc')->first();
+            }
 
             if (!$periodo) {
                 return response()->json([
                     'error' => true,
-                    'message' => 'Nenhum período publicado encontrado'
+                    'message' => 'Nenhum período encontrado'
                 ], 404);
             }
 
@@ -85,7 +97,7 @@ class EspelhoPdfController
                 'defaultMediaType' => 'print'
             ]);
 
-            $filename = "espelho_{$municipio->nome}_{$periodo->periodo_inicio->format('d-m-Y')}_a_{$periodo->periodo_fim->format('d-m-Y')}.pdf";
+            $filename = "espelho_{$municipio->nome}_{$periodo->periodo_inicio->format('d-m-Y')}_a_{$periodo->periodo_fim->format('d-m-Y')}_{$periodo->status}.pdf";
 
             return $pdf->download($filename);
 
@@ -103,14 +115,18 @@ class EspelhoPdfController
     public function visualizarEspelho(Request $request)
     {
         try {
-            $periodo = Periodo::where('status', 'publicado')
-                ->orderBy('periodo_inicio', 'desc')
-                ->first();
+            // Se um período específico foi solicitado via query parameter
+            if ($request->has('periodo_id')) {
+                $periodo = Periodo::findOrFail($request->get('periodo_id'));
+            } else {
+                // Fallback para o período mais recente (qualquer status)
+                $periodo = Periodo::orderBy('periodo_inicio', 'desc')->first();
+            }
 
             if (!$periodo) {
                 return response()->json([
                     'error' => true,
-                    'message' => 'Nenhum período publicado encontrado'
+                    'message' => 'Nenhum período encontrado'
                 ], 404);
             }
 
@@ -127,7 +143,9 @@ class EspelhoPdfController
                 'defaultMediaType' => 'print'
             ]);
 
-            return $pdf->stream('espelho_periodo.pdf');
+            $filename = "espelho_periodo_{$periodo->periodo_inicio->format('d-m-Y')}_a_{$periodo->periodo_fim->format('d-m-Y')}_{$periodo->status}.pdf";
+
+            return $pdf->stream($filename);
 
         } catch (\Exception $e) {
             \Log::error('Erro ao visualizar PDF do espelho: ' . $e->getMessage());
@@ -135,6 +153,42 @@ class EspelhoPdfController
             return response()->json([
                 'error' => true,
                 'message' => 'Erro ao visualizar PDF: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Gera PDF de um espelho individual
+     */
+    public function gerarEspelhoIndividual(Request $request, $espelhoId)
+    {
+        try {
+            $espelho = Espelho::with(['periodo', 'municipio', 'grupoPromotorias', 'plantaoAtendimento', 'eventos'])
+                ->findOrFail($espelhoId);
+
+            $dados = $this->carregarDadosEspelho($espelho->periodo, $espelho->municipio_id);
+
+            $pdf = Pdf::loadView('pdfs.espelho-completo', $dados);
+            
+            $pdf->setPaper('a4', 'portrait');
+            $pdf->setOptions([
+                'dpi' => 150,
+                'defaultFont' => 'sans-serif',
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => false,
+                'defaultMediaType' => 'print'
+            ]);
+
+            $filename = "espelho_{$espelho->id}_{$espelho->periodo->periodo_inicio->format('d-m-Y')}_a_{$espelho->periodo->periodo_fim->format('d-m-Y')}_{$espelho->periodo->status}.pdf";
+
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            \Log::error('Erro ao gerar PDF do espelho individual: ' . $e->getMessage());
+            
+            return response()->json([
+                'error' => true,
+                'message' => 'Erro ao gerar PDF: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -232,12 +286,176 @@ class EspelhoPdfController
             $promotoriasPorMunicipio[$nomeMunicipio] = $promotoriasPorGrupo;
         }
 
+        // Carregar dados dos promotores substitutos
+        $promotoresSubstitutos = $this->carregarDadosPromotoresSubstitutos($periodo);
+
+        // Carregar plantões de urgência
+        $plantoesPorMunicipio = $this->carregarDadosPlantoesUrgencia($periodo, $municipioId);
+
         return [
             'periodo' => $periodo,
             'promotoriasPorMunicipio' => $promotoriasPorMunicipio,
+            'promotoresSubstitutos' => $promotoresSubstitutos,
+            'plantoesPorMunicipio' => $plantoesPorMunicipio,
             'dataGeracao' => Carbon::now(),
             'titulo' => 'Espelho do Período',
             'subtitulo' => "Período: {$periodo->periodo_inicio->format('d/m/Y')} a {$periodo->periodo_fim->format('d/m/Y')}"
         ];
+    }
+
+    /**
+     * Carrega os dados dos promotores substitutos para o período
+     */
+    private function carregarDadosPromotoresSubstitutos(Periodo $periodo)
+    {
+        $promotoresSubstitutos = Promotor::where('tipo', 'substituto')
+            ->orderBy('nome', 'asc')
+            ->get();
+
+        $designacoes = $promotoresSubstitutos->map(function ($promotor) use ($periodo) {
+            // Designações manuais (criadas no componente PromotorEventos - evento_do_substituto = true)
+            $designacoesManuais = EventoPromotor::where('promotor_id', $promotor->id)
+                ->whereHas('evento', function ($query) use ($periodo) {
+                    $query->where('periodo_id', $periodo->id)
+                          ->where('evento_do_substituto', true);
+                })
+                ->with(['evento.promotoria', 'evento'])
+                ->get();
+
+            // Designações automáticas do espelho (evento_do_substituto = null ou false)
+            $designacoesAutomaticas = EventoPromotor::where('promotor_id', $promotor->id)
+                ->whereHas('evento', function ($query) use ($periodo) {
+                    $query->where('periodo_id', $periodo->id)
+                          ->where(function($q) {
+                              $q->whereNull('evento_do_substituto')
+                                ->orWhere('evento_do_substituto', false);
+                          });
+                })
+                ->with(['evento.promotoria', 'evento'])
+                ->get();
+
+            // Converter designações manuais
+            $eventosManuais = $designacoesManuais->map(function ($designacao) {
+                return [
+                    'evento_id' => $designacao->evento_id,
+                    'evento_titulo' => $designacao->evento->titulo,
+                    'evento_tipo' => $designacao->evento->tipo,
+                    'promotoria_nome' => $designacao->evento->promotoria->nome ?? 'N/A',
+                    'tipo_designacao' => $designacao->tipo,
+                    'data_inicio' => $designacao->data_inicio_designacao?->format('d/m/Y'),
+                    'data_fim' => $designacao->data_fim_designacao?->format('d/m/Y'),
+                    'observacoes' => $designacao->observacoes,
+                    'ordem' => $designacao->ordem,
+                    'is_manual' => true,
+                    'is_urgente' => $designacao->evento->is_urgente ?? false,
+                    'evento_do_substituto' => $designacao->evento->evento_do_substituto ?? false
+                ];
+            });
+
+            // Converter designações automáticas
+            $eventosAutomaticos = $designacoesAutomaticas->map(function ($designacao) {
+                return [
+                    'evento_id' => $designacao->evento_id,
+                    'evento_titulo' => $designacao->evento->titulo,
+                    'evento_tipo' => $designacao->evento->tipo,
+                    'promotoria_nome' => $designacao->evento->promotoria->nome ?? 'N/A',
+                    'tipo_designacao' => $designacao->tipo,
+                    'data_inicio' => $designacao->data_inicio_designacao?->format('d/m/Y'),
+                    'data_fim' => $designacao->data_fim_designacao?->format('d/m/Y'),
+                    'observacoes' => $designacao->observacoes,
+                    'ordem' => $designacao->ordem,
+                    'is_manual' => false,
+                    'is_urgente' => $designacao->evento->is_urgente ?? false,
+                    'evento_do_substituto' => $designacao->evento->evento_do_substituto ?? false
+                ];
+            });
+
+            // Combinar todos os eventos
+            $todosEventos = $eventosManuais->concat($eventosAutomaticos);
+
+            return [
+                'promotor_id' => $promotor->id,
+                'promotor_nome' => $promotor->nome,
+                'promotor_cargos' => is_array($promotor->cargos) ? implode(', ', $promotor->cargos) : 'N/A',
+                'promotor_tipo' => $promotor->tipo,
+                'total_eventos' => $todosEventos->count(),
+                'total_manuais' => $eventosManuais->count(),
+                'total_automaticos' => $eventosAutomaticos->count(),
+                'eventos' => $todosEventos
+            ];
+        });
+
+        return $designacoes;
+    }
+
+    /**
+     * Carrega os dados dos plantões de urgência para o período
+     */
+    private function carregarDadosPlantoesUrgencia(Periodo $periodo, $municipioId = null)
+    {
+        $query = PlantaoAtendimento::where('periodo_id', $periodo->id)
+            ->with([
+                'municipio',
+                'periodo',
+                'promotores' => function ($query) {
+                    $query->withPivot(['tipo_designacao', 'data_inicio_designacao', 'data_fim_designacao']);
+                }
+            ]);
+
+        if ($municipioId) {
+            $query->where('municipio_id', $municipioId);
+        }
+
+        $plantoes = $query->get();
+
+        // Agrupar plantões por município
+        $plantoesPorMunicipio = [];
+        foreach ($plantoes as $plantao) {
+            $nomeMunicipio = 'Sem município';
+            
+            if ($plantao->municipio) {
+                $nomeMunicipio = $plantao->municipio->nome;
+            } elseif ($plantao->nucleo) {
+                $nomeMunicipio = 'Entrância Inicial - ' . $plantao->nucleo . 'º Núcleo';
+            }
+            
+            if (!isset($plantoesPorMunicipio[$nomeMunicipio])) {
+                $plantoesPorMunicipio[$nomeMunicipio] = collect();
+            }
+            
+            $plantoesPorMunicipio[$nomeMunicipio]->push($plantao);
+        }
+
+        // Ordenar municípios: Macapá primeiro, depois Santana, depois os demais
+        uksort($plantoesPorMunicipio, function($a, $b) {
+            // Macapá sempre primeiro
+            if ($a === 'Macapá') {
+                return -1;
+            }
+            if ($b === 'Macapá') {
+                return 1;
+            }
+            
+            // Santana em segundo
+            if ($a === 'Santana') {
+                return -1;
+            }
+            if ($b === 'Santana') {
+                return 1;
+            }
+            
+            // Entrância Inicial por último
+            if (strpos($a, 'Entrância Inicial') === 0 && strpos($b, 'Entrância Inicial') !== 0) {
+                return 1;
+            }
+            if (strpos($b, 'Entrância Inicial') === 0 && strpos($a, 'Entrância Inicial') !== 0) {
+                return -1;
+            }
+            
+            // Demais municípios em ordem alfabética
+            return strcasecmp($a, $b);
+        });
+
+        return $plantoesPorMunicipio;
     }
 }

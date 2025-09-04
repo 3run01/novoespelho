@@ -14,6 +14,7 @@ class PlantaoAtendimento extends Model
     protected $fillable = [
         'periodo_id',
         'municipio_id',
+        'nucleo',
         'nome',
         'observacoes',
     ];

@@ -89,6 +89,40 @@ class Promotores extends Component
             ->orderBy('id', 'asc')
             ->paginate(10);
     }
+
+    /**
+     * Lista todos os promotores que são substitutos
+     */
+    #[Computed]
+    public function promotoresSubstitutos()
+    {
+        return Promotor::query()
+            ->where('tipo', 'substituto')
+            ->orderBy('nome', 'asc')
+            ->get();
+    }
+
+    /**
+     * Método para obter promotores substitutos com filtros opcionais
+     */
+    public function obterPromotoresSubstitutos($filtros = [])
+    {
+        $query = Promotor::query()->where('tipo', 'substituto');
+
+        if (isset($filtros['nome']) && !empty($filtros['nome'])) {
+            $query->where('nome', 'like', '%' . $filtros['nome'] . '%');
+        }
+
+        if (isset($filtros['tipo']) && !empty($filtros['tipo'])) {
+            $query->where('tipo', $filtros['tipo']);
+        }
+
+        if (isset($filtros['zona_eleitoral']) && $filtros['zona_eleitoral'] !== null) {
+            $query->where('zona_eleitoral', $filtros['zona_eleitoral']);
+        }
+
+        return $query->orderBy('nome', 'asc')->get();
+    }
     
     public function updatedTermoBusca()
     {

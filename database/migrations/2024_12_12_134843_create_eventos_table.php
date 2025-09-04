@@ -16,6 +16,8 @@ return new class extends Migration {
             $table->foreignId('periodo_id')->constrained('periodos');
             $table->string('titulo')->nullable();
             $table->string('tipo')->nullable();
+            $table->foreignId('promotor_id')->nullable()->constrained('promotores');            
+            $table->boolean('evento_do_substituto')->nullable();
             $table->date('periodo_inicio')->nullable();
             $table->date('periodo_fim')->nullable();
             $table->boolean('is_urgente')->nullable()->default(false);

@@ -362,10 +362,7 @@
 
                                 <!-- Grid para Promotor e Grupo -->
                                 <div x-data="{
-                                    promotorSelecionado: @entangle('promotor_id').live,
-                                    init() {
-                                        console.log('Promotor Selecionado:', this.promotorSelecionado);
-                                    }
+                                    promotorSelecionado: @entangle('promotor_id').live
                                 }">
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>

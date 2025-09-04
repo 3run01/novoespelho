@@ -18,8 +18,7 @@ class PlantaoUrgencia extends Component
     #[Rule('required')]
     public string $periodo_id = '';
     
-    #[Rule('required')]
-    public string $municipio_id = '';
+    public ?int $municipio_id = null;
     
     #[Rule('required|min:2|max:100')]
     public string $nome = '';
@@ -33,6 +32,10 @@ class PlantaoUrgencia extends Component
     public string $termoBusca = '';
     public string $filtroMunicipio = '';
     public string $filtroPeriodo = '';
+    
+    // Propriedades para seleção em cascata
+    public string $entranciaSelecionada = '';
+    public string $nucleoSelecionado = '';
     
     // Nova estrutura baseada em Eventos.php
     public array $promotoresDesignacoes = [];
@@ -90,6 +93,20 @@ class PlantaoUrgencia extends Component
         $this->municipio_id = $plantao->municipio_id;
         $this->nome = $plantao->nome ?? '';
         $this->observacoes = $plantao->observacoes ?? '';
+        
+        // Carregar entrância e núcleo do município
+        $municipio = $plantao->municipio;
+        if ($municipio->entrancia === 'final') {
+            $this->nucleoSelecionado = '';
+            if ($municipio->nome === 'Macapá') {
+                $this->entranciaSelecionada = 'final_macapa';
+            } elseif ($municipio->nome === 'Santana') {
+                $this->entranciaSelecionada = 'final_santana';
+            }
+        } else {
+            $this->entranciaSelecionada = 'inicial';
+            $this->nucleoSelecionado = (string) $plantao->nucleo;
+        }
         
         // Carregar designações existentes
         $this->promotoresDesignacoes = $plantao->promotores()
@@ -150,6 +167,21 @@ class PlantaoUrgencia extends Component
     {
         $this->validate();
         
+        // Validar seleção em cascata
+        $this->validate([
+            'entranciaSelecionada' => 'required|in:final_macapa,final_santana,inicial',
+        ]);
+        
+        // Se for entrância inicial, validar núcleo
+        if ($this->entranciaSelecionada === 'inicial') {
+            $this->validate([
+                'nucleoSelecionado' => 'required|in:1,2,3',
+            ]);
+        }
+        
+        // Determinar o município baseado na entrância e núcleo selecionados
+        $this->municipio_id = $this->determinarMunicipioId();
+        
         // Validar designações de promotores
         $this->validate([
             'promotoresDesignacoes' => 'array|min:1',
@@ -163,6 +195,7 @@ class PlantaoUrgencia extends Component
             $this->plantaoEditando->update([
                 'periodo_id' => $this->periodo_id,
                 'municipio_id' => $this->municipio_id,
+                'nucleo' => $this->entranciaSelecionada === 'inicial' ? (int) $this->nucleoSelecionado : null,
                 'nome' => $this->nome,
                 'observacoes' => $this->observacoes,
             ]);
@@ -174,6 +207,7 @@ class PlantaoUrgencia extends Component
             $plantao = PlantaoAtendimento::create([
                 'periodo_id' => $this->periodo_id,
                 'municipio_id' => $this->municipio_id,
+                'nucleo' => $this->entranciaSelecionada === 'inicial' ? (int) $this->nucleoSelecionado : null,
                 'nome' => $this->nome,
                 'observacoes' => $this->observacoes,
             ]);
@@ -245,11 +279,13 @@ class PlantaoUrgencia extends Component
     public function resetarFormulario()
     {
         $this->periodo_id = '';
-        $this->municipio_id = '';
+        $this->municipio_id = null;
         $this->nome = '';
         $this->observacoes = '';
         $this->plantaoEditando = null;
         $this->promotoresDesignacoes = [];
+        $this->entranciaSelecionada = '';
+        $this->nucleoSelecionado = '';
         $this->resetValidation();
     }
 
@@ -260,13 +296,86 @@ class PlantaoUrgencia extends Component
             ->when($this->termoBusca, fn ($q) => $q->where('nome', 'like', '%' . $this->termoBusca . '%'))
             ->when($this->filtroMunicipio, fn ($q) => $q->where('municipio_id', $this->filtroMunicipio))
             ->when($this->filtroPeriodo, fn ($q) => $q->where('periodo_id', $this->filtroPeriodo))
+            ->when($this->entranciaSelecionada, function ($q) {
+                if ($this->entranciaSelecionada === 'final_macapa') {
+                    $q->whereHas('municipio', fn ($mq) => $mq->where('nome', 'Macapá'));
+                } elseif ($this->entranciaSelecionada === 'final_santana') {
+                    $q->whereHas('municipio', fn ($mq) => $mq->where('nome', 'Santana'));
+                } elseif ($this->entranciaSelecionada === 'inicial') {
+                    // Para entrância inicial, mostrar plantões sem município específico
+                    $q->whereNull('municipio_id');
+                }
+            })
+            ->when($this->nucleoSelecionado && $this->entranciaSelecionada === 'inicial', function ($q) {
+                $q->where('nucleo', $this->nucleoSelecionado);
+            })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
     }
 
+    public function getEntranciasProperty()
+    {
+        return [
+            ['value' => 'final_macapa', 'label' => 'Entrância Final - Macapá'],
+            ['value' => 'final_santana', 'label' => 'Entrância Final - Santana'],
+            ['value' => 'inicial', 'label' => 'Entrância Inicial'],
+        ];
+    }
+
+    public function getNucleosProperty()
+    {
+        if ($this->entranciaSelecionada !== 'inicial') {
+            return [];
+        }
+
+        return [
+            ['value' => '1', 'label' => '1º Núcleo (Laranjal do Jari, Vitória do Jari, Mazagão)'],
+            ['value' => '2', 'label' => '2º Núcleo (Oiapoque, Calçoene, Amapá)'],
+            ['value' => '3', 'label' => '3º Núcleo (Tartarugalzinho, Ferreira Gomes, Porto Grande, Pedra Branca do Amapari)'],
+        ];
+    }
+
+    private function determinarMunicipioId()
+    {
+        if ($this->entranciaSelecionada === 'final_macapa') {
+            $municipio = Municipio::where('nome', 'Macapá')->first();
+            return $municipio ? $municipio->id : null;
+        }
+        
+        if ($this->entranciaSelecionada === 'final_santana') {
+            $municipio = Municipio::where('nome', 'Santana')->first();
+            return $municipio ? $municipio->id : null;
+        }
+
+        // Para entrância inicial, retornamos null pois não há um município específico
+        // O plantão será associado ao núcleo como um todo
+        return null;
+    }
+
     public function getMunicipiosProperty()
     {
-        return Municipio::orderBy('nome')->get();
+        if (!$this->entranciaSelecionada) {
+            return [];
+        }
+
+        // Se for entrância final (Macapá ou Santana), retorna o município específico
+        if ($this->entranciaSelecionada === 'final_macapa') {
+            return Municipio::where('nome', 'Macapá')->get();
+        }
+        
+        if ($this->entranciaSelecionada === 'final_santana') {
+            return Municipio::where('nome', 'Santana')->get();
+        }
+
+        // Se for entrância inicial, retorna todos os municípios do núcleo selecionado
+        if ($this->entranciaSelecionada === 'inicial' && $this->nucleoSelecionado) {
+            return Municipio::where('entrancia', 'inicial')
+                ->where('nucleo', $this->nucleoSelecionado)
+                ->orderBy('nome')
+                ->get();
+        }
+
+        return [];
     }
 
     public function getPeriodosProperty()
@@ -301,6 +410,18 @@ class PlantaoUrgencia extends Component
     }
 
     public function updatedFiltroPeriodo()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedEntranciaSelecionada()
+    {
+        $this->nucleoSelecionado = '';
+        $this->municipio_id = null;
+        $this->resetPage();
+    }
+
+    public function updatedNucleoSelecionado()
     {
         $this->resetPage();
     }

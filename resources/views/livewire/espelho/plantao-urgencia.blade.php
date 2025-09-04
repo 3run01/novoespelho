@@ -20,7 +20,7 @@
     </div>
 
     <!-- Filtros e busca -->
-    <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
         <!-- Busca por nome -->
         <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -34,17 +34,29 @@
                 placeholder="Buscar plantões...">
         </div>
 
-        <!-- Filtro por município -->
+        <!-- Filtro por entrância -->
         <div>
-            <select wire:model.live="filtroMunicipio"
+            <select wire:model.live="entranciaSelecionada"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                <option value="">Todos as comarcas
-                </option>
-                @foreach ($this->municipios as $municipio)
-                    <option value="{{ $municipio->id }}">{{ $municipio->nome }}</option>
-                @endforeach
+                <option value="">Todas as entrâncias</option>
+                <option value="final_macapa">Entrância Final - Macapá</option>
+                <option value="final_santana">Entrância Final - Santana</option>
+                <option value="inicial">Entrância Inicial</option>
             </select>
         </div>
+
+        <!-- Filtro por núcleo (apenas se entrância inicial) -->
+        @if ($entranciaSelecionada === 'inicial')
+            <div>
+                <select wire:model.live="nucleoSelecionado"
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <option value="">Todos os núcleos</option>
+                    <option value="1">1º Núcleo (Laranjal do Jari, Vitória do Jari, Mazagão)</option>
+                    <option value="2">2º Núcleo (Oiapoque, Calçoene, Amapá)</option>
+                    <option value="3">3º Núcleo (Tartarugalzinho, Ferreira Gomes, Porto Grande, Pedra Branca do Amapari)</option>
+                </select>
+            </div>
+        @endif
 
         <!-- Filtro por período -->
         <div>
@@ -143,7 +155,11 @@
                                     <div class="space-y-2">
                                         <div class="text-sm text-gray-600">
                                             <span class="font-medium text-gray-900">Comarca:</span>
-                                            {{ $plantao->municipio->nome }}
+                                            @if ($plantao->municipio)
+                                                {{ $plantao->municipio->nome }}
+                                            @else
+                                                Entrância Inicial - Núcleo {{ $plantao->nucleo ?? 'N/A' }}
+                                            @endif
                                         </div>
                                         <div class="text-sm text-gray-600">
                                             <span class="font-medium text-gray-900">Período:</span>
@@ -354,23 +370,43 @@
                                                 @enderror
                                             </div>
 
+                                            <!-- Seleção de Entrância -->
                                             <div>
-                                                <label for="municipio_id"
+                                                <label for="entrancia_selecionada"
                                                     class="block text-sm font-medium text-gray-700 mb-1">
-                                                    Comarca <span class="text-red-500">*</span>
+                                                    Entrância <span class="text-red-500">*</span>
                                                 </label>
-                                                <select wire:model="municipio_id" id="municipio_id"
-                                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('municipio_id') border-red-300 @enderror">
-                                                    <option value="">Selecione uma comarca</option>
-                                                    @foreach ($this->municipios as $municipio)
-                                                        <option value="{{ $municipio->id }}">{{ $municipio->nome }}
-                                                        </option>
-                                                    @endforeach
+                                                <select wire:model="entranciaSelecionada" id="entrancia_selecionada"
+                                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('entranciaSelecionada') border-red-300 @enderror">
+                                                    <option value="">Selecione uma entrância</option>
+                                                    <option value="final_macapa">Entrância Final - Macapá</option>
+                                                    <option value="final_santana">Entrância Final - Santana</option>
+                                                    <option value="inicial">Entrância Inicial</option>
                                                 </select>
-                                                @error('municipio_id')
+                                                @error('entranciaSelecionada')
                                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                                 @enderror
                                             </div>
+
+                                            <!-- Seleção de Núcleo (apenas se entrância inicial) -->
+                                            @if ($entranciaSelecionada === 'inicial')
+                                                <div>
+                                                    <label for="nucleo_selecionado"
+                                                        class="block text-sm font-medium text-gray-700 mb-1">
+                                                        Núcleo <span class="text-red-500">*</span>
+                                                    </label>
+                                                    <select wire:model="nucleoSelecionado" id="nucleo_selecionado"
+                                                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('nucleoSelecionado') border-red-300 @enderror">
+                                                        <option value="">Selecione um núcleo</option>
+                                                        <option value="1">1º Núcleo (Laranjal do Jari, Vitória do Jari, Mazagão)</option>
+                                                        <option value="2">2º Núcleo (Oiapoque, Calçoene, Amapá)</option>
+                                                        <option value="3">3º Núcleo (Tartarugalzinho, Ferreira Gomes, Porto Grande, Pedra Branca do Amapari)</option>
+                                                    </select>
+                                                    @error('nucleoSelecionado')
+                                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                            @endif
 
                                             <div>
                                                 <label for="nome"

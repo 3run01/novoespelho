@@ -227,6 +227,116 @@
             color: #6b7280;
             margin-top: 5px;
         }
+
+        /* Estilos para seção de promotores substitutos */
+        .substitutos-section {
+            margin-top: 40px;
+            page-break-before: always;
+        }
+
+        .substitutos-header {
+            background-color: #1f2937;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .substitutos-header h2 {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .substitutos-subtitulo {
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        .substitutos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 11px;
+        }
+
+        .substitutos-table th {
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+            color: #374151;
+            text-transform: uppercase;
+        }
+
+        .substitutos-table td {
+            border: 1px solid #d1d5db;
+            padding: 10px;
+            vertical-align: top;
+        }
+
+        .substituto-nome {
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 3px;
+        }
+
+        .substituto-cargos {
+            font-size: 10px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .substituto-tipo {
+            font-size: 9px;
+            color: #dc2626;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .evento-substituto-titulo {
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 3px;
+        }
+
+        .evento-substituto-info {
+            color: #374151;
+            margin-bottom: 3px;
+        }
+
+        .evento-substituto-promotoria {
+            color: #6b7280;
+            font-size: 10px;
+            margin-bottom: 3px;
+        }
+
+        .evento-substituto-datas {
+            color: #dc2626;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .evento-manual {
+            background-color: #fef3c7;
+            border-left: 3px solid #f59e0b;
+        }
+
+        .evento-automatico {
+            background-color: #f0f9ff;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .sem-designacoes {
+            text-align: center;
+            color: #9ca3af;
+            font-style: italic;
+            padding: 20px;
+        }
+
     </style>
 </head>
 
@@ -250,6 +360,66 @@
     </div>
 
     @forelse ($promotoriasPorMunicipio as $nomeMunicipio => $promotoriasPorGrupo)
+        <!-- Plantões de Urgência do Município (se houver) -->
+        @if(isset($plantoesPorMunicipio[$nomeMunicipio]) && $plantoesPorMunicipio[$nomeMunicipio]->count() > 0)
+            <div class="municipio-section">
+                <div class="municipio-header">
+                    <h2>Plantões de Urgência - {{ $nomeMunicipio }}</h2>
+                </div>
+
+                <table class="promotoria-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Plantão</th>
+                            <th style="width: 40%;">Promotores Designados</th>
+                            <th style="width: 35%;">Período / Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($plantoesPorMunicipio[$nomeMunicipio] as $plantao)
+                            <tr>
+                                <td>
+                                    <div class="promotoria-nome">{{ $plantao->nome ?? 'Plantão de Urgência' }}</div>
+                                </td>
+                                <td>
+                                    @if($plantao->promotores->count() > 0)
+                                        @foreach($plantao->promotores as $promotor)
+                                            <div class="evento-info" style="margin-bottom: 5px;">
+                                                <div class="promotor-nome">{{ $promotor->nome }}</div>
+                                                <div class="evento-info">
+                                                    ({{ ucfirst($promotor->pivot->tipo_designacao) }})
+                                                    @if($promotor->pivot->data_inicio_designacao && $promotor->pivot->data_fim_designacao)
+                                                        - {{ \Carbon\Carbon::parse($promotor->pivot->data_inicio_designacao)->format('d/m/Y') }}
+                                                        até {{ \Carbon\Carbon::parse($promotor->pivot->data_fim_designacao)->format('d/m/Y') }}
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="sem-eventos">Nenhum promotor designado</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($plantao->periodo)
+                                        <div class="evento-info data-info">
+                                            <strong>Período:</strong>
+                                            {{ $plantao->periodo->periodo_inicio->format('d/m/Y') }}
+                                            - {{ $plantao->periodo->periodo_fim->format('d/m/Y') }}
+                                        </div>
+                                    @endif
+                                    @if($plantao->observacoes)
+                                        <div class="evento-info">
+                                            <strong>Obs:</strong> {{ $plantao->observacoes }}
+                                        </div>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+
         @foreach ($promotoriasPorGrupo as $nomeGrupo => $promotoriasDoGrupo)
             <div class="grupo-section">
                 <div class="grupo-header">
@@ -445,6 +615,100 @@
             <p>Verifique os filtros aplicados</p>
         </div>
     @endforelse
+
+    <!-- Seção de Promotores Substitutos -->
+    @if(isset($promotoresSubstitutos) && $promotoresSubstitutos->isNotEmpty())
+        <div class="substitutos-section">
+            <div class="substitutos-header">
+                <h2>Promotores Substitutos</h2>
+                <div class="substitutos-subtitulo">
+                    Designações para o período: {{ $periodo->periodo_inicio->format('d/m/Y') }} a {{ $periodo->periodo_fim->format('d/m/Y') }}
+                </div>
+            </div>
+
+            <table class="substitutos-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Promotor</th>
+                        <th style="width: 75%;">Designações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($promotoresSubstitutos as $promotor)
+                        <tr>
+                            <td>
+                                <div class="substituto-nome">{{ $promotor['promotor_nome'] }}</div>
+                                @if($promotor['promotor_cargos'] !== 'N/A')
+                                    <div class="substituto-cargos">{{ $promotor['promotor_cargos'] }}</div>
+                                @endif
+                                <div class="substituto-tipo">{{ ucfirst($promotor['promotor_tipo']) }}</div>
+                            </td>
+                            <td>
+                                @if($promotor['total_eventos'] > 0)
+                                    @foreach($promotor['eventos'] as $evento)
+                                        <div class="evento-substituto-info {{ $evento['is_manual'] ? 'evento-manual' : 'evento-automatico' }}">
+                                            @if($evento['evento_titulo'])
+                                                <div class="evento-substituto-titulo">{{ $evento['evento_titulo'] }}</div>
+                                            @endif
+                                            
+                                            <div class="evento-substituto-promotoria">
+                                                <strong>Promotoria:</strong> {{ $evento['promotoria_nome'] }}
+                                            </div>
+                                            
+                                            @if($evento['tipo_designacao'] && $evento['tipo_designacao'] !== 'substituto')
+                                                <div class="evento-substituto-info">
+                                                    <strong>Tipo:</strong> {{ ucfirst($evento['tipo_designacao']) }}
+                                                </div>
+                                            @endif
+                                            
+                                            @if($evento['data_inicio'] || $evento['data_fim'])
+                                                <div class="evento-substituto-datas">
+                                                    <strong>Período:</strong>
+                                                    @if($evento['data_inicio'])
+                                                        {{ $evento['data_inicio'] }}
+                                                    @endif
+                                                    @if($evento['data_inicio'] && $evento['data_fim'])
+                                                        —
+                                                    @endif
+                                                    @if($evento['data_fim'])
+                                                        {{ $evento['data_fim'] }}
+                                                    @endif
+                                                </div>
+                                            @endif
+                                            
+                                            @if($evento['observacoes'])
+                                                <div class="evento-substituto-info">
+                                                    <strong>Observações:</strong> {{ $evento['observacoes'] }}
+                                                </div>
+                                            @endif
+                                            
+                                            @if($evento['is_urgente'])
+                                                <div class="evento-substituto-info" style="color: #dc2626; font-weight: bold;">
+                                                    ⚠️ URGENTE
+                                                </div>
+                                            @endif
+                                            
+                                            <div class="evento-substituto-info" style="font-size: 9px; color: #6b7280; margin-top: 3px;">
+                                                {{ $evento['is_manual'] ? 'Designação Manual' : 'Designação Automática' }}
+                                            </div>
+                                        </div>
+                                        
+                                        @if(!$loop->last)
+                                            <hr style="margin: 8px 0; border: none; border-top: 1px solid #e5e7eb;">
+                                        @endif
+                                    @endforeach
+                                @else
+                                    <div class="sem-designacoes">
+                                        Nenhuma designação para este período
+                                    </div>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
 
     <div class="footer">
         <p>Documento gerado automaticamente pelo sistema de gestão de espelhos</p>

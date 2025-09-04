@@ -16,7 +16,7 @@ class PromotorSeeder extends Seeder
         // Promotores Titulares
         $promotoresTitulares = [
             // Macapá - Cíveis
-            ['nome' => 'Dr. Magno Fernando Carbonaro Souza', 'tipo' => 'titular', 'is_substituto' => false],
+            ['nome' => 'Dr. Magno Fernando Carbonaro Souza', 'tipo' => 'substituto', 'is_substituto' => true],
             ['nome' => 'Dra. Eliana Mena Cavalcante', 'tipo' => 'titular', 'is_substituto' => false],
             
             // Macapá - Família
