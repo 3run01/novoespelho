@@ -35,7 +35,6 @@
                     </select>
                 </div>
 
-                <!-- Campo de Busca -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
                     <input type="text" wire:model.live.debounce.300ms="termoBusca"
@@ -43,7 +42,6 @@
                         class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
 
-                <!-- Info do Período Selecionado -->
                 <div>
                     @if ($this->periodoSelecionado)
                         <label class="block text-sm font-medium text-gray-700 mb-2">Período Selecionado</label>

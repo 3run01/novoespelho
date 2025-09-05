@@ -85,7 +85,6 @@
                         return 1;
                     }
 
-                    // Demais municípios em ordem alfabética
                     return strcasecmp($a, $b);
                 });
             @endphp
@@ -96,7 +95,7 @@
                 @endphp
                 <div class="bg-gray-100 px-6 py-4 border-b border-gray-200">
                     <h3 class="text-lg font-bold text-gray-800 uppercase tracking-wide">
-                        Município: {{ $nomeMunicipio }}
+                        {{ $nomeMunicipio }}
                     </h3>
                 </div>
 
@@ -170,7 +169,7 @@
                 @foreach ($promotoriasPorGrupo as $nomeGrupo => $promotoriasDoGrupo)
                     <div class="bg-gray-50 px-6 py-3 border-b border-gray-200">
                         <h4 class="text-base font-semibold text-gray-700 uppercase tracking-wide">
-                            Grupo de Promotorias: {{ $nomeGrupo }}
+                            {{ $nomeGrupo }}
                         </h4>
                     </div>
 
@@ -209,7 +208,6 @@
                                                             {{ $promotoria->nome }}
                                                         </h3>
                                                         <p class="text-sm text-gray-600">
-                                                            Município:
                                                             {{ optional(optional($promotoria->grupoPromotoria)->municipio)->nome ?? '—' }}
                                                         </p>
 
@@ -435,7 +433,7 @@
                                                 <h3 class="text-lg font-semibold text-gray-900 mb-2">
                                                     {{ $promotoria->nome }}</h3>
                                                 <p class="text-sm text-gray-600">
-                                                    Município:
+
                                                     {{ optional(optional($promotoria->grupoPromotoria)->municipio)->nome ?? '—' }}
                                                 </p>
                                                 <span
@@ -508,13 +506,13 @@
                 </div>
             @endforelse
         </div>
-    
 
-        
+
+
     </div>
 
 
-    <livewire:promotor-eventos/>
+    <livewire:promotor-eventos />
 
 
     @if ($this->mostrarModal)

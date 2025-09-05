@@ -319,15 +319,9 @@
             font-size: 10px;
         }
 
-        .evento-manual {
-            background-color: #fef3c7;
-            border-left: 3px solid #f59e0b;
-        }
+        .evento-manual {}
 
-        .evento-automatico {
-            background-color: #f0f9ff;
-            border-left: 3px solid #3b82f6;
-        }
+        .evento-automatico {}
 
         .sem-designacoes {
             text-align: center;

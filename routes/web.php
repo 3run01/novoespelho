@@ -16,18 +16,13 @@ use App\Livewire\GrupoPromotores;
 use App\Livewire\Promotorias;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\EspelhoPdfController;
-
+use App\Http\Controllers\EspelhoPublicadoController; 
 
 use App\Livewire\HistoricoDosEspelhos;
 
-
-
-
-Route::get('/', function (){
+Route::fallback(function () {
     return redirect('/gestao-espelho');
 });
-
-
 
 Route::get('/gestao-espelho', Main::class)->name('gestao-espelho');
 
@@ -45,7 +40,6 @@ Route::get('/espelho', EspelhoPage::class)->name('espelho');
 
 
 
-
 Route::prefix('espelho')->group(function () {
     Route::get('/pdf/completo', [EspelhoPdfController::class, 'gerarEspelhoCompleto'])->name('espelho.pdf.completo');
     Route::get('/pdf/municipio/{municipioId}', [EspelhoPdfController::class, 'gerarEspelhoPorMunicipio'])->name('espelho.pdf.municipio');
@@ -53,9 +47,5 @@ Route::prefix('espelho')->group(function () {
     Route::get('/pdf/{espelho}', [EspelhoPdfController::class, 'gerarEspelhoIndividual'])->name('espelho.pdf');
 });
 
-
-
-
-Route::fallback( function (){
-    return redirect('/gestao-espelho');
-});
+//api
+Route::get('/espelho/publicado', [App\Http\Controllers\EspelhoPublicadoController::class, 'index']);
