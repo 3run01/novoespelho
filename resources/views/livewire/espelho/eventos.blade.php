@@ -1,4 +1,5 @@
 <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
+<div>
     <div class="mb-6 sm:mb-8">
         <div class="min-w-0 flex-1">
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Gestão de Eventos</h1>
@@ -723,5 +724,5 @@
     @endif
 
 
-
+                                                                    </div>
 </div>
