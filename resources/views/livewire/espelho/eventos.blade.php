@@ -1,5 +1,4 @@
 <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
-<div>
     <div class="mb-6 sm:mb-8">
         <div class="min-w-0 flex-1">
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Gestão de Eventos</h1>
@@ -409,6 +408,17 @@
                                                             </svg>
                                                             Editar
                                                         </button>
+                                                        <button wire:click="$dispatch('abrir-ediario', { eventoId: {{ $evento->id }} })"
+                                                            class="inline-flex items-center px-3 py-2 text-sm font-medium text-green-700 bg-white border border-green-300 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
+                                                            <svg class="w-4 h-4 mr-1.5" fill="none"
+                                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                                </path>
+                                                            </svg>
+                                                            Gerar Portaria
+                                                        </button>
                                                         <button
                                                             onclick="if(!confirm('Tem certeza que deseja deletar este evento? Esta ação não pode ser desfeita.')) { event.stopImmediatePropagation(); event.preventDefault(); }"
                                                             wire:click="deletar({{ $evento->id }})"
@@ -514,7 +524,7 @@
 
 
     <livewire:promotor-eventos />
-
+    <livewire:e-diario />
 
     @if ($this->mostrarModal)
         <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
@@ -722,7 +732,4 @@
             </div>
         </div>
     @endif
-
-
-                                                                    </div>
 </div>

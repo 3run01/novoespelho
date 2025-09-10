@@ -20,7 +20,8 @@ return new class extends Migration
             $table->date('periodo_inicio')->nullable();
             $table->date('periodo_fim')->nullable();
             $table->string('tipo')->default('titular');
-            $table->boolean('is_substituto')->default(false);
+            $table->string('matricula')->nullable();
+            $table->string('lotacao')->nullable();
             $table->text('observacoes')->nullable();
             $table->timestamps();
         });

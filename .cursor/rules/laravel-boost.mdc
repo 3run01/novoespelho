@@ -44,6 +44,15 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - You must only create documentation files if explicitly requested by the user.
 
 
+=== engineering principles ===
+
+## Princípios de Engenharia
+
+- YAGNI (You Aren't Gonna Need It): implemente apenas o que é necessário agora. Evite adicionar recursos, abstrações ou configurações sem uma necessidade atual comprovada.
+- KISS (Keep It Simple, Stupid): prefira soluções simples e claras. Evite complexidade acidental, fluxos muito aninhados e abstrações prematuras.
+- DRY (Don't Repeat Yourself): extraia lógica repetida para funções/métodos/componentes reutilizáveis, mantendo uma única fonte de verdade. Não duplique validações, consultas ou estilos quando puder reutilizar.
+
+
 === boost rules ===
 
 ## Laravel Boost

@@ -19,6 +19,7 @@ use App\Http\Controllers\EspelhoPdfController;
 use App\Http\Controllers\EspelhoPublicadoController; 
 
 use App\Livewire\HistoricoDosEspelhos;
+use App\Livewire\EDiario;
 
 Route::fallback(function () {
     return redirect('/gestao-espelho');
