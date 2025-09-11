@@ -95,7 +95,6 @@ class Eventos extends Component
 		
 		$this->resetarFormulario();
 		
-		// Garantir que o período mais recente está sempre selecionado
 		$this->periodo_id = $this->periodoSelecionado?->id;
 		
 		Log::info('Componente Eventos inicializado com sucesso', [
@@ -220,26 +219,21 @@ class Eventos extends Component
 	
 	public function atualizarPromotoriasListado()
 	{
-		// Buscar períodos mais recentes (em processo de publicação ou publicados)
 		$periodosRecentes = Periodo::whereIn('status', ['em_processo_publicacao', 'publicado'])
 			->orderBy('periodo_inicio', 'desc')
 			->get();
 		
-		// Se não houver períodos recentes, retornar lista vazia
 		if ($periodosRecentes->isEmpty()) {
 			$this->promotoriasListado = collect();
 			return;
 		}
 		
-		// Buscar todos os grupos de promotorias com suas promotorias
 		$gruposComPromotorias = \App\Models\GrupoPromotoria::with([
 			'promotorias.promotorTitular',
 			'municipio',
 			'promotorias.eventos' => function ($q) use ($periodosRecentes) {
 				$q->with(['designacoes.promotor'])
-				  // Filtrar apenas o período mais recente para cada promotoria
 				  ->where(function($query) use ($periodosRecentes) {
-					  // Subquery para encontrar o período mais recente para cada promotoria
 					  $query->whereIn('periodo_id', $periodosRecentes->pluck('id'))
 						  ->whereRaw('periodo_id = (
 							  SELECT periodo_id 
@@ -250,7 +244,6 @@ class Eventos extends Component
 							  LIMIT 1
 						  )');
 				  })
-				  // Filtrar apenas eventos que NÃO são eventos de substitutos
 				  ->where(function($query) {
 					  $query->whereNull('evento_do_substituto')
 							->orWhere('evento_do_substituto', false);
@@ -283,12 +276,10 @@ class Eventos extends Component
 							  LIMIT 1
 						  )');
 				  })
-				  // Filtrar apenas eventos que NÃO são de plantão de substitutos
 				  ->where(function($query) {
 					  $query->whereNull('plantao_do_substituto')
 							->orWhere('plantao_do_substituto', false);
 				  })
-				  // Filtrar apenas eventos que NÃO são eventos de substitutos
 				  ->where(function($query) {
 					  $query->whereNull('evento_do_substituto')
 							->orWhere('evento_do_substituto', false);
@@ -322,7 +313,13 @@ class Eventos extends Component
 
 		$this->promotoriasListado = $gruposComPromotorias;
 	}
-	
+
+
+
+
+  
+
+
 	public function atualizarDados()
 	{
 		$this->atualizarPromotoriasListado();
@@ -497,7 +494,6 @@ class Eventos extends Component
 		$this->mostrarModal = false;
 		$this->resetarFormulario();
 		
-		// Atualizar dados quando fecha o modal
 		$this->atualizarPromotoriasListado();
 	}
 
