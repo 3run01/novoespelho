@@ -19,6 +19,11 @@ use App\Models\ActivityLog;
 class Eventos extends Component
 {
 	use WithPagination;
+
+	/**
+	 * Cache em memória para períodos do getter durante o ciclo de renderização.
+	 */
+	protected ?\Illuminate\Support\Collection $periodosCache = null;
 	
 	#[Rule('nullable|min:3|max:200')]
 	public string $titulo = '';
@@ -172,40 +177,23 @@ class Eventos extends Component
 	
 	public function getPeriodosProperty()
 	{
+		if ($this->periodosCache !== null) {
+			return $this->periodosCache;
+		}
+
 		Log::info('Buscando períodos para o componente Eventos');
-		
-		$periodosEmProcesso = Periodo::where('status', 'em_processo_publicacao')
+
+		$periodos = Periodo::whereIn('status', ['em_processo_publicacao', 'publicado'])
 			->orderBy('periodo_inicio', 'desc')
 			->get();
-		
-		if ($periodosEmProcesso->isNotEmpty()) {
-			Log::info('Períodos em processo encontrados', [
-				'count' => $periodosEmProcesso->count(),
-				'ids' => $periodosEmProcesso->pluck('id')->toArray()
-			]);
-			return $periodosEmProcesso;
+
+		if ($periodos->isEmpty()) {
+			$periodos = Periodo::orderBy('periodo_inicio', 'desc')->get();
 		}
-		
-		$periodosPublicados = Periodo::where('status', 'publicado')
-			->orderBy('periodo_inicio', 'desc')
-			->get();
-			
-		if ($periodosPublicados->isNotEmpty()) {
-			Log::info('Períodos publicados encontrados', [
-				'count' => $periodosPublicados->count(),
-				'ids' => $periodosPublicados->pluck('id')->toArray()
-			]);
-			return $periodosPublicados;
-		}
-		
-		$todosPeriodos = Periodo::orderBy('periodo_inicio', 'desc')->get();
-		
-		Log::info('Todos os períodos encontrados', [
-			'count' => $todosPeriodos->count(),
-			'ids' => $todosPeriodos->pluck('id')->toArray()
-		]);
-		
-		return $todosPeriodos;
+
+		$this->periodosCache = $periodos;
+
+		return $this->periodosCache;
 	}
 	
 	/**
@@ -229,7 +217,9 @@ class Eventos extends Component
 		}
 		
 		$gruposComPromotorias = \App\Models\GrupoPromotoria::with([
+			// Eager loading completo para evitar re-acessos no Blade
 			'promotorias.promotorTitular',
+			'promotorias.grupoPromotoria.municipio',
 			'municipio',
 			'promotorias.eventos' => function ($q) use ($periodosRecentes) {
 				$q->with(['designacoes.promotor'])
@@ -332,6 +322,9 @@ class Eventos extends Component
 	{
 		Log::info('Recarregando períodos após mudança');
 		
+		// Invalidar cache dos períodos antes de recalcular
+		$this->periodosCache = null;
+		
 		// Recarregar o período mais recente
 		$periodoMaisRecente = $this->obterPeriodoMaisRecente();
 		
@@ -362,6 +355,7 @@ class Eventos extends Component
 	 */
 	public function atualizarPeriodos()
 	{
+		$this->periodosCache = null;
 		$this->dispatch('$refresh');
 	}
 	
@@ -428,7 +422,6 @@ class Eventos extends Component
 		// Sempre tentar selecionar o período mais recente
 		$periodoMaisRecente = $this->obterPeriodoMaisRecente();
 		
-		// Se não houver período específico, usar o período mais recente
 		if (!$evento->periodo_id) {
 			Log::info('Nenhum período específico para o evento, selecionando período mais recente', [
 				'evento_id' => $evento->id,

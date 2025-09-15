@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class PortariaPessoa extends Model
+{
+    protected $connection = 'ediario';
+    protected $table = 'portaria.portarias_pessoas';
+    protected $primaryKey = 'seq';
+    public $timestamps = false;
+    protected $fillable = [
+        'fk_portaria',
+        'fk_pessoa',
+        'periodo_ini',
+        'periodo_fim',
+         'fk_pessoa_pj',
+        'fk_pessoa_pjef',
+        'fk_pessoa_pjei',
+        'fk_pessoa_pjs',
+        'periodo_aquisitivo',
+        'categoria',
+        'ordem',
+        'data_val',
+        'alerta',
+        'enviado_alert',
+        'id_solicitacao',
+        'id_solicitacao_membro'
+
+    ];
+}

@@ -21,6 +21,9 @@
                         @if ($evento->promotoria)
                             <p class="text-sm text-blue-600 mt-1">Promotoria: {{ $evento->promotoria->nome }}</p>
                         @endif
+                        @if ($periodo_inicio || $periodo_fim)
+                            <p class="text-sm text-blue-600 mt-1">Período: {{ $periodo_inicio }} {{ $periodo_inicio && $periodo_fim ? '—' : '' }} {{ $periodo_fim }}</p>
+                        @endif
                     </div>
                 @endif
 
@@ -34,15 +37,8 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Tipo Portaria <span class="text-red-500">*</span></label>
-                            <select wire:model.defer="tipoPortaria" class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('tipoPortaria') border-red-300 @enderror">
-                                <option value="">Selecione</option>
-                                <option value="instauracao">Instauração</option>
-                                <option value="prorrogacao">Prorrogação</option>
-                                <option value="designacao">Designação</option>
-                            </select>
-                            @error('tipoPortaria')
-                                <span class="text-red-500 text-sm">{{ $message }}</span>
-                            @enderror
+                            <input type="text" value="Gabinete PGJ" disabled class="w-full rounded-lg border-gray-200 bg-gray-50 text-gray-600" />
+                            <input type="hidden" wire:model="tipoPortaria" value="3" />
                         </div>
                         
                         <div>
@@ -72,8 +68,6 @@
                                 <option value="suspensao_de_ferias">SUSPENSÃO DE FÉRIAS</option>
                                 <option value="suspensao_licenca_premio">SUSPENSÃO LICENÇA PRÊMIO</option>
                             </select>
-
-                            <p class="text-gray-700">Valor selecionado {{ $assunto }}</p>
                             @error('assunto')
                                 <span class="text-red-500 text-sm">{{ $message }}</span>
                             @enderror
@@ -81,21 +75,25 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Mês <span class="text-red-500">*</span></label>
-                            <select wire:model.defer="mes" class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('mes') border-red-300 @enderror">
-                                <option value="">Selecione</option>
-                                <option value="Janeiro">Janeiro</option>
-                                <option value="Fevereiro">Fevereiro</option>
-                                <option value="Março">Março</option>
-                                <option value="Abril">Abril</option>
-                                <option value="Maio">Maio</option>
-                                <option value="Junho">Junho</option>
-                                <option value="Julho">Julho</option>
-                                <option value="Agosto">Agosto</option>
-                                <option value="Setembro">Setembro</option>
-                                <option value="Outubro">Outubro</option>
-                                <option value="Novembro">Novembro</option>
-                                <option value="Dezembro">Dezembro</option>
-                            </select>
+                            @if ($mes)
+                                <input type="text" value="{{ $mes }}" disabled class="w-full rounded-lg border-gray-200 bg-gray-50 text-gray-600" />
+                            @else
+                                <select wire:model.defer="mes" class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('mes') border-red-300 @enderror">
+                                    <option value="">Selecione</option>
+                                    <option value="Janeiro">Janeiro</option>
+                                    <option value="Fevereiro">Fevereiro</option>
+                                    <option value="Março">Março</option>
+                                    <option value="Abril">Abril</option>
+                                    <option value="Maio">Maio</option>
+                                    <option value="Junho">Junho</option>
+                                    <option value="Julho">Julho</option>
+                                    <option value="Agosto">Agosto</option>
+                                    <option value="Setembro">Setembro</option>
+                                    <option value="Outubro">Outubro</option>
+                                    <option value="Novembro">Novembro</option>
+                                    <option value="Dezembro">Dezembro</option>
+                                </select>
+                            @endif
                             @error('mes')
                                 <span class="text-red-500 text-sm">{{ $message }}</span>
                             @enderror
@@ -111,22 +109,34 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Portaria Vinculada</label>
-                            <input type="text" wire:model.defer="portariaVinculada" class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Número/Identificador" />
+                            @if ($portariaVinculada)
+                                <input type="text" value="{{ $portariaVinculada }}" disabled class="w-full rounded-lg border-gray-200 bg-gray-50 text-gray-600" />
+                            @else
+                                <input type="text" wire:model.defer="portariaVinculada" class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Número/Identificador" />
+                            @endif
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Processo</label>
-                            <input type="text" wire:model.defer="processo" class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Número do processo" />
+                            @if ($processo)
+                                <input type="text" value="{{ $processo }}" disabled class="w-full rounded-lg border-gray-200 bg-gray-50 text-gray-600" />
+                            @else
+                                <input type="text" wire:model.defer="processo" class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Número do processo" />
+                            @endif
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
-                            <input type="text" value="SMP Administrativo" disabled class="w-full rounded-lg border-gray-200 bg-gray-50 text-gray-600" />
+                            <input type="text" value="Administrativo" disabled class="w-full rounded-lg border-gray-200 bg-gray-50 text-gray-600" />
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Data Expedição <span class="text-red-500">*</span></label>
-                            <input type="date" wire:model.defer="dataExpedicao" class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('dataExpedicao') border-red-300 @enderror" />
+                            @if ($dataExpedicao)
+                                <input type="text" value="{{ $dataExpedicao }}" disabled class="w-full rounded-lg border-gray-200 bg-gray-50 text-gray-600" />
+                            @else
+                                <input type="date" wire:model.defer="dataExpedicao" class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('dataExpedicao') border-red-300 @enderror" />
+                            @endif
                             @error('dataExpedicao')
                                 <span class="text-red-500 text-sm">{{ $message }}</span>
                             @enderror

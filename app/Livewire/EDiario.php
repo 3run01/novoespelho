@@ -7,6 +7,10 @@ use App\Models\Evento;
 use App\Models\Promotoria;
 use App\Models\Promotor;
 use App\Models\EventoPromotor;
+use App\Models\Portaria;
+use App\Models\PortariaPessoa;
+use Illuminate\Support\Str;
+
 
 class EDiario extends Component
 {
@@ -118,6 +122,42 @@ HOMOLOGAR a designação dos Promotores de Justiça desta Instituição, para, s
 atribuições, atuarem nas Promotorias de Justiça, conforme abaixo',
     ];
 
+    private array $assuntoSlugToId = [
+        'cursos_congressos_eventos_coletivo' => 181,
+        'cumulacao_coletivo' => 184,
+        'alterar_escala_de_plantao' => 3,
+        'coordenacao' => 18,
+        'cumulacao' => 20,
+        'cursos_congressos_eventos' => 21,
+        'designacao' => 23,
+        'folgas_de_plantao' => 36,
+        'ferias_regulamentares' => 38,
+        'gozo_de_ferias' => 39,
+        'justica_eleitoral' => 52,
+        'licenca_familiar' => 55,
+        'licenca_medica' => 57,
+        'licenca_por_luto' => 59,
+        'licenca_recesso' => 60,
+        'designacao_coletivo' => 189,
+        'coordenacao_coletiva' => 192,
+        'plantao_promotorias' => 200,
+        'portaria_de_teletrabalho' => 221,
+        'suspensao_de_ferias' => 96,
+        'suspensao_de_licenca_premio' => 216,
+        'suspensao_licenca_premio' => 101,
+    ];
+
+    private function getAssuntoIdFromSlug(?string $slug): ?int
+    {
+        if (!$slug) {
+            return null;
+        }
+
+        return $this->assuntoSlugToId[$slug] ?? null;
+    }
+
+
+
     //o on change tem que ser sempre o nome da funcao e da variavel q eu to usando do model.live
     public function updatedAssunto($value)
     {
@@ -147,6 +187,7 @@ atribuições, atuarem nas Promotorias de Justiça, conforme abaixo',
  
     public function abrirModal($eventoId)
     {
+        
         $this->eventoId = $eventoId;
         if($eventoId){
 
@@ -155,7 +196,7 @@ atribuições, atuarem nas Promotorias de Justiça, conforme abaixo',
         }
 
 
-        $evento = Evento::with('designacoes.promotor')->find($eventoId);
+        $evento = Evento::with(['designacoes.promotor', 'promotoria'])->find($eventoId);
         
         if (!$evento) {
             session()->flash('erro', 'Evento não encontrado.');
@@ -167,6 +208,7 @@ atribuições, atuarem nas Promotorias de Justiça, conforme abaixo',
         $this->periodo_inicio = $evento->periodo_inicio ? $evento->periodo_inicio->format('Y-m-d') : '';
         $this->periodo_fim = $evento->periodo_fim ? $evento->periodo_fim->format('Y-m-d') : '';
         $this->promotoria_id = $evento->promotoria_id;
+        $this->evento = $evento;
 
 
         $this->promotoresDesignacoes = $evento->designacoes->map(function ($designacao) {
@@ -209,10 +251,10 @@ atribuições, atuarem nas Promotorias de Justiça, conforme abaixo',
 
     public function resetForm()
     {
-        $this->tipoPortaria = '';
+        $this->tipoPortaria = '3';
         $this->assunto = '';
         $this->mes = '';
-        $this->anoPortaria = '';
+        $this->anoPortaria = date('Y');
         $this->portariaVinculada = '';
         $this->processo = '';
         $this->dataExpedicao = '';
@@ -225,12 +267,72 @@ atribuições, atuarem nas Promotorias de Justiça, conforme abaixo',
     {
         $this->validate();
 
-        // Aqui você pode implementar a lógica de geração da portaria
-        // Por exemplo, gerar PDF, enviar email, etc.
+
+        $numeroSequencial = 1;
+        $string = $this->descricao;
+        $matriculaCorregedoria = 20609; // essa matricula vai ser do  usuario que gera a portaria
+
+
+        $novaPortaria = Portaria::create([
+            'fk_tipo_port' => 3,
+            'fk_assunto' => $this->getAssuntoIdFromSlug($this->assunto),
+            'fk_status' => 1,
+            'fk_signatario' => 92,
+            'num_seq' => $numeroSequencial,
+            'ano' => $this->anoPortaria ?: date('Y'),
+            'data_publicacao' => $this->dataExpedicao ?: date('Y-m-d'),
+            'texto_portaria' => $string,
+            'id_categoria' => 1,
+            'conteudo_temp' => '',
+            'mes' => $this->mes ?: date('m'),
+            'criado_por' => $matriculaCorregedoria,
+        ]);
+
+
+        foreach ($solicitacoes as $solicitacao) {
+            // Calcular data fim baseada nos dias solicitados
+            $diasSolicitados = $solicitacao->dias_solicitados ?? 1;
+            $dataInicio = $solicitacao->data_inicio;
+            $dataFim = $dataInicio->copy()->addDays($diasSolicitados - 1); 
+            
+            PortariaPessoa::create([
+                'fk_portaria' => $novaPortaria->id,
+                'fk_pessoa' => $solicitacao->matricula_membro,
+                'ordem' => $ordem,
+                'periodo_ini' => $dataInicio->format('Y-m-d'),
+                'periodo_fim' => $dataFim->format('Y-m-d'),
+                'periodo_aquisitivo' => $solicitacao->solicitacaoMembro->periodo ?: '',
+                'id_solicitacao_membro' => $solicitacao->solicitacao_membro_id
+            ]);
+            $ordem++;
+        }
+
+        /**
+         * 
+         * recesso coletivo servidor - verificar depois
+         */
+
+
+        dd([
+            'id' => $novaPortaria->getKey(),
+            'attributes' => $novaPortaria->getAttributes(),
+            'toArray' => $novaPortaria->toArray(),
+            'original' => $novaPortaria->getOriginal(),
+        ]);
+
+      
         
         session()->flash('mensagem', 'Portaria gerada com sucesso!');
         $this->fecharModal();
     }
+
+
+
+    /**
+     * 
+     * select "p"."id" as "id", "p"."num_seq" as "num_seq", "t"."nome" as "tipo", "a"."nome_assunto" as "assunto", "p"."numero" as "numero", "p"."ano" as "ano", "p"."processo" as "processo", "p"."texto_portaria" as "descricao", "p"."data_publicacao" as "data_publicacao", "p"."fk_status" as "status", "p"."data_criacao" as "data_criacao", "s"."descricao" as "status", "s"."id_status" as "id_status" from "portaria"."portarias" as "p" left join "portaria"."assunto_portaria" as "a" on "a"."id_assunto" = "p"."fk_assunto" left join "portaria"."tipo_portaria" as "t" on "t"."id_tipo_portaria" = "p"."fk_tipo_port" left join "portaria"."status_portaria" as "s" on "s"."id_status" = "p"."fk_status" where "p"."fk_status" in (2, 3) order by "p"."id" desc
+     */
+
 
     public function render()
     {

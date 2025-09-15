@@ -82,6 +82,22 @@ return [
             ]) : [],
         ],
 
+
+        'ediario' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL_EDIARIO'),
+            'host' => env('DB_HOST_EDIARIO', ''),
+            'port' => env('DB_PORT_EDIARIO', ''),
+            'database' => env('DB_DATABASE_EDIARIO', ''),
+            'username' => env('DB_USERNAME_EDIARIO', ''),
+            'password' => env('DB_PASSWORD_EDIARIO', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
