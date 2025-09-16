@@ -107,14 +107,8 @@
                             @enderror
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Portaria Vinculada</label>
-                            @if ($portariaVinculada)
-                                <input type="text" value="{{ $portariaVinculada }}" disabled class="w-full rounded-lg border-gray-200 bg-gray-50 text-gray-600" />
-                            @else
-                                <input type="text" wire:model.defer="portariaVinculada" class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Número/Identificador" />
-                            @endif
-                        </div>
+                        
+                       
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Processo</label>

@@ -268,8 +268,8 @@ atribuições, atuarem nas Promotorias de Justiça, conforme abaixo',
         $this->validate();
 
 
-        $numeroSequencial = 1;
-        $string = $this->descricao;
+        $numeroSequencial  = null;
+        
         $matriculaCorregedoria = 20609; // essa matricula vai ser do  usuario que gera a portaria
 
 
@@ -279,16 +279,20 @@ atribuições, atuarem nas Promotorias de Justiça, conforme abaixo',
             'fk_status' => 1,
             'fk_signatario' => 92,
             'num_seq' => $numeroSequencial,
+            'processo' => $this->processo,
             'ano' => $this->anoPortaria ?: date('Y'),
             'data_publicacao' => $this->dataExpedicao ?: date('Y-m-d'),
-            'texto_portaria' => $string,
+            'texto_portaria' => $this->descricao,
             'id_categoria' => 1,
-            'conteudo_temp' => '',
+            'conteudo_temp' =>  '',
             'mes' => $this->mes ?: date('m'),
             'criado_por' => $matriculaCorregedoria,
         ]);
 
+        
 
+
+     /*
         foreach ($solicitacoes as $solicitacao) {
             // Calcular data fim baseada nos dias solicitados
             $diasSolicitados = $solicitacao->dias_solicitados ?? 1;
@@ -305,7 +309,9 @@ atribuições, atuarem nas Promotorias de Justiça, conforme abaixo',
                 'id_solicitacao_membro' => $solicitacao->solicitacao_membro_id
             ]);
             $ordem++;
-        }
+        }  
+            
+        */
 
         /**
          * 

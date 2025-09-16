@@ -40,6 +40,11 @@ Route::get('historico-do-espelho', HistoricoDosEspelhos::class)->name('historico
 Route::get('/espelho', EspelhoPage::class)->name('espelho');
 
 
+Route::get('/editor', function () {
+    return view('components.editor.editor');
+});
+
+
 
 Route::prefix('espelho')->group(function () {
     Route::get('/pdf/completo', [EspelhoPdfController::class, 'gerarEspelhoCompleto'])->name('espelho.pdf.completo');
