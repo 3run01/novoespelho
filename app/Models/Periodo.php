@@ -25,7 +25,6 @@ class Periodo extends Model
     {
         parent::boot();
         
-        // Quando um período é criado, ele sempre inicia como "em_processo_publicacao"
         static::creating(function ($periodo) {
             $periodo->status = 'em_processo_publicacao';
         });
