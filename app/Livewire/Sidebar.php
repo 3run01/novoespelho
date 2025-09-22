@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use App\Livewire\Login;
+use Illuminate\Support\Facades\Auth;
 
 class Sidebar extends Component
 {
@@ -29,6 +31,12 @@ class Sidebar extends Component
     public function resetSidebarState()
     {
         $this->sidebarCollapsed = false;
+    }
+
+
+    public function testeSimples()
+    {
+        dd('Método testeSimples funcionando!');
     }
 
     public function render()

@@ -31,7 +31,7 @@
     </div>
 
     @livewireScripts
-    
+
     <script>
         // Suprimir erro específico do toJSON que não afeta funcionalidade
         window.addEventListener('livewire:init', () => {
@@ -39,8 +39,8 @@
             Livewire.hook('request', ({ fail }) => {
                 fail((status, response) => {
                     // Se for erro 500 com toJSON, tratar como sucesso
-                    if (status === 500 && response && response.message && 
-                        response.message.includes('toJSON') && 
+                    if (status === 500 && response && response.message &&
+                        response.message.includes('toJSON') &&
                         response.message.includes('not found')) {
                         console.warn('Livewire: Método toJSON não encontrado (ignorado)');
                         // Retornar uma resposta de sucesso vazia
@@ -49,7 +49,7 @@
                 });
             });
         });
-        
+
         // Interceptar erros de resposta do servidor
         document.addEventListener('DOMContentLoaded', function() {
             // Interceptar fetch requests

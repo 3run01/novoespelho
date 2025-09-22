@@ -30,6 +30,20 @@
                     </div>
                 </div>
             </div>
+            <div class="flex items-center space-x-2">
+                <!-- Botão de Teste -->
+                <button wire:click="testeSimples"
+                    class="p-2 rounded-full text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 transition-all duration-200"
+                    title="Teste">
+                    Teste
+                </button>
+
+                <button wire:click="logoutFromSidebar"
+                    class="p-2 rounded-full text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500 transition-all duration-200"
+                    title="Sair">
+                    sair
+                </button>
+            </div>
         </div>
     </nav>
 
@@ -61,11 +75,8 @@
 
             <nav
                 class="flex-1 px-2 py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-track-blue-100 scrollbar-thumb-blue-300">
+                <!-- Links com padrão unificado -->
                 <a href="{{ route('gestao-espelho') }}"
-                    x-on:click.prevent="
-                       $wire.preventSidebarCollapse();
-                       window.location.href = '{{ route('gestao-espelho') }}'
-                   "
                     class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('gestao-espelho') ? 'bg-blue-100 text-blue-800 border-r-2 border-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-900 hover:translate-x-1' }}">
                     <svg class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110" fill="none"
                         stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -78,10 +89,8 @@
                     </span>
                 </a>
 
-
-                <div x-data="{
-                    open: {{ request()->routeIs('municipios', 'grupo-promotores', 'promotorias', 'promotores') ? 'true' : 'false' }}
-                }" class="space-y-1">
+                <!-- Collapse com padrão unificado -->
+                <div x-data="{ open: {{ request()->routeIs('gestao-espelho', 'municipios', 'grupo-promotores', 'promotorias', 'promotores') ? 'true' : 'false' }} }">
                     <button @click="open = !open"
                         class="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 group">
                         <div class="flex items-center">
@@ -111,89 +120,33 @@
                         x-transition:leave-start="opacity-100 transform translate-y-0"
                         x-transition:leave-end="opacity-0 transform -translate-y-2" class="space-y-1 ml-6">
 
+                        <a href="{{ route('gestao-espelho') }}" @click="sidebarOpen = false"
+                            class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg transition-all duration-200 group {{ request()->routeIs('gestao-espelho') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : 'hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1' }}">
+                            Gestão Espelho
+                        </a>
+
                         <a href="{{ route('comarca') }}" @click="sidebarOpen = false"
-                            class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg transition-all duration-200 group {{ request()->routeIs('comarca') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : 'hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1' }}">
-                            <svg class="w-4 h-4 mr-3 transition-transform group-hover:scale-110" fill="none"
-                                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path d="M12 21s-6-5.686-6-10A6 6 0 0 1 18 11c0 4.314-6 10-6 10z" />
-                                <circle cx="12" cy="11" r="2.5" />
-                            </svg>
-                            <span class="transition-opacity group-hover:opacity-80"
-                                :class="{ 'lg:hidden': sidebarCollapsed }">
-                                Comarcas
-                            </span>
+                            class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg transition-all duration-200 group {{ request()->routeIs('municipios') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : 'hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1' }}">
+                            Municípios
                         </a>
 
                         <a href="{{ route('grupo-promotores') }}" @click="sidebarOpen = false"
                             class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg transition-all duration-200 group {{ request()->routeIs('grupo-promotores') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : 'hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1' }}">
-                            <svg class="w-4 h-4 mr-3 transition-transform group-hover:scale-110" fill="none"
-                                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <circle cx="7" cy="10" r="3" />
-                                <circle cx="17" cy="10" r="3" />
-                                <path d="M2 20c0-2.5 3-4.5 5-4.5s5 2 5 4.5" />
-                                <path d="M12 20c0-2.5 3-4.5 5-4.5s5 2 5 4.5" />
-                            </svg>
-                            <span class="transition-opacity group-hover:opacity-80"
-                                :class="{ 'lg:hidden': sidebarCollapsed }">
-                                Grupos de Promotorias
-                            </span>
+                            Grupos de Promotorias
                         </a>
 
                         <a href="{{ route('promotorias') }}" @click="sidebarOpen = false"
                             class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg transition-all duration-200 group {{ request()->routeIs('promotorias') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : 'hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1' }}">
-                            <svg class="w-4 h-4 mr-3 transition-transform group-hover:scale-110" fill="none"
-                                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <rect x="3" y="10" width="18" height="8" rx="2" />
-                                <path d="M7 10V6a5 5 0 0 1 10 0v4" />
-                            </svg>
-                            <span class="transition-opacity group-hover:opacity-80"
-                                :class="{ 'lg:hidden': sidebarCollapsed }">
-                                Promotorias
-                            </span>
+                            Promotorias
                         </a>
 
                         <a href="{{ route('promotores') }}" @click="sidebarOpen = false"
                             class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg transition-all duration-200 group {{ request()->routeIs('promotores') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : 'hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1' }}">
-                            <svg class="w-4 h-4 mr-3 transition-transform group-hover:scale-110" fill="none"
-                                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <circle cx="12" cy="8" r="4" />
-                                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-                            </svg>
-                            <span class="transition-opacity group-hover:opacity-80"
-                                :class="{ 'lg:hidden': sidebarCollapsed }">
-                                Promotores
-                            </span>
+                            Promotores
                         </a>
                     </div>
                 </div>
-
-
-                <a href="{{ route('historico-do-espelho') }}"
-                    x-on:click.prevent="
-                       $wire.preventSidebarCollapse();
-                       window.location.href = '{{ route('historico-do-espelho') }}'
-                   "
-                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('historico-do-espelho') ? 'bg-blue-100 text-blue-800 border-r-2 border-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-900 hover:translate-x-1' }}">
-                    <svg class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110" fill="none"
-                        stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <rect x="3" y="5" width="18" height="14" rx="2" class="fill-blue-100/30" />
-                        <path d="M3 7h18M7 3v4M17 3v4" stroke-linecap="round" />
-                    </svg>
-                    <span class="ml-3 transition-opacity group-hover:opacity-80"
-                        :class="{ 'lg:hidden': sidebarCollapsed }">
-                        Histórico dos Períodos
-                    </span>
-                </a>
-
-        
             </nav>
-
-            <div class="px-4 py-4 border-t border-gray-200 mt-auto bg-blue-50">
-                <p class="text-xs text-gray-600 text-center font-medium transition-opacity"
-                    :class="{ 'lg:hidden': sidebarCollapsed, 'opacity-50': sidebarCollapsed }">
-                    Powered by DSIS
-                </p>
-            </div>
         </div>
     </aside>
 </div>

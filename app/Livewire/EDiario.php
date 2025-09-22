@@ -19,7 +19,7 @@ class EDiario extends Component
     public $mostrarModal = false;
     public $eventoId = null;
     public $evento = null;
-    
+
     // Propriedades do formulário
     public $tipoPortaria = '';
     public $assunto = '';
@@ -40,7 +40,7 @@ class EDiario extends Component
     public $promotoresDesignacoes = '';
 
 
-    
+
 
 
     public $promotor_selecionado_global_nome = '';
@@ -61,7 +61,7 @@ class EDiario extends Component
         $this->promotor_selecionado_global_matricula = '';
         $this->promotor_selecionado_global_periodo_inicio = '';
         $this->promotor_selecionado_global_periodo_fim = '';
-    
+
         $this->promotor_selecionado_global_id = '';
         $this->promotor_selecionado_global_designacao_id = '';
     }
@@ -69,7 +69,7 @@ class EDiario extends Component
 
     public function abrirModal($eventoId)
     {
-        
+
         $this->eventoId = $eventoId;
         if($eventoId){
 
@@ -89,14 +89,14 @@ class EDiario extends Component
             $this->promotor_selecionado_global_nome = $promotor_selecionado->promotor->nome;
             $this->promotor_selecionado_global_acao = $promotor_selecionado->tipo;
             $this->promotor_selecionado_global_periodo_inicio = $promotor_selecionado->data_inicio_designacao;
-            $this->promotor_selecionado_global_periodo_fim = $promotor_selecionado->data_fim_designacao; 
+            $this->promotor_selecionado_global_periodo_fim = $promotor_selecionado->data_fim_designacao;
         }
-        
+
         if (!$evento) {
             session()->flash('erro', 'Evento não encontrado.');
             return;
         }
-        
+
         $this->titulo = $evento->titulo ?? '';
         $this->tipo = $evento->tipo ?? '';
         $this->periodo_inicio = $evento->periodo_inicio ? $evento->periodo_inicio->format('Y-m-d') : '';
@@ -105,7 +105,7 @@ class EDiario extends Component
         $this->evento = $evento;
 
 
-       
+
 
 
         $this->mostrarModal = true;
@@ -118,7 +118,7 @@ class EDiario extends Component
             [$this->promotor_selecionado_global_nome, $this->promotor_selecionado_global_acao, $this->promotor_selecionado_global_matricula,
             $this->promotor_selecionado_global_periodo_inicio,
             $this->promotor_selecionado_global_periodo_fim
-        
+
             ],
             $this->templates_assuntos[$assunto] ?? ''
         );
@@ -132,7 +132,7 @@ class EDiario extends Component
     }
 
 
-    
+
 
 
     public $templates_assuntos = [
@@ -140,7 +140,7 @@ class EDiario extends Component
              HOMOLOGAR a designação dos Promotores de Justiça do Ministério Público do Estado do
              Amapá, para, sem prejuízo das atribuições, responderem pelas Coordenadorias das Promotorias de
             Justiça, conforme abaixo {promotor_nome} - {promotor_acao}",
-            
+
             "coordenacao" => "CONSIDERANDO a solicitação constante nos autos do Procedimento de Gestão Administrativa [PROCESSO];
             RESOLVE:
                     DESIGNAR o {promotor_nome},  {promotor_cargos}, para sem prejuízo das atribuições, responder pela Coordenadoria das Promotoria de Justiças, no período de  {data_inicio} a  {data_fim}, em razão do afastamento do(a) titular, conforme Portaria [PORTARIA_VINCULO].",
@@ -256,7 +256,7 @@ class EDiario extends Component
 
 
 
-   
+
 
 
 
@@ -280,8 +280,8 @@ class EDiario extends Component
         $this->resetForm();
     }
 
- 
-    
+
+
 
 
 
@@ -315,7 +315,7 @@ class EDiario extends Component
 
 
         $numeroSequencial  = null;
-        
+
         $matriculaCorregedoria = 20609; // essa matricula vai ser do  usuario que gera a portaria
 
 
@@ -335,7 +335,7 @@ class EDiario extends Component
             'criado_por' => $matriculaCorregedoria,
         ]);
 
-        
+
 
 
      /*
@@ -343,8 +343,8 @@ class EDiario extends Component
             // Calcular data fim baseada nos dias solicitados
             $diasSolicitados = $solicitacao->dias_solicitados ?? 1;
             $dataInicio = $solicitacao->data_inicio;
-            $dataFim = $dataInicio->copy()->addDays($diasSolicitados - 1); 
-            
+            $dataFim = $dataInicio->copy()->addDays($diasSolicitados - 1);
+
             PortariaPessoa::create([
                 'fk_portaria' => $novaPortaria->id,
                 'fk_pessoa' => $solicitacao->matricula_membro,
@@ -352,15 +352,16 @@ class EDiario extends Component
                 'periodo_ini' => $dataInicio->format('Y-m-d'),
                 'periodo_fim' => $dataFim->format('Y-m-d'),
                 'periodo_aquisitivo' => $solicitacao->solicitacaoMembro->periodo ?: '',
-                'id_solicitacao_membro' => $solicitacao->solicitacao_membro_id
+                'id_solicitacao_membro' => $solicitacao->solicitacao_membro_id,
+                'id_espelho' => $solicitacao // colocar o id do espelho aqui
             ]);
             $ordem++;
-        }  
-            
+        }
+
         */
 
         /**
-         * 
+         *
          * recesso coletivo servidor - verificar depois
          */
 
@@ -372,8 +373,8 @@ class EDiario extends Component
             'original' => $novaPortaria->getOriginal(),
         ]);
 
-      
-        
+
+
         session()->flash('mensagem', 'Portaria gerada com sucesso!');
         $this->fecharModal();
     }
@@ -381,7 +382,7 @@ class EDiario extends Component
 
 
     /**
-     * 
+     *
      * select "p"."id" as "id", "p"."num_seq" as "num_seq", "t"."nome" as "tipo", "a"."nome_assunto" as "assunto", "p"."numero" as "numero", "p"."ano" as "ano", "p"."processo" as "processo", "p"."texto_portaria" as "descricao", "p"."data_publicacao" as "data_publicacao", "p"."fk_status" as "status", "p"."data_criacao" as "data_criacao", "s"."descricao" as "status", "s"."id_status" as "id_status" from "portaria"."portarias" as "p" left join "portaria"."assunto_portaria" as "a" on "a"."id_assunto" = "p"."fk_assunto" left join "portaria"."tipo_portaria" as "t" on "t"."id_tipo_portaria" = "p"."fk_tipo_port" left join "portaria"."status_portaria" as "s" on "s"."id_status" = "p"."fk_status" where "p"."fk_status" in (2, 3) order by "p"."id" desc
      */
 
