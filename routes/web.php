@@ -19,11 +19,9 @@ use App\Livewire\HistoricoDosEspelhos;
 use App\Livewire\EDiario;
 
 
-
 Route::fallback(function () {
     return redirect('/gestao-espelho');
 });
-
 
 Route::get('/login', Login::class)->name('login');
 
@@ -37,5 +35,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/espelho', EspelhoPage::class)->name('espelho');
 });
 
-
+Route::get('/skeditor');
 
