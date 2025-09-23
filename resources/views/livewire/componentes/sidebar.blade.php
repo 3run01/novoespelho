@@ -120,14 +120,11 @@
                         x-transition:leave-start="opacity-100 transform translate-y-0"
                         x-transition:leave-end="opacity-0 transform -translate-y-2" class="space-y-1 ml-6">
 
-                        <a href="{{ route('gestao-espelho') }}" @click="sidebarOpen = false"
-                            class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg transition-all duration-200 group {{ request()->routeIs('gestao-espelho') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : 'hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1' }}">
-                            Gestão Espelho
-                        </a>
+                       
 
                         <a href="{{ route('comarca') }}" @click="sidebarOpen = false"
                             class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg transition-all duration-200 group {{ request()->routeIs('municipios') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : 'hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1' }}">
-                            Municípios
+                            Comarcas
                         </a>
 
                         <a href="{{ route('grupo-promotores') }}" @click="sidebarOpen = false"
