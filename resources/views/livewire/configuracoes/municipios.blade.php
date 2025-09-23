@@ -1,34 +1,40 @@
-<div class="flex mt-[35px]" x-data="municipiosData()">
-    <div :class="sidebarCollapsed ? 'w-[56px]' : 'w-[200px]'" class="flex-shrink-0"></div>
+
+<div class="flex mt-[35px] ml-[125px]">
     <div class="flex-1">
+        <!-- Header com título e botão de criar -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900">Comarcas</h2>
-            <p class="mt-1 text-sm text-gray-600">Gerencie as comarcas do sistema</p>
-        </div>
-        <button wire:click="abrirModalCriar"
-            class="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Nova Comarca
-        </button>
-    </div>
-
-
-    <div class="mb-6">
-        <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Comarcas</h2>
+                <p class="mt-1 text-sm text-gray-600">Gerencie as comarcas do sistema</p>
             </div>
-            <input wire:model.live.debounce.300ms="termoBusca" type="text"
-                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Buscar municípios...">
+            <button wire:click="abrirModalCriar"
+                class="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Nova Comarca
+            </button>
         </div>
-    </div>
+
+        <!-- Barra de busca -->
+        <div class="mb-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input wire:model.live.debounce.300ms="termoBusca" type="text"
+                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Buscar municípios...">
+                </div>
+                <!-- Espaço reservado para futuros filtros ou botões -->
+                <div></div>
+                <div></div>
+            </div>
+        </div>
 
     <!-- Mensagens de feedback -->
     @if (session()->has('mensagem'))
@@ -112,10 +118,7 @@
                                 <div class="ml-4">
                                     <div class="text-sm font-medium text-gray-900">{{ $municipio->nome }}</div>
                                     <div class="text-sm text-gray-500">
-                                        ID: {{ $municipio->id }} •
-                                        <span
-                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
-                                            {{ $municipio->entrancia === 'final' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' }}">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                             {{ $municipio->entrancia === 'final' ? 'Entrância Final' : 'Entrância Inicial' }}
                                         </span>
                                     </div>
@@ -357,11 +360,7 @@
             return {
                 init() {
                     // Inicialização do componente Alpine.js
-                    this.$watch('show', value => {
-                        if (!value) {
-                            this.$wire.fecharModal();
-                        }
-                    });
+                    console.log('Alpine.js inicializado');
                 }
             }
         }

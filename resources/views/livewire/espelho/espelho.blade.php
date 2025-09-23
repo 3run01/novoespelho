@@ -5,7 +5,6 @@
                 Prévia do Espelho do Período
             </h1>
 
-            <livewire:pdf-generator />
             @if ($this->periodos->count() > 0)
                 @php
                     $periodo = $this->periodos->first();
@@ -261,7 +260,7 @@
                                             <p class="text-base text-gray-700 mt-1 font-semibold">{{ $nomeMunicipio }}
                                             </p>
                                         </div>
-                                      
+
                                     </div>
                                 </div>
 

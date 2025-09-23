@@ -10,6 +10,7 @@ use App\Models\EventoPromotor;
 use App\Models\Portaria;
 use App\Models\PortariaPessoa;
 use App\Models\GrupoPromotoria;
+use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Support\Str;
 
@@ -55,7 +56,13 @@ class EDiario extends Component
     public $promotor_selecionado_global_designacao_id = '';
 
 
- public function LimpandoVariaveisGlobais(){
+
+
+
+
+
+
+     public function LimpandoVariaveisGlobais(){
         $this->promotor_selecionado_global_nome = '';
         $this->promotor_selecionado_global_acao = '';
         $this->promotor_selecionado_global_matricula = '';
@@ -275,16 +282,15 @@ class EDiario extends Component
 
     protected $listeners = ['abrir-ediario' => 'abrirModal'];
 
+
+    public $matriculaCorregedoria;
+
     public function mount()
     {
-        $this->resetForm();
+    $user = Auth::user();
+    $this->matriculaCorregedoria = $user ? $user->matricula : '';
+    $this->resetForm();
     }
-
-
-
-
-
-
 
 
 
@@ -313,11 +319,7 @@ class EDiario extends Component
     {
         $this->validate();
 
-
         $numeroSequencial  = null;
-
-        $matriculaCorregedoria = 20609; // essa matricula vai ser do  usuario que gera a portaria
-
 
         $novaPortaria = Portaria::create([
             'fk_tipo_port' => 3,
@@ -332,7 +334,7 @@ class EDiario extends Component
             'id_categoria' => 1,
             'conteudo_temp' =>  '',
             'mes' => $this->mes ?: date('m'),
-            'criado_por' => $matriculaCorregedoria,
+            'criado_por' => $this->matriculaCorregedoria,
         ]);
 
 
@@ -365,13 +367,6 @@ class EDiario extends Component
          * recesso coletivo servidor - verificar depois
          */
 
-
-        dd([
-            'id' => $novaPortaria->getKey(),
-            'attributes' => $novaPortaria->getAttributes(),
-            'toArray' => $novaPortaria->toArray(),
-            'original' => $novaPortaria->getOriginal(),
-        ]);
 
 
 

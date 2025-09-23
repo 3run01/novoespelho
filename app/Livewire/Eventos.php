@@ -24,39 +24,39 @@ class Eventos extends Component
 	 * Cache em memória para períodos do getter durante o ciclo de renderização.
 	 */
 	protected ?\Illuminate\Support\Collection $periodosCache = null;
-	
+
 	#[Rule('nullable|min:3|max:200')]
 	public string $titulo = '';
-	
+
 	#[Rule('nullable')]
 	public string $tipo = '';
-	
+
 	#[Rule('nullable|date')]
 	public string $periodo_inicio = '';
-	
+
 	#[Rule('nullable|date|after_or_equal:periodo_inicio')]
 	public string $periodo_fim = '';
-	
+
 	#[Rule('required|exists:promotorias,id')]
 	public string $promotoria_id = '';
 
 
-	
+
 	#[Rule('required')]
 	public string $periodo_id = '';
-	
-	
+
+
 	public ?Evento $eventoEditando = null;
 	public bool $mostrarModal = false;
 	public bool $modoEdicao = false;
 	public string $termoBusca = '';
 	public ?Periodo $periodoSelecionado = null;
 	public ?string $periodoSelecionadoId = null;
-	
+
 	public $promotorias = [];
 	public $promotores = [];
 	public $promotoriasListado = [];
-	
+
 	public array $promotoresDesignacoes = [];
 
 	protected $listeners = [
@@ -66,22 +66,22 @@ class Eventos extends Component
 
 	public function mount()
 	{
-		
+
 		$this->carregarDados();
-		
+
 		$periodoMaisRecente = $this->obterPeriodoMaisRecente();
-		
+
 		Log::info('Período mais recente encontrado no mount', [
 			'periodo_id' => $periodoMaisRecente?->id,
 			'status' => $periodoMaisRecente?->status,
 			'inicio' => $periodoMaisRecente?->periodo_inicio?->format('Y-m-d'),
 			'fim' => $periodoMaisRecente?->periodo_fim?->format('Y-m-d')
 		]);
-		
+
 		$todosPeriodos = Periodo::whereIn('status', ['em_processo_publicacao', 'publicado'])
 			->orderBy('periodo_inicio', 'desc')
 			->get();
-		
+
 		Log::info('Períodos disponíveis', [
 			'periodos' => $todosPeriodos->map(function($periodo) {
 				return [
@@ -92,22 +92,22 @@ class Eventos extends Component
 				];
 			})->toArray()
 		]);
-		
+
 		$this->periodoSelecionado = $periodoMaisRecente;
 		$this->periodoSelecionadoId = $this->periodoSelecionado?->id;
-		
+
 		$this->atualizarPromotoriasListado();
-		
+
 		$this->resetarFormulario();
-		
+
 		$this->periodo_id = $this->periodoSelecionado?->id;
-		
+
 		Log::info('Componente Eventos inicializado com sucesso', [
 			'periodo_selecionado_id' => $this->periodoSelecionadoId,
 			'periodo_id_formulario' => $this->periodo_id
 		]);
 	}
-	
+
 	/**
 	 * Obtém o período mais recente, priorizando os em processo de publicação
 	 */
@@ -116,7 +116,7 @@ class Eventos extends Component
 		$periodosEmProcesso = Periodo::where('status', 'em_processo_publicacao')
 			->orderBy('periodo_inicio', 'desc')
 			->get();
-		
+
 		Log::info('Períodos em processo de publicação encontrados', [
 			'count' => $periodosEmProcesso->count(),
 			'periodos' => $periodosEmProcesso->map(function($periodo) {
@@ -127,7 +127,7 @@ class Eventos extends Component
 				];
 			})->toArray()
 		]);
-		
+
 		if ($periodosEmProcesso->isNotEmpty()) {
 			$periodoMaisRecente = $periodosEmProcesso->first();
 			Log::info('Selecionado período em processo de publicação mais recente', [
@@ -138,11 +138,11 @@ class Eventos extends Component
 			]);
 			return $periodoMaisRecente;
 		}
-		
+
 		$periodosPublicados = Periodo::where('status', 'publicado')
 			->orderBy('periodo_inicio', 'desc')
 			->get();
-		
+
 		Log::info('Períodos publicados encontrados', [
 			'count' => $periodosPublicados->count(),
 			'periodos' => $periodosPublicados->map(function($periodo) {
@@ -153,7 +153,7 @@ class Eventos extends Component
 				];
 			})->toArray()
 		]);
-		
+
 		if ($periodosPublicados->isNotEmpty()) {
 			$periodoMaisRecente = $periodosPublicados->first();
 			Log::info('Selecionado período publicado mais recente', [
@@ -164,17 +164,17 @@ class Eventos extends Component
 			]);
 			return $periodoMaisRecente;
 		}
-		
+
 		Log::warning('Nenhum período em processo de publicação ou publicado encontrado');
 		return null;
 	}
-	
+
 	public function carregarDados()
 	{
 		$this->promotorias = Promotoria::orderBy('nome')->get();
 		$this->promotores = Promotor::orderBy('nome')->get();
 	}
-	
+
 	public function getPeriodosProperty()
 	{
 		if ($this->periodosCache !== null) {
@@ -195,7 +195,7 @@ class Eventos extends Component
 
 		return $this->periodosCache;
 	}
-	
+
 	/**
 	 * Obtém os períodos diretamente do banco de dados
 	 * Este método é usado para forçar a atualização dos períodos
@@ -204,18 +204,18 @@ class Eventos extends Component
 	{
 		return $this->getPeriodosProperty();
 	}
-	
+
 	public function atualizarPromotoriasListado()
 	{
 		$periodosRecentes = Periodo::whereIn('status', ['em_processo_publicacao', 'publicado'])
 			->orderBy('periodo_inicio', 'desc')
 			->get();
-		
+
 		if ($periodosRecentes->isEmpty()) {
 			$this->promotoriasListado = collect();
 			return;
 		}
-		
+
 		$gruposComPromotorias = \App\Models\GrupoPromotoria::with([
 			// Eager loading completo para evitar re-acessos no Blade
 			'promotorias.promotorTitular',
@@ -226,11 +226,11 @@ class Eventos extends Component
 				  ->where(function($query) use ($periodosRecentes) {
 					  $query->whereIn('periodo_id', $periodosRecentes->pluck('id'))
 						  ->whereRaw('periodo_id = (
-							  SELECT periodo_id 
-							  FROM eventos e2 
-							  WHERE e2.promotoria_id = eventos.promotoria_id 
-							  AND e2.periodo_id IN (' . $periodosRecentes->pluck('id')->implode(',') . ') 
-							  ORDER BY e2.periodo_inicio DESC 
+							  SELECT periodo_id
+							  FROM eventos e2
+							  WHERE e2.promotoria_id = eventos.promotoria_id
+							  AND e2.periodo_id IN (' . $periodosRecentes->pluck('id')->implode(',') . ')
+							  ORDER BY e2.periodo_inicio DESC
 							  LIMIT 1
 						  )');
 				  })
@@ -258,11 +258,11 @@ class Eventos extends Component
 				  ->where(function($query) use ($periodosRecentes) {
 					  $query->whereIn('periodo_id', $periodosRecentes->pluck('id'))
 						  ->whereRaw('periodo_id = (
-							  SELECT periodo_id 
-							  FROM eventos e2 
-							  WHERE e2.promotoria_id = eventos.promotoria_id 
-							  AND e2.periodo_id IN (' . $periodosRecentes->pluck('id')->implode(',') . ') 
-							  ORDER BY e2.periodo_inicio DESC 
+							  SELECT periodo_id
+							  FROM eventos e2
+							  WHERE e2.promotoria_id = eventos.promotoria_id
+							  AND e2.periodo_id IN (' . $periodosRecentes->pluck('id')->implode(',') . ')
+							  ORDER BY e2.periodo_inicio DESC
 							  LIMIT 1
 						  )');
 				  })
@@ -291,7 +291,7 @@ class Eventos extends Component
 			$gruposComPromotorias->push($grupoVirtual);
 		}
 
-		// 
+		//
 		Log::info('Carregando promotorias e eventos', [
 			'periodos_ids' => $periodosRecentes->pluck('id')->toArray(),
 			'periodos_status' => $periodosRecentes->pluck('status')->toArray(),
@@ -307,49 +307,49 @@ class Eventos extends Component
 
 
 
-  
+
 
 
 	public function atualizarDados()
 	{
 		$this->atualizarPromotoriasListado();
 	}
-	
+
 	/**
 	 * Recarrega os períodos e atualiza a seleção quando um novo período é criado
 	 */
 	public function recarregarPeriodos()
 	{
 		Log::info('Recarregando períodos após mudança');
-		
+
 		// Invalidar cache dos períodos antes de recalcular
 		$this->periodosCache = null;
-		
+
 		// Recarregar o período mais recente
 		$periodoMaisRecente = $this->obterPeriodoMaisRecente();
-		
+
 		// Se o período selecionado atual não existe mais ou se há um novo período mais recente
-		if (!$this->periodoSelecionado || 
+		if (!$this->periodoSelecionado ||
 			($periodoMaisRecente && $this->periodoSelecionado->id !== $periodoMaisRecente->id)) {
-			
-	
+
+
 			$this->periodoSelecionado = $periodoMaisRecente;
 			$this->periodoSelecionadoId = $this->periodoSelecionado?->id;
-			
+
 			// Atualizar o período_id no formulário se estiver vazio
 			if (empty($this->periodo_id)) {
 				$this->periodo_id = $this->periodoSelecionado?->id;
 			}
 		}
-		
+
 		// Forçar atualização da propriedade periodos
 		$this->dispatch('$refresh');
-		
+
 		// Atualizar a lista de promotorias
 		$this->atualizarPromotoriasListado();
-		
+
 	}
-	
+
 	/**
 	 * Força a atualização da propriedade periodos
 	 */
@@ -358,7 +358,7 @@ class Eventos extends Component
 		$this->periodosCache = null;
 		$this->dispatch('$refresh');
 	}
-	
+
 	public function selecionarPeriodo($periodoId)
 	{
 		$this->periodoSelecionado = $periodoId ? Periodo::find($periodoId) : null;
@@ -384,11 +384,11 @@ class Eventos extends Component
 		$this->modoEdicao = false;
 		$this->eventoEditando = null;
 		$this->mostrarModal = true;
-		
+
 		// Sempre garantir que o período mais recente está selecionado ao criar novo evento
 		$periodoMaisRecente = $this->obterPeriodoMaisRecente();
 		$this->periodo_id = $periodoMaisRecente?->id;
-		
+
 		// Atualizar dados quando abre o modal
 		$this->atualizarPromotoriasListado();
 	}
@@ -397,7 +397,7 @@ class Eventos extends Component
 	{
 		$this->abrirModalCriar();
 		$this->promotoria_id = (string) $promotoriaId;
-		
+
 		// Não é necessário atualizar aqui, pois o problema é no carregamento inicial
 		// $this->atualizarPromotoriasListado();
 	}
@@ -405,12 +405,12 @@ class Eventos extends Component
 	public function abrirModalEditar($eventoId)
 	{
 		$evento = Evento::with('designacoes.promotor')->find($eventoId);
-		
+
 		if (!$evento) {
 			session()->flash('erro', 'Evento não encontrado.');
 			return;
 		}
-		
+
 		$this->modoEdicao = true;
 		$this->eventoEditando = $evento;
 		$this->titulo = $evento->titulo ?? '';
@@ -418,22 +418,22 @@ class Eventos extends Component
 		$this->periodo_inicio = $evento->periodo_inicio ? $evento->periodo_inicio->format('Y-m-d') : '';
 		$this->periodo_fim = $evento->periodo_fim ? $evento->periodo_fim->format('Y-m-d') : '';
 		$this->promotoria_id = $evento->promotoria_id;
-		
+
 		// Sempre tentar selecionar o período mais recente
 		$periodoMaisRecente = $this->obterPeriodoMaisRecente();
-		
+
 		if (!$evento->periodo_id) {
 			Log::info('Nenhum período específico para o evento, selecionando período mais recente', [
 				'evento_id' => $evento->id,
 				'periodo_mais_recente_id' => $periodoMaisRecente?->id,
 				'periodo_mais_recente_status' => $periodoMaisRecente?->status
 			]);
-			
+
 			$this->periodo_id = $periodoMaisRecente?->id;
 		} else {
 			// Se houver período, verificar se ainda é o mais recente
 			$periodoEvento = Periodo::find($evento->periodo_id);
-			
+
 			Log::info('Verificando período do evento', [
 				'evento_id' => $evento->id,
 				'periodo_evento_id' => $periodoEvento?->id,
@@ -441,22 +441,22 @@ class Eventos extends Component
 				'periodo_mais_recente_id' => $periodoMaisRecente?->id,
 				'periodo_mais_recente_status' => $periodoMaisRecente?->status
 			]);
-			
+
 			// Se o período do evento não for o mais recente, atualizar
-			if (!$periodoEvento || 
+			if (!$periodoEvento ||
 				($periodoMaisRecente && $periodoEvento->id !== $periodoMaisRecente->id)) {
 				Log::info('Atualizando período para o mais recente', [
 					'evento_id' => $evento->id,
 					'antigo_periodo_id' => $evento->periodo_id,
 					'novo_periodo_id' => $periodoMaisRecente?->id
 				]);
-				
+
 				$this->periodo_id = $periodoMaisRecente?->id;
 			} else {
 				$this->periodo_id = (string) $evento->periodo_id;
 			}
 		}
-		
+
 		$this->promotoresDesignacoes = $evento->designacoes->map(function ($designacao) {
 			return [
 				'uid' => (string) Str::uuid(),
@@ -486,14 +486,14 @@ class Eventos extends Component
 	{
 		$this->mostrarModal = false;
 		$this->resetarFormulario();
-		
+
 		$this->atualizarPromotoriasListado();
 	}
 
 	public function salvar()
 	{
 		$this->validate();
-		
+
 		$this->validate([
 			'promotoresDesignacoes' => 'array|min:1',
 			'promotoresDesignacoes.*.promotor_id' => 'required|exists:promotores,id',
@@ -505,30 +505,29 @@ class Eventos extends Component
 
 		try {
 			DB::beginTransaction();
-			
+
 			$dadosEvento = [
 				'titulo' => $this->titulo ?: null,
 				'tipo' => $this->tipo ?: null,
 				'periodo_inicio' => $this->periodo_inicio ?: null,
 				'periodo_fim' => $this->periodo_fim ?: null,
 				'promotoria_id' => $this->promotoria_id,
-				'periodo_id' => $this->periodo_id, 
+				'periodo_id' => $this->periodo_id,
 				'is_urgente' => false,
 				'promotores_designacoes' => $this->promotoresDesignacoes
 			];
-			
+
 			// Verificar se o período do evento sendo editado é diferente do período atual
 			$eventoOriginalPeriodoId = $this->eventoEditando ? $this->eventoEditando->periodo_id : null;
 			$novoPeriodoId = (int) $this->periodo_id;
-			
+
 			if ($this->modoEdicao && $this->eventoEditando) {
 				// Se o período do evento sendo editado é diferente do período atual
 				if ($eventoOriginalPeriodoId && $eventoOriginalPeriodoId !== $novoPeriodoId) {
-					// Duplicar o evento para o novo período
 					$novoEvento = $this->eventoEditando->replicate();
 					$novoEvento->periodo_id = $novoPeriodoId;
 					$novoEvento->save();
-					
+
 					// Duplicar as designações de promotores
 					$designacoesOriginais = EventoPromotor::where('evento_id', $this->eventoEditando->id)->get();
 					foreach ($designacoesOriginais as $designacaoOriginal) {
@@ -536,18 +535,18 @@ class Eventos extends Component
 						$novaDesignacao->evento_id = $novoEvento->id;
 						$novaDesignacao->save();
 					}
-					
+
 					// Atualizar o novo evento com os dados do formulário
 					$novoEvento->update($dadosEvento);
 					$evento = $novoEvento;
-					
+
 					Log::info('Evento duplicado para novo período', [
 						'evento_original_id' => $this->eventoEditando->id,
 						'evento_original_periodo_id' => $eventoOriginalPeriodoId,
 						'novo_evento_id' => $novoEvento->id,
 						'novo_periodo_id' => $novoPeriodoId
 					]);
-					
+
 					ActivityLog::createLog(
 						'info',
 						'Evento duplicado para novo período',
@@ -563,13 +562,13 @@ class Eventos extends Component
 						$novoEvento,
 						$novoPeriodoId
 					);
-					
+
 					session()->flash('mensagem', 'Evento duplicado para o novo período com sucesso!');
 				} else {
 					// Se for o mesmo período, atualiza normalmente
 					$this->eventoEditando->update($dadosEvento);
 					$evento = $this->eventoEditando;
-					
+
 					ActivityLog::createLog(
 						'info',
 						'Evento atualizado com sucesso',
@@ -586,13 +585,13 @@ class Eventos extends Component
 						$evento,
 						$evento->periodo_id
 					);
-					
+
 					session()->flash('mensagem', 'Evento atualizado com sucesso!');
 				}
 			} else {
 				// Criação de novo evento
 				$evento = Evento::create($dadosEvento);
-				
+
 				ActivityLog::createLog(
 					'info',
 					'Novo evento criado com sucesso',
@@ -609,11 +608,10 @@ class Eventos extends Component
 					$evento,
 					$evento->periodo_id
 				);
-				
+
 				session()->flash('mensagem', 'Evento criado com sucesso!');
 			}
-			
-			// Limpar e recriar designações de promotores
+
 			EventoPromotor::where('evento_id', $evento->id)->delete();
 			$ordem = 1;
 			foreach ($this->promotoresDesignacoes as $designacao) {
@@ -644,22 +642,22 @@ class Eventos extends Component
 						'grupo_promotorias_id' => null,
 						'plantao_atendimento_id' => null,
 					]);
-					
+
 					$espelho->eventos()->syncWithoutDetaching([$evento->id => [
 						'ordem' => $espelho->eventos()->count() + 1
 					]]);
 				}
 			}
-			
+
 			DB::commit();
 			$this->fecharModal();
-			
+
 			$this->atualizarPromotoriasListado();
 			$this->dispatch('eventoSalvo');
-			
+
 		} catch (\Exception $e) {
 			DB::rollback();
-			
+
 			ActivityLog::createLog(
 				'error',
 				'Erro ao salvar evento: ' . $e->getMessage(),
@@ -681,7 +679,7 @@ class Eventos extends Component
 				null,
 				(int) $this->periodo_id
 			);
-			
+
 			session()->flash('erro', 'Erro ao salvar evento: ' . $e->getMessage());
 		}
 	}
@@ -689,11 +687,11 @@ class Eventos extends Component
 	public function deletar(int $eventoId)
 	{
 		$evento = Evento::find($eventoId);
-		
+
 
 		try {
 			DB::beginTransaction();
-			
+
 			if (!$evento) {
 				ActivityLog::createLog(
 					'warning',
@@ -708,20 +706,20 @@ class Eventos extends Component
 					null,
 					null
 				);
-				
+
 				DB::rollBack();
 				session()->flash('erro', 'Evento não encontrado.');
 				return;
 			}
-			
+
 			$evento->espelhos()->detach();
-			
+
 			EventoPromotor::where('evento_id', $evento->id)->delete();
-			
+
 			$evento->promotores()->detach();
-			
+
 			$evento->delete();
-			
+
 			ActivityLog::createLog(
 				'info',
 				'Evento deletado com sucesso',
@@ -738,15 +736,15 @@ class Eventos extends Component
 				$evento,
 				$evento->periodo_id
 			);
-			
+
 			DB::commit();
 			session()->flash('mensagem', 'Evento deletado com sucesso!');
 			$this->atualizarPromotoriasListado();
 			$this->dispatch('eventoSalvo');
-			
+
 		} catch (\Exception $e) {
 			DB::rollback();
-			
+
 			ActivityLog::createLog(
 				'error',
 				'Erro ao deletar evento: ' . $e->getMessage(),
@@ -769,11 +767,11 @@ class Eventos extends Component
 				null,
 				null
 			);
-			
+
 			session()->flash('erro', 'Não é possível deletar este evento: ' . $e->getMessage());
 		}
 	}
-	
+
 	public function resetarFormulario()
 	{
 		$this->titulo = '';
@@ -781,30 +779,30 @@ class Eventos extends Component
 		$this->periodo_inicio = '';
 		$this->periodo_fim = '';
 		$this->promotoria_id = '';
-		
+
 		// Manter o período atual se já estiver definido, senão usar o mais recente
 		if (empty($this->periodo_id)) {
 			$periodoMaisRecente = $this->obterPeriodoMaisRecente();
 			$this->periodo_id = $periodoMaisRecente?->id;
 		}
-		
+
 		$this->eventoEditando = null;
 		$this->resetValidation();
 	}
-	
-	
+
+
 	public function adicionarLinhaPromotor(): void
 	{
 		$this->promotoresDesignacoes[] = [
 			'uid' => (string) Str::uuid(),
 			'promotor_id' => '',
-			'tipo' => 'substituto', 
+			'tipo' => 'substituto',
 			'data_inicio_designacao' => $this->periodo_inicio ?: '',
 			'data_fim_designacao' => $this->periodo_fim ?: '',
 			'observacoes' => ''
 		];
 	}
-	
+
 	public function removerLinhaPromotor(int $index): void
 	{
 		if (isset($this->promotoresDesignacoes[$index])) {
@@ -818,7 +816,7 @@ class Eventos extends Component
 		if (empty($this->promotoriasListado)) {
 			$this->atualizarPromotoriasListado();
 		}
-		
+
 		return view('livewire.espelho.eventos');
 	}
 
@@ -826,20 +824,20 @@ class Eventos extends Component
 	{
 		// Iniciar transação
 		DB::beginTransaction();
-		
+
 		try {
 			// Criar novo período
 			$novoPeriodo = Periodo::create($dadosPeriodo);
-			
+
 			// Buscar período anterior mais recente
 			$periodoAnterior = Periodo::orderBy('periodo_fim', 'desc')
 				->where('id', '!=', $novoPeriodo->id)
 				->first();
-			
+
 			if ($periodoAnterior) {
 				// Buscar eventos do período anterior
 				$eventosAnteriores = Evento::where('periodo_id', $periodoAnterior->id)->get();
-				
+
 				// Duplicar eventos para o novo período
 				foreach ($eventosAnteriores as $eventoAntigo) {
 					// Criar novo evento com os mesmos dados do evento anterior, mantendo o original
@@ -852,7 +850,7 @@ class Eventos extends Component
 						'periodo_id' => $novoPeriodo->id,
 						'is_urgente' => $eventoAntigo->is_urgente
 					]);
-					
+
 					$designacoesAntigas = EventoPromotor::where('evento_id', $eventoAntigo->id)->get();
 					foreach ($designacoesAntigas as $designacaoAntiga) {
 						EventoPromotor::create([
@@ -865,7 +863,7 @@ class Eventos extends Component
 							'observacoes' => $designacaoAntiga->observacoes
 						]);
 					}
-					
+
 					// Duplicar associações com espelhos
 					$espelhos = $eventoAntigo->espelhos;
 					foreach ($espelhos as $espelho) {
@@ -879,32 +877,32 @@ class Eventos extends Component
 								'plantao_atendimento_id' => null,
 							]
 						);
-						
+
 						$novoEspelho->eventos()->syncWithoutDetaching([$novoEvento->id => [
 							'ordem' => $novoEspelho->eventos()->count() + 1
 						]]);
 					}
 				}
-				
+
 				Log::info('Eventos duplicados para novo período', [
 					'periodo_anterior_id' => $periodoAnterior->id,
 					'novo_periodo_id' => $novoPeriodo->id,
 					'total_eventos_duplicados' => $eventosAnteriores->count()
 				]);
 			}
-			
+
 			DB::commit();
 			return $novoPeriodo;
 		} catch (\Exception $e) {
 			DB::rollBack();
-			
+
 			Log::error('Erro ao criar novo período e duplicar eventos', [
 				'error_message' => $e->getMessage(),
 				'error_file' => $e->getFile(),
 				'error_line' => $e->getLine(),
 				'periodo_dados' => $dadosPeriodo
 			]);
-			
+
 			throw $e;
 		}
 	}
@@ -913,17 +911,17 @@ class Eventos extends Component
 	{
 		// Iniciar transação
 		DB::beginTransaction();
-		
+
 		try {
 			// Buscar período anterior mais recente
 			$periodoAnterior = Periodo::orderBy('periodo_fim', 'desc')
 				->where('id', '!=', $novoPeriodo->id)
 				->first();
-			
+
 			if ($periodoAnterior) {
 				// Buscar eventos do período anterior
 				$eventosAnteriores = Evento::where('periodo_id', $periodoAnterior->id)->get();
-				
+
 				// Duplicar eventos para o novo período
 				foreach ($eventosAnteriores as $eventoAntigo) {
 					// Criar novo evento com os mesmos dados do evento anterior, mantendo o original
@@ -936,7 +934,7 @@ class Eventos extends Component
 						'periodo_id' => $novoPeriodo->id,
 						'is_urgente' => $eventoAntigo->is_urgente
 					]);
-					
+
 					// Duplicar designações de promotores
 					$designacoesAntigas = EventoPromotor::where('evento_id', $eventoAntigo->id)->get();
 					foreach ($designacoesAntigas as $designacaoAntiga) {
@@ -950,7 +948,7 @@ class Eventos extends Component
 							'observacoes' => $designacaoAntiga->observacoes
 						]);
 					}
-					
+
 					// Duplicar associações com espelhos
 					$espelhos = $eventoAntigo->espelhos;
 					foreach ($espelhos as $espelho) {
@@ -964,13 +962,13 @@ class Eventos extends Component
 								'plantao_atendimento_id' => null,
 							]
 						);
-						
+
 						$novoEspelho->eventos()->syncWithoutDetaching([$novoEvento->id => [
 							'ordem' => $novoEspelho->eventos()->count() + 1
 						]]);
 					}
 				}
-				
+
 				// Log detalhado da duplicação
 				Log::info('Eventos duplicados para novo período', [
 					'periodo_anterior_id' => $periodoAnterior->id,
@@ -978,12 +976,12 @@ class Eventos extends Component
 					'total_eventos_duplicados' => $eventosAnteriores->count()
 				]);
 			}
-			
+
 			DB::commit();
 			return $novoPeriodo;
 		} catch (\Exception $e) {
 			DB::rollBack();
-			
+
 			// Log de erro detalhado
 			Log::error('Erro ao duplicar eventos para novo período', [
 				'error_message' => $e->getMessage(),
@@ -991,7 +989,7 @@ class Eventos extends Component
 				'error_line' => $e->getLine(),
 				'periodo_id' => $novoPeriodo->id
 			]);
-			
+
 			throw $e;
 		}
 	}

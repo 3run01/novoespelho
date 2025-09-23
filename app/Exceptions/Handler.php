@@ -34,21 +34,7 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $e)
     {
-        if ($e instanceof MethodNotFoundException && 
-            $e->getMessage() && 
-            str_contains($e->getMessage(), 'toJSON') && 
-            str_contains($e->getMessage(), 'not found')) {
-            
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'data' => [],
-                    'message' => 'Método toJSON ignorado silenciosamente'
-                ], 200);
-            }
-            
-            return redirect()->back()->with('info', 'Operação realizada com sucesso');
-        }
+        // ...existing code...
 
         return parent::render($request, $e);
     }

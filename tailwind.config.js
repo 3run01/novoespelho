@@ -8,15 +8,11 @@ export default {
         './resources/**/*.blade.php',
         './resources/**/*.js',
         './resources/**/*.vue',
-        './vendor/filament/**/*.blade.php',
-        './app/Filament/**/*.php',
-        './resources/views/filament/**/*.blade.php',
-        './resources/views/filament/pages/historico.blade.php',
     ],
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Poppins', 'Figtree', ...defaultTheme.fontFamily.sans],
             },
         },
     },

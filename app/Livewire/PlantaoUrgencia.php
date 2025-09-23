@@ -14,32 +14,32 @@ use Illuminate\Support\Str;
 class PlantaoUrgencia extends Component
 {
     use WithPagination;
-    
+
     #[Rule('required')]
     public string $periodo_id = '';
-    
+
     public ?int $municipio_id = null;
-    
+
     #[Rule('required|min:2|max:100')]
     public string $nome = '';
-    
+
     #[Rule('nullable|max:500')]
     public string $observacoes = '';
-    
+
     public ?PlantaoAtendimento $plantaoEditando = null;
     public bool $mostrarModal = false;
     public bool $modoEdicao = false;
     public string $termoBusca = '';
     public string $filtroMunicipio = '';
     public string $filtroPeriodo = '';
-    
+
     // Propriedades para seleção em cascata
     public string $entranciaSelecionada = '';
     public string $nucleoSelecionado = '';
-    
+
     // Nova estrutura baseada em Eventos.php
     public array $promotoresDesignacoes = [];
-    
+
     protected $listeners = ['plantaoSalvo' => '$refresh'];
 
     public function mount()
@@ -48,17 +48,17 @@ class PlantaoUrgencia extends Component
         $periodoMaisRecente = Periodo::where('status', 'em_processo_publicacao')
             ->orderBy('periodo_inicio', 'desc')
             ->first();
-        
+
         if (!$periodoMaisRecente) {
             $periodoMaisRecente = Periodo::where('status', 'publicado')
                 ->orderBy('periodo_inicio', 'desc')
                 ->first();
         }
-        
+
         if ($periodoMaisRecente) {
             $this->filtroPeriodo = (string) $periodoMaisRecente->id;
         }
-        
+
         $this->resetarFormulario();
     }
 
@@ -66,12 +66,12 @@ class PlantaoUrgencia extends Component
     {
         $this->modoEdicao = false;
         $this->resetarFormulario();
-        
+
         $ultimoPeriodo = Periodo::orderBy('created_at', 'desc')->first();
         if ($ultimoPeriodo) {
             $this->periodo_id = $ultimoPeriodo->id;
         }
-        
+
         // Inicializar com uma designação vazia
         $this->promotoresDesignacoes = [[
             'uid' => (string) Str::uuid(),
@@ -81,19 +81,21 @@ class PlantaoUrgencia extends Component
             'data_fim_designacao' => '',
             'observacoes' => ''
         ]];
-        
+
         $this->mostrarModal = true;
     }
 
-    public function abrirModalEditar(PlantaoAtendimento $plantao)
+    public function abrirModalEditar($plantaoId)
     {
+        $plantao = PlantaoAtendimento::findOrFail($plantaoId);
+
         $this->modoEdicao = true;
         $this->plantaoEditando = $plantao;
         $this->periodo_id = $plantao->periodo_id;
         $this->municipio_id = $plantao->municipio_id;
         $this->nome = $plantao->nome ?? '';
         $this->observacoes = $plantao->observacoes ?? '';
-        
+
         // Carregar entrância e núcleo do município
         $municipio = $plantao->municipio;
         if ($municipio->entrancia === 'final') {
@@ -107,7 +109,7 @@ class PlantaoUrgencia extends Component
             $this->entranciaSelecionada = 'inicial';
             $this->nucleoSelecionado = (string) $plantao->nucleo;
         }
-        
+
         // Carregar designações existentes
         $this->promotoresDesignacoes = $plantao->promotores()
             ->withPivot(['data_inicio_designacao', 'data_fim_designacao', 'ordem', 'tipo_designacao', 'status'])
@@ -116,7 +118,7 @@ class PlantaoUrgencia extends Component
                 // Tratar datas que podem ser string ou Carbon
                 $dataInicio = $promotor->pivot->data_inicio_designacao;
                 $dataFim = $promotor->pivot->data_fim_designacao;
-                
+
                 if ($dataInicio && !is_string($dataInicio)) {
                     $dataInicio = $dataInicio->format('Y-m-d');
                 } elseif (is_string($dataInicio)) {
@@ -124,7 +126,7 @@ class PlantaoUrgencia extends Component
                 } else {
                     $dataInicio = '';
                 }
-                
+
                 if ($dataFim && !is_string($dataFim)) {
                     $dataFim = $dataFim->format('Y-m-d');
                 } elseif (is_string($dataFim)) {
@@ -132,7 +134,7 @@ class PlantaoUrgencia extends Component
                 } else {
                     $dataFim = '';
                 }
-                
+
                 return [
                     'uid' => (string) Str::uuid(),
                     'promotor_id' => (string) $promotor->id,
@@ -153,7 +155,7 @@ class PlantaoUrgencia extends Component
                 'observacoes' => ''
             ]];
         }
-            
+
         $this->mostrarModal = true;
     }
 
@@ -166,22 +168,22 @@ class PlantaoUrgencia extends Component
     public function salvar()
     {
         $this->validate();
-        
+
         // Validar seleção em cascata
         $this->validate([
             'entranciaSelecionada' => 'required|in:final_macapa,final_santana,inicial',
         ]);
-        
+
         // Se for entrância inicial, validar núcleo
         if ($this->entranciaSelecionada === 'inicial') {
             $this->validate([
                 'nucleoSelecionado' => 'required|in:1,2,3',
             ]);
         }
-        
+
         // Determinar o município baseado na entrância e núcleo selecionados
         $this->municipio_id = $this->determinarMunicipioId();
-        
+
         // Validar designações de promotores
         $this->validate([
             'promotoresDesignacoes' => 'array|min:1',
@@ -190,7 +192,7 @@ class PlantaoUrgencia extends Component
             'promotoresDesignacoes.*.data_inicio_designacao' => 'nullable|date',
             'promotoresDesignacoes.*.data_fim_designacao' => 'nullable|date',
         ]);
-        
+
         if ($this->modoEdicao && $this->plantaoEditando) {
             $this->plantaoEditando->update([
                 'periodo_id' => $this->periodo_id,
@@ -199,9 +201,9 @@ class PlantaoUrgencia extends Component
                 'nome' => $this->nome,
                 'observacoes' => $this->observacoes,
             ]);
-            
+
             $this->atualizarPromotores($this->plantaoEditando);
-            
+
             session()->flash('mensagem', 'Plantão de urgência atualizado com sucesso!');
         } else {
             $plantao = PlantaoAtendimento::create([
@@ -211,19 +213,20 @@ class PlantaoUrgencia extends Component
                 'nome' => $this->nome,
                 'observacoes' => $this->observacoes,
             ]);
-            
+
             $this->atualizarPromotores($plantao);
-            
+
             session()->flash('mensagem', 'Plantão de urgência criado com sucesso!');
         }
-        
+
         $this->fecharModal();
         $this->dispatch('plantaoSalvo');
     }
 
-    public function deletar(PlantaoAtendimento $plantao)
+    public function deletar($plantaoId)
     {
         try {
+            $plantao = PlantaoAtendimento::findOrFail($plantaoId);
             $plantao->delete();
             session()->flash('mensagem', 'Plantão de urgência deletado com sucesso!');
             $this->dispatch('plantaoSalvo');
@@ -244,7 +247,7 @@ class PlantaoUrgencia extends Component
             'observacoes' => ''
         ];
     }
-    
+
     // Nova função para remover linha de promotor
     public function removerLinhaPromotor(int $index): void
     {
@@ -257,7 +260,7 @@ class PlantaoUrgencia extends Component
     {
         // Remover todos os promotores existentes
         $plantao->promotores()->detach();
-        
+
         // Adicionar novos promotores baseado nas designações
         $ordem = 1;
         foreach ($this->promotoresDesignacoes as $designacao) {
@@ -265,7 +268,7 @@ class PlantaoUrgencia extends Component
             if ($promotorId <= 0) {
                 continue;
             }
-            
+
             $plantao->promotores()->attach($promotorId, [
                 'data_inicio_designacao' => $designacao['data_inicio_designacao'] ?: null,
                 'data_fim_designacao' => $designacao['data_fim_designacao'] ?: null,
@@ -341,7 +344,7 @@ class PlantaoUrgencia extends Component
             $municipio = Municipio::where('nome', 'Macapá')->first();
             return $municipio ? $municipio->id : null;
         }
-        
+
         if ($this->entranciaSelecionada === 'final_santana') {
             $municipio = Municipio::where('nome', 'Santana')->first();
             return $municipio ? $municipio->id : null;
@@ -362,7 +365,7 @@ class PlantaoUrgencia extends Component
         if ($this->entranciaSelecionada === 'final_macapa') {
             return Municipio::where('nome', 'Macapá')->get();
         }
-        
+
         if ($this->entranciaSelecionada === 'final_santana') {
             return Municipio::where('nome', 'Santana')->get();
         }
@@ -384,11 +387,11 @@ class PlantaoUrgencia extends Component
         $periodosEmProcesso = Periodo::where('status', 'em_processo_publicacao')
             ->orderBy('periodo_inicio', 'desc')
             ->get();
-        
+
         if ($periodosEmProcesso->isNotEmpty()) {
             return $periodosEmProcesso;
         }
-        
+
         return Periodo::where('status', 'publicado')
             ->orderBy('periodo_inicio', 'desc')
             ->get();

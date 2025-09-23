@@ -1,9 +1,8 @@
-<div class="flex mt-[35px]" x-data="{
+<div class="flex mt-[35px] ml-[125px]" x-data="{
     mostrarModal: @entangle('mostrarModal'),
     modoEdicao: @entangle('modoEdicao'),
     zonaEleitoral: @entangle('zona_eleitoral').live
 }">
-    <div :class="sidebarCollapsed ? 'w-[56px]' : 'w-[200px]'" class="flex-shrink-0"></div>
     <div class="flex-1">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>

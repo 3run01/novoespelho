@@ -37,10 +37,11 @@ class Municipios extends Component
             ->when($this->termoBusca, function ($query) {
                 $query->where('nome', 'like', '%' . $this->termoBusca . '%');
             })
-            ->orderBy('entrancia', 'desc') // Entrância final primeiro
+            ->orderBy('entrancia', 'desc')
             ->orderBy('nome', 'asc')
             ->paginate(10);
     }
+
 
     public function abrirModalCriar()
     {
@@ -49,8 +50,12 @@ class Municipios extends Component
         $this->mostrarModal = true;
     }
 
-    public function abrirModalEditar(Municipio $municipio)
+    public function abrirModalEditar($municipioId)
     {
+        logger('Método abrirModalEditar foi chamado com ID: ' . $municipioId);
+        dd("Método abrirModalEditar funcionando! ID: " . $municipioId);
+
+        $municipio = Municipio::findOrFail($municipioId);
         $this->modoEdicao = true;
         $this->municipioEditando = $municipio;
         $this->nome = $municipio->nome;
@@ -83,16 +88,17 @@ class Municipios extends Component
         }
 
         $this->fecharModal();
-        $this->resetPage(); 
+        $this->resetPage();
         $this->dispatch('municipioSalvo');
     }
 
-    public function deletar(Municipio $municipio)
+    public function deletar($municipioId)
     {
         try {
+            $municipio = Municipio::findOrFail($municipioId);
             $municipio->delete();
             session()->flash('mensagem', 'Município deletado com sucesso!');
-            $this->resetPage(); 
+            $this->resetPage();
             $this->dispatch('municipioSalvo');
         } catch (\Exception $e) {
             session()->flash('erro', 'Não é possível deletar este município pois está sendo usado em outras partes do sistema.');

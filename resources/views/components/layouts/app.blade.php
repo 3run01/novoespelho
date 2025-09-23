@@ -19,12 +19,14 @@
 </head>
 
 <body class="bg-gray-50">
-    <div class="min-h-screen" x-data="{ sidebarCollapsed: false }"
-        @sidebar-collapsed.window="sidebarCollapsed = $event.detail.collapsed">
-        @livewire('sidebar')
+    <div class="min-h-screen">
+        @if(Route::currentRouteName() !== 'login')
+            <livewire:sidebar />
+        @endif
 
-        <main class="pt-10 transition-all duration-300" :class="sidebarCollapsed ? 'pl-[10px]' : 'pl-20'">
-            <div class="px-4 sm:px-6 lg:px-8 py-8 max-w-none">
+        <main class="pt-10">
+
+            <div class="px-4 sm:px-6 lg:px-8 py-8 max-w-none ml-20">
                 {{ $slot }}
             </div>
         </main>
@@ -33,48 +35,30 @@
     @livewireScripts
 
     <script>
-        // Suprimir erro específico do toJSON que não afeta funcionalidade
-        window.addEventListener('livewire:init', () => {
-            // Interceptar erros de requisições AJAX do Livewire
-            Livewire.hook('request', ({ fail }) => {
-                fail((status, response) => {
-                    // Se for erro 500 com toJSON, tratar como sucesso
-                    if (status === 500 && response && response.message &&
-                        response.message.includes('toJSON') &&
-                        response.message.includes('not found')) {
-                        console.warn('Livewire: Método toJSON não encontrado (ignorado)');
-                        // Retornar uma resposta de sucesso vazia
-                        return { success: true, data: {} };
-                    }
-                });
-            });
-        });
-
-        // Interceptar erros de resposta do servidor
         document.addEventListener('DOMContentLoaded', function() {
-            // Interceptar fetch requests
             const originalFetch = window.fetch;
             window.fetch = function(...args) {
-                return originalFetch.apply(this, args).then(response => {
-                    if (response.status === 500) {
-                        return response.clone().text().then(text => {
-                            if (text.includes('toJSON') && text.includes('not found')) {
-                                console.warn('Livewire: Método toJSON não encontrado (ignorado)');
-                                // Retornar uma resposta de sucesso
-                                return new Response(JSON.stringify({success: true}), {
-                                    status: 200,
-                                    statusText: 'OK',
-                                    headers: response.headers
-                                });
-                            }
-                            return response;
-                        });
+            return originalFetch.apply(this, args).then(response => {
+                if (response.status === 500) {
+                return response.clone().text().then(text => {
+                    if (text.includes('toJSON') && text.includes('not found')) {
+                    console.warn('Livewire: Método toJSON não encontrado (ignorado)');
+                    return new Response(JSON.stringify({ success: true }), {
+                        status: 200,
+                        statusText: 'OK',
+                        headers: response.headers
+                    });
                     }
                     return response;
                 });
+                }
+                return response;
+            });
             };
         });
     </script>
+
+
 </body>
 
 </html>

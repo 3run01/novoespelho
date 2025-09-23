@@ -15,6 +15,8 @@ class Login extends Component
 
     public function authenticate()
     {
+
+
         $data = [
             'usuario' => $this->usuario,
             'password' => $this->password,
@@ -43,6 +45,7 @@ class Login extends Component
 
             if ($usuario_local) {
                 Auth::login($usuario_local);
+                $this->dispatch('nome_do_usuario', ['nome_do_usuario' => $usuario_local->nome]);
                 return redirect('/gestao-espelho');
             }
         }
@@ -66,7 +69,6 @@ class Login extends Component
             $autenticacao = UserAuth::where([
                 ['login_intranet', $data['usuario']],
                 ['senha_intranet', $senhaAutenticada],
-                ['status', '=', '1', $data['status']]
             ])->where('status', 1)->first();
 
             if (!$autenticacao) {

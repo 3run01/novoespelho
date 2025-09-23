@@ -1,5 +1,4 @@
-<div class="flex mt-[35px]">
-    <div :class="sidebarCollapsed ? 'w-[56px]' : 'w-[200px]'" class="flex-shrink-0"></div>
+<div class="flex mt-[35px] ml-[125px]">
     <div class="flex-1">
     <!-- Header com título e botão de criar -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">

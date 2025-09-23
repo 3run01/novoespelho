@@ -58,8 +58,9 @@ class Periodos extends Component
         $this->mostrarModal = true;
     }
 
-    public function abrirModalEditar(Periodo $periodo)
+    public function abrirModalEditar($periodoId)
     {
+        $periodo = Periodo::findOrFail($periodoId);
         $this->modoEdicao = true;
         $this->periodoEditando = $periodo;
         $this->periodoInicio = $periodo->periodo_inicio->format('Y-m-d');
@@ -117,15 +118,18 @@ class Periodos extends Component
         $this->dispatch('periodoSalvo');
     }
 
-    public function publicar(Periodo $periodo)
+    public function publicar($periodoId)
     {
+        $periodo = Periodo::findOrFail($periodoId);
         $periodo->publicar();
         session()->flash('mensagem', 'Período publicado com sucesso!');
         $this->dispatch('periodoSalvo');
     }
 
-    public function deletar(Periodo $periodo)
+    public function deletar($periodoId)
     {
+        $periodo = Periodo::findOrFail($periodoId);
+
         if ($periodo->status !== 'em_processo_publicacao') {
             session()->flash('erro', 'Somente períodos com status "Em Processo de Publicação" podem ser deletados.');
             return;

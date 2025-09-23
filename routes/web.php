@@ -15,16 +15,15 @@ use App\Livewire\Promotores;
 use App\Livewire\GrupoPromotores;
 use App\Livewire\Promotorias;
 use App\Livewire\Login;
-use App\Http\Controllers\PdfController;
-use App\Http\Controllers\EspelhoPdfController;
-use App\Http\Controllers\EspelhoPublicadoController;
-
 use App\Livewire\HistoricoDosEspelhos;
 use App\Livewire\EDiario;
+
+
 
 Route::fallback(function () {
     return redirect('/gestao-espelho');
 });
+
 
 Route::get('/login', Login::class)->name('login');
 
@@ -38,12 +37,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/espelho', EspelhoPage::class)->name('espelho');
 });
 
-Route::prefix('espelho')->group(function () {
-    Route::get('/pdf/completo', [EspelhoPdfController::class, 'gerarEspelhoCompleto'])->name('espelho.pdf.completo');
-    Route::get('/pdf/municipio/{municipioId}', [EspelhoPdfController::class, 'gerarEspelhoPorMunicipio'])->name('espelho.pdf.municipio');
-    Route::get('/pdf/visualizar', [EspelhoPdfController::class, 'visualizarEspelho'])->name('espelho.pdf.visualizar');
-    Route::get('/pdf/{espelho}', [EspelhoPdfController::class, 'gerarEspelhoIndividual'])->name('espelho.pdf');
-})->middleware('auth');
 
-//api
-Route::get('/espelho/publicado', [App\Http\Controllers\EspelhoPublicadoController::class, 'index'])->middleware('auth');
+
