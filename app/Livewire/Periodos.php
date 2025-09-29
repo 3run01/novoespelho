@@ -130,8 +130,15 @@ class Periodos extends Component
     {
         $periodo = Periodo::findOrFail($periodoId);
 
-        if ($periodo->status !== 'em_processo_publicacao') {
-            session()->flash('erro', 'Somente períodos com status "Em Processo de Publicação" podem ser deletados.');
+        // Não permitir deletar períodos em processo de publicação
+        if ($periodo->status === 'em_processo_publicacao') {
+            session()->flash('erro', 'Não é possível deletar um período que está em processo de publicação.');
+            return;
+        }
+
+        // Não permitir deletar períodos já publicados
+        if ($periodo->status === 'publicado') {
+            session()->flash('erro', 'Não é possível deletar um período que já foi publicado.');
             return;
         }
 

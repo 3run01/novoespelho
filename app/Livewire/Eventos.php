@@ -222,7 +222,7 @@ class Eventos extends Component
 			'promotorias.grupoPromotoria.municipio',
 			'municipio',
 			'promotorias.eventos' => function ($q) use ($periodosRecentes) {
-				$q->with(['designacoes.promotor'])
+				$q->with(['designacoes.promotor', 'periodo'])
 				  ->where(function($query) use ($periodosRecentes) {
 					  $query->whereIn('periodo_id', $periodosRecentes->pluck('id'))
 						  ->whereRaw('periodo_id = (
@@ -252,7 +252,7 @@ class Eventos extends Component
 		$promotoriasSemGrupo = \App\Models\Promotoria::with([
 			'promotorTitular',
 			'eventos' => function ($q) use ($periodosRecentes) {
-				$q->with(['designacoes.promotor'])
+				$q->with(['designacoes.promotor', 'periodo'])
 				  // Filtrar apenas o período mais recente para cada promotoria
 				  //Mudar essa query direta aqui!!!
 				  ->where(function($query) use ($periodosRecentes) {
@@ -688,6 +688,11 @@ class Eventos extends Component
 	{
 		$evento = Evento::find($eventoId);
 
+		// Verificar se o evento está associado a um período em processo de publicação
+		if ($evento && $evento->periodo && $evento->periodo->status === 'em_processo_publicacao') {
+			session()->flash('erro', 'Não é possível deletar um evento que está associado a um período em processo de publicação.');
+			return;
+		}
 
 		try {
 			DB::beginTransaction();
