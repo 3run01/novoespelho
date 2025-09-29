@@ -1,0 +1,20 @@
+services:
+    php:
+        container_name: ${CONTAINER_NAME:-novoespelho}
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
+        environment:
+            SERVER_NAME: ":8080"
+        ports:
+            - ${CONTAINER_PORT:-8001}:80
+        #   - 5175:5175
+        volumes:
+            - .:/var/www/app
+            - ./docker/php/extra-php.ini:/usr/local/etc/php/conf.d/extra-php.ini
+            - ./docker/supervisord/supervisord.octane.conf:/etc/supervisor/conf.d/supervisord.conf
+            - ./docker/supervisord/conf:/etc/supervisord.d/
+
+networks:
+    desenvolvimento:
+        external: true
